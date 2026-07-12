@@ -1,0 +1,452 @@
+<title>ERD — MYGURU AI</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #F0F3F8; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+  #bar {
+    flex: 0 0 50px; background: #12243E; display: flex; align-items: center;
+    padding: 0 18px; gap: 0; border-bottom: 2px solid #1E3A6A; z-index: 50;
+  }
+  #bar-title { font-size: 13px; font-weight: 700; color: #C8DCF4; letter-spacing: 0.06em; text-transform: uppercase; }
+  #bar-sub { font-size: 10.5px; color: #4E6E98; margin-left: 14px; padding-left: 14px; border-left: 1px solid #1E3A5A; }
+  #legend { display: flex; align-items: center; gap: 18px; margin-left: auto; }
+  .li { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #6A8EB4; letter-spacing: 0.02em; }
+  .bd { font-size: 8px; font-weight: 800; padding: 2px 5px; border-radius: 2px; letter-spacing: 0.08em; }
+  .bd-pk { background: #9A6C08; color: #FEFCE8; }
+  .bd-fk { background: #1C52B0; color: #EFF6FF; }
+  .ln-demo { width: 20px; height: 1.5px; background: #5A8BAE; }
+  .ln-dot { width: 20px; height: 1.5px; background: #5A8BAE; background-image: repeating-linear-gradient(90deg,#5A8BAE,#5A8BAE 4px,transparent 4px,transparent 7px); }
+
+  #wrap { flex: 1; overflow: hidden; position: relative; cursor: grab; }
+  #wrap.pan { cursor: grabbing; }
+  #erd { width: 100%; height: 100%; }
+
+  #ctrl { position: absolute; bottom: 14px; right: 14px; display: flex; flex-direction: column; gap: 3px; }
+  .cb { width: 28px; height: 28px; background: #12243E; color: #9AC0E0; border: 1px solid #1E3A5A; border-radius: 4px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; }
+  .cb:hover { background: #1A3460; }
+  .cb.sm { font-size: 8.5px; font-weight: 700; letter-spacing: 0.02em; }
+
+  #hint { position: absolute; bottom: 14px; left: 14px; font-size: 9.5px; color: #6A8EB4; }
+  #info { position: absolute; top: 10px; left: 14px; background: rgba(18,36,62,0.92); color: #A0C4E8; font-size: 10px; padding: 5px 10px; border-radius: 4px; display: none; border: 1px solid #1E3A5A; letter-spacing: 0.02em; }
+</style>
+
+<div id="bar">
+  <span id="bar-title">MYGURU AI ERD</span>
+  <span id="bar-sub">14 Tables &nbsp;·&nbsp; 17 FK Relationships &nbsp;·&nbsp; PK &amp; FK only</span>
+  <div id="legend">
+    <div class="li"><span class="bd bd-pk">PK</span> Primary Key</div>
+    <div class="li"><span class="bd bd-fk">FK</span> Foreign Key</div>
+    <div class="li"><div class="ln-demo"></div> Mandatory</div>
+    <div class="li"><div class="ln-dot"></div> Optional FK</div>
+  </div>
+</div>
+
+<div id="wrap">
+  <svg id="erd" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1" r="0.8" fill="#C8D4E4" opacity="0.5"/>
+      </pattern>
+      <marker id="a-blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0.5 L0,6.5 L7,3.5z" fill="#4A8AC4"/>
+      </marker>
+      <marker id="a-grn" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0.5 L0,6.5 L7,3.5z" fill="#3A9A6A"/>
+      </marker>
+      <marker id="a-pur" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0.5 L0,6.5 L7,3.5z" fill="#8060C8"/>
+      </marker>
+      <marker id="a-hi" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0.5 L0,6.5 L7,3.5z" fill="#1C52B0"/>
+      </marker>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#dots)"/>
+    <g id="mg">
+      <g id="zones"></g>
+      <g id="ll"></g>
+      <g id="tl"></g>
+    </g>
+  </svg>
+  <div id="info"></div>
+  <div id="ctrl">
+    <button class="cb" id="zi">+</button>
+    <button class="cb" id="zo">−</button>
+    <button class="cb sm" id="zf">FIT</button>
+  </div>
+  <div id="hint">Drag to pan &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Click a table to highlight its connections</div>
+</div>
+
+<script>
+// ─── CONSTANTS ──────────────────────────────────────────────
+const TW = 240, RH = 24, HH = 36;
+
+// ─── TABLE DEFINITIONS (PK & FK only) ───────────────────────
+// Col1 x=50, Col2 x=340, Col3 x=630
+const tables = [
+  // ── IDENTITY & ACCESS ──────────────────────────────
+  { id:'teachers', label:'teachers', note:'Identity & Access',
+    x:50, y:50, cat:'identity',
+    fields:[
+      {name:'teacher_id', type:'INT', pk:true},
+    ]
+  },
+  { id:'users', label:'users', note:'Identity & Access',
+    x:340, y:50, cat:'identity',
+    fields:[
+      {name:'user_id',   type:'INT', pk:true},
+      {name:'linked_id', type:'INT', fk:true},
+    ]
+  },
+  { id:'students', label:'students', note:'Identity & Access',
+    x:340, y:156, cat:'identity',
+    fields:[
+      {name:'student_id', type:'INT', pk:true},
+    ]
+  },
+  // ── COCURRICULAR CONFIG ─────────────────────────────
+  { id:'mark_settings', label:'mark_settings', note:'Koko Config',
+    x:630, y:50, cat:'koko',
+    fields:[
+      {name:'setting_id', type:'INT', pk:true},
+    ]
+  },
+  { id:'cocurricular', label:'cocurricular', note:'Koko Config',
+    x:630, y:130, cat:'koko',
+    fields:[
+      {name:'koko_id',     type:'INT', pk:true},
+      {name:'student_id',  type:'INT', fk:true},
+      {name:'approved_by', type:'INT', fk:true},
+    ]
+  },
+  // ── REPORTS ────────────────────────────────────────
+  { id:'weekly_reports', label:'weekly_reports', note:'Reports',
+    x:50, y:136, cat:'report',
+    fields:[
+      {name:'report_id',    type:'INT', pk:true},
+      {name:'unit_id',      type:'INT', fk:true},
+      {name:'secretary_id', type:'INT', fk:true},
+    ]
+  },
+  { id:'project_reports', label:'project_reports', note:'Reports',
+    x:50, y:268, cat:'report',
+    fields:[
+      {name:'project_id',   type:'INT', pk:true},
+      {name:'secretary_id', type:'INT', fk:true},
+    ]
+  },
+  // ── RECORDS ────────────────────────────────────────
+  { id:'attendance', label:'attendance', note:'Records',
+    x:340, y:230, cat:'record',
+    fields:[
+      {name:'attendance_id', type:'INT', pk:true},
+      {name:'student_id',    type:'INT', fk:true},
+      {name:'unit_id',       type:'INT', fk:true},
+    ]
+  },
+  { id:'transfer_log', label:'transfer_log', note:'Records',
+    x:630, y:254, cat:'record',
+    fields:[
+      {name:'log_id',     type:'INT', pk:true},
+      {name:'student_id', type:'INT', fk:true},
+      {name:'teacher_id', type:'INT', fk:true},
+    ]
+  },
+  // ── PERFORMANCE ────────────────────────────────────
+  { id:'achievements', label:'achievements', note:'Performance',
+    x:340, y:368, cat:'perf',
+    fields:[
+      {name:'achievement_id', type:'INT', pk:true},
+      {name:'student_id',     type:'INT', fk:true},
+    ]
+  },
+  { id:'external_activities', label:'external_activities', note:'Performance',
+    x:630, y:378, cat:'perf',
+    fields:[
+      {name:'activity_id',  type:'INT', pk:true},
+      {name:'student_id',   type:'INT', fk:true},
+    ]
+  },
+  // ── NEW AGENTS ─────────────────────────────────────
+  { id:'activity_schedule', label:'activity_schedule', note:'Activity Mgmt',
+    x:50, y:368, cat:'actmgmt',
+    fields:[
+      {name:'schedule_id', type:'INT', pk:true},
+      {name:'unit_id',     type:'INT', fk:true},
+      {name:'created_by',  type:'INT', fk:true},
+    ]
+  },
+  { id:'report_templates', label:'report_templates', note:'Smart Report',
+    x:340, y:476, cat:'smartrpt',
+    fields:[
+      {name:'template_id', type:'INT', pk:true},
+      {name:'created_by',  type:'INT', fk:true},
+    ]
+  },
+  { id:'chat_logs', label:'chat_logs', note:'Chatbot',
+    x:630, y:476, cat:'chatbot',
+    fields:[
+      {name:'chat_id',  type:'INT', pk:true},
+      {name:'user_id',  type:'INT', fk:true},
+    ]
+  },
+];
+
+// ─── RELATIONSHIPS ──────────────────────────────────────────
+const rels = [
+  {from:'users',             ff:'linked_id',    to:'students',    tf:'student_id',  card:'1:1', opt:true,  color:'blue'},
+  {from:'users',             ff:'linked_id',    to:'teachers',    tf:'teacher_id',  card:'1:1', opt:true,  color:'grn'},
+  {from:'cocurricular',      ff:'student_id',   to:'students',    tf:'student_id',  card:'N:1', opt:false, color:'blue'},
+  {from:'cocurricular',      ff:'approved_by',  to:'teachers',    tf:'teacher_id',  card:'N:1', opt:true,  color:'grn'},
+  {from:'transfer_log',      ff:'student_id',   to:'students',    tf:'student_id',  card:'N:1', opt:false, color:'blue'},
+  {from:'transfer_log',      ff:'teacher_id',   to:'teachers',    tf:'teacher_id',  card:'N:1', opt:false, color:'grn'},
+  {from:'attendance',        ff:'student_id',   to:'students',    tf:'student_id',  card:'N:1', opt:false, color:'blue'},
+  {from:'attendance',        ff:'unit_id',      to:'cocurricular',tf:'koko_id',     card:'N:1', opt:false, color:'pur'},
+  {from:'weekly_reports',    ff:'unit_id',      to:'cocurricular',tf:'koko_id',     card:'N:1', opt:false, color:'pur'},
+  {from:'weekly_reports',    ff:'secretary_id', to:'students',    tf:'student_id',  card:'N:1', opt:false, color:'blue'},
+  {from:'project_reports',   ff:'secretary_id', to:'students',    tf:'student_id',  card:'N:1', opt:false, color:'blue'},
+  {from:'achievements',      ff:'student_id',   to:'students',    tf:'student_id',  card:'N:1', opt:false, color:'blue'},
+  {from:'external_activities',ff:'student_id',  to:'students',    tf:'student_id',  card:'N:1', opt:false, color:'blue'},
+  {from:'activity_schedule', ff:'unit_id',      to:'cocurricular',tf:'koko_id',     card:'N:1', opt:false, color:'pur'},
+  {from:'activity_schedule', ff:'created_by',   to:'students',    tf:'student_id',  card:'N:1', opt:false, color:'blue'},
+  {from:'report_templates',  ff:'created_by',   to:'users',       tf:'user_id',     card:'N:1', opt:false, color:'blue'},
+  {from:'chat_logs',         ff:'user_id',      to:'users',       tf:'user_id',     card:'N:1', opt:false, color:'blue'},
+];
+
+// ─── ZONE DEFINITIONS ───────────────────────────────────────
+const zones = [
+  { label:'Identity & Access',     x:28,  y:28,  w:556, h:200, fill:'#3B82F6', desc:'teachers · users · students' },
+  { label:'Cocurricular Config',   x:608, y:28,  w:270, h:260, fill:'#8B5CF6', desc:'mark_settings · cocurricular' },
+  { label:'Reports',               x:28,  y:114, w:270, h:230, fill:'#F59E0B', desc:'weekly_reports · project_reports' },
+  { label:'Records',               x:318, y:208, w:560, h:130, fill:'#EF4444', desc:'attendance · transfer_log' },
+  { label:'Performance',           x:318, y:346, w:560, h:118, fill:'#10B981', desc:'achievements · external_activities' },
+  { label:'Activity Management',   x:28,  y:346, w:270, h:118, fill:'#F97316', desc:'activity_schedule' },
+  { label:'Smart Report Generator',x:318, y:454, w:270, h:100, fill:'#06B6D4', desc:'report_templates' },
+  { label:'Analytics & Chatbot',   x:608, y:454, w:270, h:100, fill:'#A855F7', desc:'chat_logs' },
+];
+
+// ─── HELPERS ────────────────────────────────────────────────
+const NS = 'http://www.w3.org/2000/svg';
+const mkEl = (tag, attrs, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs||{})) e.setAttribute(k, String(v));
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const mkTxt = (txt, attrs, parent) => { const e = mkEl('text', attrs, parent); e.textContent = txt; return e; };
+
+const tH = t => HH + t.fields.length * RH;
+const byId = id => tables.find(t => t.id === id);
+const fY = (t, fn) => { const i = t.fields.findIndex(f=>f.name===fn); return t.y + HH + (i<0?0:i)*RH + RH/2; };
+
+const lineColor = { blue:'#4A8AC4', grn:'#3A9A6A', pur:'#8060C8' };
+
+function connPts(r) {
+  const fT = byId(r.from), tT = byId(r.to);
+  const fFy = fY(fT, r.ff), tFy = fY(tT, r.tf);
+  const fCX = fT.x+TW/2, tCX = tT.x+TW/2;
+  const fCY = fT.y+tH(fT)/2, tCY = tT.y+tH(tT)/2;
+  const dx = Math.abs(fCX-tCX), dy = Math.abs(fCY-tCY);
+  let fx,fy,tx,ty, vert=false;
+  if (dx > dy*0.55) {
+    fx = fCX<tCX ? fT.x+TW : fT.x;
+    tx = fCX<tCX ? tT.x : tT.x+TW;
+    fy = fFy; ty = tFy;
+  } else {
+    vert=true;
+    fy = fCY<tCY ? fT.y+tH(fT) : fT.y;
+    ty = fCY<tCY ? tT.y : tT.y+tH(tT);
+    fx = fT.x+TW/2; tx = tT.x+TW/2;
+  }
+  return {fx,fy,tx,ty,vert};
+}
+
+function makePath({fx,fy,tx,ty,vert}) {
+  if (vert) { const mY=(fy+ty)/2; return `M${fx},${fy} C${fx},${mY} ${tx},${mY} ${tx},${ty}`; }
+  const d = Math.min(Math.abs(tx-fx)*0.42, 80);
+  const s = fx<tx?1:-1;
+  return `M${fx},${fy} C${fx+s*d},${fy} ${tx-s*d},${ty} ${tx},${ty}`;
+}
+
+// ─── STATE ──────────────────────────────────────────────────
+let tr={x:0,y:0,sc:0.85}, sel=null;
+const mg=document.getElementById('mg');
+const ll=document.getElementById('ll');
+const tl=document.getElementById('tl');
+const zl=document.getElementById('zones');
+
+// ─── RENDER ─────────────────────────────────────────────────
+const catHdr = {
+  identity: '#162B4D',
+  koko:     '#1A3028',
+  report:   '#3A2000',
+  record:   '#2A1040',
+  perf:     '#0F2F28',
+  actmgmt:  '#3A1800',
+  smartrpt: '#003A3A',
+  chatbot:  '#2A0A40',
+};
+const catAccent = {
+  identity: '#3B82F6',
+  koko:     '#8B5CF6',
+  report:   '#F59E0B',
+  record:   '#EF4444',
+  perf:     '#10B981',
+  actmgmt:  '#F97316',
+  smartrpt: '#06B6D4',
+  chatbot:  '#A855F7',
+};
+
+function render() {
+  [ll,tl,zl].forEach(l=>{ while(l.firstChild) l.removeChild(l.firstChild); });
+
+  const activeIds=new Set(), activeRelIdx=new Set();
+  if (sel) {
+    activeIds.add(sel);
+    rels.forEach((r,i)=>{
+      if(r.from===sel||r.to===sel){ activeRelIdx.add(i); activeIds.add(r.from); activeIds.add(r.to); }
+    });
+  }
+
+  // ── zones ──
+  zones.forEach(z=>{
+    const g = mkEl('g',{},zl);
+    mkEl('rect',{x:z.x,y:z.y,width:z.w,height:z.h,rx:8,fill:z.fill,opacity:0.05},g);
+    mkEl('rect',{x:z.x,y:z.y,width:z.w,height:z.h,rx:8,fill:'none',stroke:z.fill,'stroke-width':1.5,opacity:0.2},g);
+    mkTxt(z.label,{
+      x:z.x+10,y:z.y+14,'font-size':9,'font-family':'system-ui','font-weight':700,
+      fill:z.fill,opacity:0.55,'letter-spacing':'0.06em','text-transform':'uppercase'
+    },g);
+    mkTxt(z.desc,{
+      x:z.x+10,y:z.y+25,'font-size':8,'font-family':'system-ui',
+      fill:z.fill,opacity:0.38,'letter-spacing':'0.02em'
+    },g);
+  });
+
+  // ── lines ──
+  rels.forEach((r,i)=>{
+    const pts=connPts(r);
+    const active=sel&&activeRelIdx.has(i);
+    const dimmed=sel&&!active;
+    const col = active ? '#1C52B0' : lineColor[r.color]||'#6A9ABE';
+    const g=mkEl('g',{},ll);
+    if(dimmed) g.setAttribute('opacity','0.08');
+    mkEl('path',{d:makePath(pts),fill:'none',stroke:'transparent','stroke-width':10},g);
+    mkEl('path',{
+      d:makePath(pts),fill:'none',stroke:col,
+      'stroke-width': active?2.5:1.5,
+      'stroke-dasharray': r.opt?'5,3':'none',
+      'marker-end':`url(#${active?'a-hi':'a-'+r.color})`,
+      opacity: active?1:0.75
+    },g);
+    if(!dimmed){
+      const mx=(pts.fx+pts.tx)/2, my=(pts.fy+pts.ty)/2-6;
+      mkEl('rect',{x:mx-10,y:my-9,width:20,height:12,rx:2,fill:'#F0F3F8',opacity:0.9},g);
+      mkTxt(r.card,{x:mx,y:my,'text-anchor':'middle','font-size':8.5,'font-family':'system-ui','font-weight':700,fill:active?'#1C52B0':col},g);
+    }
+  });
+
+  // ── tables ──
+  tables.forEach(t=>{
+    const h=tH(t);
+    const isActive=sel===t.id;
+    const dimmed=sel&&!activeIds.has(t.id);
+    const hdrCol=catHdr[t.cat]||'#162B4D';
+    const accentCol=catAccent[t.cat]||'#3B82F6';
+    const g=mkEl('g',{cursor:'pointer'},tl);
+    if(dimmed) g.setAttribute('opacity','0.12');
+
+    mkEl('rect',{x:t.x+2,y:t.y+3,width:TW,height:h,rx:5,fill:'rgba(12,24,48,0.12)'},g);
+    mkEl('rect',{x:t.x,y:t.y,width:TW,height:h,rx:5,fill:'#FAFCFF',
+      stroke:isActive?accentCol:'#C4D0E0','stroke-width':isActive?2:1},g);
+    mkEl('rect',{x:t.x,y:t.y+5,width:3,height:h-10,rx:1.5,fill:accentCol,opacity:0.7},g);
+
+    mkEl('rect',{x:t.x,y:t.y,width:TW,height:HH,rx:5,fill:hdrCol},g);
+    mkEl('rect',{x:t.x,y:t.y+HH-5,width:TW,height:5,fill:hdrCol},g);
+
+    const chipW=t.note.length*5.0+8;
+    mkEl('rect',{x:t.x+TW-chipW-8,y:t.y+9,width:chipW,height:16,rx:3,fill:accentCol,opacity:0.22},g);
+    mkTxt(t.note,{x:t.x+TW-12,y:t.y+19.5,'text-anchor':'end','font-size':8,'font-family':'system-ui','font-weight':600,fill:accentCol,opacity:0.9,'letter-spacing':'0.03em'},g);
+
+    mkTxt(t.label,{x:t.x+11,y:t.y+HH/2+5.5,'font-size':12,'font-family':'system-ui','font-weight':700,fill:'#D0E4F8','letter-spacing':'0.01em'},g);
+
+    t.fields.forEach((f,i)=>{
+      const fy=t.y+HH+i*RH;
+      mkEl('rect',{x:t.x+1,y:fy,width:TW-2,height:RH,fill:f.pk?'#FEFCE8':'#EFF6FF'},g);
+      if(i>0) mkEl('line',{x1:t.x+4,y1:fy,x2:t.x+TW-4,y2:fy,stroke:'#DDE8F4','stroke-width':0.5},g);
+
+      mkEl('rect',{x:t.x+7,y:fy+6,width:22,height:12,rx:2,fill:f.pk?'#9A6C08':'#1C52B0'},g);
+      mkTxt(f.pk?'PK':'FK',{x:t.x+18,y:fy+15,'text-anchor':'middle','font-size':7.5,'font-family':'system-ui','font-weight':800,fill:f.pk?'#FEFCE8':'#EFF6FF','letter-spacing':'0.05em'},g);
+
+      mkTxt(f.name,{
+        x:t.x+35,y:fy+15.5,'font-size':11,'font-family':"'Courier New',monospace",
+        fill:f.pk?'#6B4500':'#1A3E90','font-weight':700
+      },g);
+      mkTxt(f.type,{x:t.x+TW-7,y:fy+15.5,'text-anchor':'end','font-size':9,'font-family':"'Courier New',monospace",fill:'#8AA0BE'},g);
+    });
+
+    g.addEventListener('click',e=>{
+      e.stopPropagation();
+      sel = sel===t.id?null:t.id;
+      const info=document.getElementById('info');
+      if(sel){
+        const ct=rels.filter(r=>r.from===sel||r.to===sel).length;
+        info.style.display='block';
+        info.textContent=`${t.label} — ${ct} relationship${ct!==1?'s':''}`;
+      } else info.style.display='none';
+      render();
+    });
+  });
+
+  mg.setAttribute('transform',`translate(${tr.x},${tr.y}) scale(${tr.sc})`);
+}
+
+// ─── PAN & ZOOM ─────────────────────────────────────────────
+const wrap=document.getElementById('wrap');
+let panning=false, ps={x:0,y:0};
+
+wrap.addEventListener('mousedown',e=>{
+  if(e.target.closest('g[cursor="pointer"]')) return;
+  panning=true; ps={x:e.clientX-tr.x,y:e.clientY-tr.y};
+  wrap.classList.add('pan');
+});
+window.addEventListener('mousemove',e=>{ if(!panning) return; tr.x=e.clientX-ps.x; tr.y=e.clientY-ps.y; render(); });
+window.addEventListener('mouseup',()=>{ panning=false; wrap.classList.remove('pan'); });
+
+wrap.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const rect=wrap.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const delta=e.deltaY<0?1.1:0.91;
+  tr.x=mx-(mx-tr.x)*delta; tr.y=my-(my-tr.y)*delta;
+  tr.sc=Math.max(0.2,Math.min(4,tr.sc*delta));
+  render();
+},{passive:false});
+
+document.getElementById('zi').onclick=()=>{ tr.sc=Math.min(4,tr.sc*1.15); render(); };
+document.getElementById('zo').onclick=()=>{ tr.sc=Math.max(0.2,tr.sc*0.87); render(); };
+
+function fitView(){
+  const allX=tables.map(t=>t.x), allY=tables.map(t=>t.y);
+  const minX=Math.min(...allX)-20, minY=Math.min(...allY)-20;
+  const maxX=Math.max(...tables.map(t=>t.x+TW))+20;
+  const maxY=Math.max(...tables.map(t=>t.y+tH(t)))+20;
+  const vw=wrap.clientWidth, vh=wrap.clientHeight;
+  tr.sc=Math.min(vw/(maxX-minX), vh/(maxY-minY), 2);
+  tr.x=-minX*tr.sc+(vw-(maxX-minX)*tr.sc)/2;
+  tr.y=-minY*tr.sc+(vh-(maxY-minY)*tr.sc)/2;
+  render();
+}
+document.getElementById('zf').onclick=fitView;
+wrap.addEventListener('click',e=>{ if(!e.target.closest('g[cursor="pointer"]')){ sel=null; document.getElementById('info').style.display='none'; render(); }});
+
+// center on load
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const vw=wrap.clientWidth, vh=wrap.clientHeight;
+    const cw=920, ch=600;
+    tr.x=(vw-cw*tr.sc)/2; tr.y=(vh-ch*tr.sc)/2;
+    render();
+  },50);
+});
+render();
+</script>

@@ -1,0 +1,425 @@
+// KoKurikulum — Skema Pangkalan Data (Prisma)
+// ---------------------------------------------------------------------------
+// PEMBANGUNAN: SQLite (sifar konfigurasi). PRODUKSI: tukar `provider` ke
+// "postgresql" dan kemas kini DATABASE_URL. Skema ini sengaja mengelak enum
+// & array native supaya mudah-alih antara SQLite dan PostgreSQL. Nilai
+// "enum" disimpan sebagai String dan disahkan di lapisan aplikasi (zod) —
+// lihat src/lib/enums.ts.
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // PRODUKSI: tukar ke "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// === Akaun & Akses ========================================================
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique // No. IC (pelajar) atau email (guru/admin)
+  email        String?  @unique
+  passwordHash String
+  role         String // Pelajar | Guru | Admin  (lihat enums.ts)
+  mustChangePw Boolean  @default(true)
+  statusAktif  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Pautan satu-ke-satu ke profil
+  pelajar   Pelajar? @relation(fields: [pelajarId], references: [id])
+  pelajarId String?  @unique
+  guru      Guru?    @relation(fields: [guruId], references: [id])
+  guruId    String?  @unique
+}
+
+model Guru {
+  id          String  @id @default(cuid())
+  nama        String
+  noIc        String  @unique // disimpan sebagai TEKS
+  email       String  @unique
+  jawatanKoko String // Penyelaras | PemantauKUPP | PenolongSU | KetuaGP | PenolongKetuaGP | GuruPenasihat
+  // DEPRECATED (§3): digantikan oleh jadual pautan GuruPenasihatKelab. Dikekalkan
+  // sebagai sumber migrasi & keserasian; TIDAK lagi digunakan untuk skop akses.
+  kelabDiselia  String?
+  sukanDiselia  String?
+  badanDiselia  String?
+  statusAktif Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user            User?
+  pertukaranLulus LogPertukaran[] @relation("GuruPertukaran")
+  kokurikulumLulus Kokurikulum[]  @relation("GuruKokoLulus")
+  penasihatKelab  GuruPenasihatKelab[]
+}
+
+// === RBAC: Guru Penasihat ikut kelab/sukan (§3) ===========================
+// Jadual pautan banyak-ke-banyak: seorang guru boleh menyelia >1 unit, dan
+// satu unit boleh diselia oleh >1 guru. Ini SUMBER KEBENARAN untuk skop akses
+// guru (lihat unitSeliaan/bolehGuruAksesPelajar di workflow.ts).
+
+model GuruPenasihatKelab {
+  id        String   @id @default(cuid())
+  guru      Guru     @relation(fields: [guruId], references: [id], onDelete: Cascade)
+  guruId    String
+  namaUnit  String // padan Kokurikulum.namaUnitT6
+  jenisKoko String // Sukan | Kelab | Uniform
+  peranan   String   @default("Penasihat") // Penasihat | KetuaPenasihat
+  createdAt DateTime @default(now())
+
+  @@unique([guruId, namaUnit])
+  @@index([namaUnit])
+}
+
+model Pelajar {
+  id          String @id @default(cuid())
+  nama        String
+  noIc        String @unique // disimpan sebagai TEKS (elak format saintifik)
+  kelasT6     String?
+
+  // Skor PAJSK ringkasan (T5 = sejarah import; T6 = semasa, dikira)
+  markahPajskT5  Float?
+  peratusPajskT5 Float?
+  markahPajskT6  Float?
+  peratusPajskT6 Float?
+
+  // Komponen markah (model baharu §1.1 — jumlah teras = 100, + ekstra bonus 10).
+  // Kehadiran(50) + Jawatan(10) + Penglibatan(10) + Pencapaian(10) +
+  // Projek Jawatan(10) + Projek Peringkat(10) = 100 ; Ekstra(10) berasingan.
+  markahKehadiran       Float @default(0) // §1.2, skala 50
+  markahPenglibatan     Float @default(0) // §1.4, skala 10
+  markahPencapaian      Float @default(0) // §1.5, skala 10
+  markahProjekJawatan   Float @default(0) // §1.6, skala 10
+  markahProjekPeringkat Float @default(0) // §1.7, skala 10
+  markahEkstra          Float @default(0) // §1.8, bonus skala 10
+  gredPajskT6           String?           // §1.9, A–E (dikira dari markahPajskT6)
+
+  // DEPRECATED (model lama) — dikekalkan supaya migrasi tidak memusnahkan data
+  // import sedia ada. Tidak lagi digunakan dalam pengiraan markah baharu.
+  komitmen         Float @default(0)
+  khidmatSumbangan Float @default(0)
+
+  // Demografi (diisi/dibetulkan oleh Admin)
+  jantina String? // L | P
+  kaum    String? // Melayu | Cina | India | Lain-lain
+  agama   String? // Islam | Buddha | Hindu | Kristian | Lain-lain
+
+  // Kenalan untuk notifikasi luaran (pilihan)
+  email          String?
+  noTel          String?
+  telegramChatId String?
+
+  subRole     String  @default("Pelajar") // Pelajar | SU | NSU
+  statusAktif Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user         User?
+  kokurikulum  Kokurikulum[]
+  kehadiran    Kehadiran[]
+  pencapaian   Pencapaian[]
+  aktivitiLuar AktivitiLuar[]
+  pertukaran   LogPertukaran[]
+  cadanganJawatan CadanganJawatan[]
+  laporanMingguan LaporanMingguan[]  @relation("SetiausahaLaporan")
+  laporanProjek   LaporanProjek[]    @relation("SetiausahaProjek")
+}
+
+// === Cadangan Jawatan (SU cadang -> Guru sahkan) ==========================
+
+model CadanganJawatan {
+  id             String   @id @default(cuid())
+  pelajar        Pelajar  @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId      String
+  jenisKoko      String // Sukan | Kelab | Uniform
+  jawatanBaru    String
+  markahJawatan  Float
+  status         String   @default("Pending") // Pending | Approved | Reject
+  dicadangOlehId String? // pelajarId SU/NSU
+  guruId         String?
+  komen          String?
+  createdAt      DateTime @default(now())
+  tarikhProses   DateTime?
+
+  @@index([status])
+}
+
+// === Cadangan Agent (MyGuru AI cadang -> Guru/Admin sahkan) ===============
+// Berbeza daripada CadanganJawatan: ini baris gilir kelulusan umum untuk
+// SEMUA tindakan berisiko yang dicadang oleh agent AI (pertukaran unit,
+// pengesahan pencapaian, kira semula markah, jana e-Cert). Tiada perubahan
+// rekod rasmi berlaku sehingga guru/admin meluluskan cadangan di sini.
+
+model CadanganAgent {
+  id           String   @id @default(cuid())
+  jenis        String // UNIT_TRANSFER | ACHIEVEMENT | RECALC | ECERT
+  rujukanId    String // id item dirujuk (permohonan/pencapaian/pelajar/aktiviti)
+  keputusan    String? // LULUS | TOLAK | SAHKAN | KUIRI (jika berkaitan)
+  justifikasi  String
+  status       String   @default("Pending") // Pending | Approved | Reject
+  dicadangOleh String   @default("AGENT")
+  untukSemakan String // User.id guru/admin yang perlu sahkan
+  dicipta      DateTime @default(now())
+
+  // Jejak audit kelulusan (diisi bila guru/admin memproses cadangan)
+  diprosesOleh String? // User.id yang meluluskan/menolak
+  tarikhProses DateTime?
+  komen        String?
+
+  @@index([status])
+  @@index([untukSemakan])
+}
+
+// === Kokurikulum (satu baris per Jenis_Koko per pelajar) ==================
+
+model Kokurikulum {
+  id        String  @id @default(cuid())
+  pelajar   Pelajar @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId String
+  jenisKoko String // Sukan | Kelab | Uniform
+
+  // Sejarah T5 (read-only selepas import)
+  namaUnitT5        String?
+  jawatanT5         String?
+  peringkatT5       String?
+  markahJawatanT5   Float?
+  markahPeringkatT5 Float?
+
+  // Semasa T6 (boleh dikemas kini selepas pertukaran diluluskan)
+  namaUnitT6        String?
+  jawatanT6         String?
+  peringkatT6       String?
+  markahJawatanT6   Float?
+  markahPeringkatT6 Float?
+
+  statusPertukaran String  @default("None") // None | Pending | Approved | Reject
+  tarikhKemaskini  DateTime @default(now())
+
+  guruLulus   Guru?   @relation("GuruKokoLulus", fields: [guruLulusId], references: [id])
+  guruLulusId String?
+
+  @@unique([pelajarId, jenisKoko])
+  @@index([jenisKoko])
+}
+
+// === Tetapan Markah (konfigur Admin — selaras pekeliling PAJSK) ===========
+
+model TetapanMarkah {
+  id          String @id @default(cuid())
+  kategori    String // Jawatan | Peringkat | Sistem
+  namaItem    String
+  nilaiMarkah Float
+  markahPenuh Float  @default(100)
+
+  @@unique([kategori, namaItem])
+}
+
+// === Log Pertukaran Unit ==================================================
+
+model LogPertukaran {
+  id          String   @id @default(cuid())
+  pelajar     Pelajar  @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId   String
+  jenisKoko   String // Sukan | Kelab | Uniform
+  unitLama    String?
+  unitBaru    String
+  sebab       String?
+  status      String   @default("Pending") // Pending | Approved | Reject
+  tarikhMohon DateTime @default(now())
+  tarikhLulus DateTime?
+  komenGuru   String?
+
+  guru   Guru?   @relation("GuruPertukaran", fields: [guruId], references: [id])
+  guruId String?
+
+  @@index([status])
+}
+
+// === Kehadiran (satu rekod per perjumpaan per pelajar) ====================
+
+model SesiKehadiran {
+  id            String   @id @default(cuid())
+  jenisKoko     String // Sukan | Kelab | Uniform
+  namaUnit      String
+  tarikh        DateTime
+  bilPerjumpaan Int // cth 1, 2 ... 12
+  token         String   @unique // untuk imbas QR self check-in
+  dibuka        Boolean  @default(true)
+  dibuatOlehId  String? // pelajarId SU/NSU
+  disahkan      Boolean  @default(false)
+  guruId        String?
+  createdAt     DateTime @default(now())
+
+  kehadiran       Kehadiran[]
+  laporanMingguan LaporanMingguan[]
+  laporanProjek   LaporanProjek[]
+
+  @@unique([namaUnit, bilPerjumpaan])
+  @@index([jenisKoko])
+}
+
+model Kehadiran {
+  id              String   @id @default(cuid())
+  pelajar         Pelajar  @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId       String
+  jenisKoko       String // Sukan | Kelab | Uniform
+  namaUnit        String?
+  tarikh          DateTime
+  bilPerjumpaan   Int // cth 1, 2 ... 12
+  statusHadir     Boolean  @default(false)
+  disahkan        Boolean  @default(false)
+  ditandaOlehId   String? // pelajarId SU/NSU yang menanda
+  createdAt       DateTime @default(now())
+
+  sesi   SesiKehadiran? @relation(fields: [sesiId], references: [id], onDelete: Cascade)
+  sesiId String?
+
+  @@unique([pelajarId, namaUnit, bilPerjumpaan])
+  @@index([pelajarId, jenisKoko])
+}
+
+// === Tetapan Sijil (templat e-Cert boleh-suai oleh Admin) =================
+
+model TetapanSijil {
+  id                   String   @id @default("default")
+  institusi            String   @default("KTE (Prauniversiti) Desa Mahkota")
+  tajukSijil           String   @default("SIJIL PENGHARGAAN KOKURIKULUM")
+  namaPenandatangan    String   @default("")
+  jawatanPenandatangan String   @default("Penyelaras Kokurikulum")
+  teksCop              String   @default("")
+  updatedAt            DateTime @updatedAt
+}
+
+// === Log/Versi Import (audit trail — §6) ==================================
+// Setiap muat naik DUMM PAJSK dicatat: siapa, bila, versi mana, ringkasan
+// perbezaan (diff), dan data yang diparse. Status Preview → Applied/Batal.
+
+model LogImport {
+  id           String    @id @default(cuid())
+  jenis        String // pajsk | guru
+  namaFail     String
+  status       String    @default("Preview") // Preview | Applied | Batal
+  dimuatOlehId String? // User.id admin yang memuat naik
+  jumlah       Int       @default(0) // jumlah rekod diparse
+  baharu       Int       @default(0) // rekod pelajar baharu
+  berubah      Int       @default(0) // rekod pelajar berubah
+  ralatCount   Int       @default(0)
+  payloadJson  String // PajskRow[] yang diparse (JSON)
+  diffJson     String // ringkasan diff (JSON)
+  createdAt    DateTime  @default(now())
+  appliedAt    DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// === Notifikasi (dalam-app; adapter luaran boleh dipalam) ==================
+
+model Notifikasi {
+  id        String   @id @default(cuid())
+  userId    String // penerima (User.id)
+  tajuk     String
+  mesej     String
+  jenis     String   @default("info") // info | kuiri | lulus | tolak
+  pautan    String?
+  dibaca    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, dibaca])
+}
+
+// === Laporan Mingguan (oleh SU/NSU) =======================================
+
+model LaporanMingguan {
+  id            String   @id @default(cuid())
+  jenisKoko     String
+  namaUnit      String?
+  tarikh        DateTime
+  masa          String?
+  aktiviti      String
+  lampiran      String? // path fail/gambar (CSV path)
+  setiausaha    Pelajar  @relation("SetiausahaLaporan", fields: [setiausahaId], references: [id])
+  setiausahaId  String
+  statusSemakan String   @default("Draft") // Draft | Pending | Approved | Kuiri
+  komenGuru     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Pautan ke sesi kehadiran minggu berkaitan (pilihan)
+  sesi   SesiKehadiran? @relation(fields: [sesiId], references: [id])
+  sesiId String?
+
+  @@index([statusSemakan])
+}
+
+// === Laporan Projek (pra & pasca) =========================================
+
+model LaporanProjek {
+  id              String   @id @default(cuid())
+  namaProjek      String
+  jenisKoko       String?
+  namaUnit        String?
+  jawatanProjek   String? // §1.6 — jawatan setiausaha dalam projek (Pengerusi Projek, dll.)
+  peringkatProjek String? // §1.7 — peringkat pelaksanaan projek (Sekolah|Daerah/Komuniti|Negeri)
+  setiausaha      Pelajar  @relation("SetiausahaProjek", fields: [setiausahaId], references: [id])
+  setiausahaId    String
+  failKertasKerja String? // pra-program
+  failLaporanImpak String? // pasca-program
+  kewangan        String?
+  kekuatan        String?
+  kelemahan       String?
+  statusPengesahan String  @default("Draft") // Draft | Pending | Approved | Kuiri
+  komenGuru       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Pautan ke sesi kehadiran program berkaitan (pilihan)
+  sesi   SesiKehadiran? @relation(fields: [sesiId], references: [id])
+  sesiId String?
+
+  @@index([statusPengesahan])
+}
+
+// === Pencapaian ===========================================================
+
+model Pencapaian {
+  id             String  @id @default(cuid())
+  pelajar        Pelajar @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId      String
+  namaPencapaian String
+  kategori       String? // biasa | ekstra (Perkhidmatan/Anugerah/NILAM/TIMSS...)
+  peringkat      String?
+  kedudukan      String? // Johan | Naib Johan | Ketiga (§1.5 — untuk markah pencapaian)
+  lampiranEviden String?
+  statusSemakan  String  @default("Pending") // Pending | Approved | Kuiri
+  markah         Float   @default(0)
+  komenGuru      String?
+  createdAt      DateTime @default(now())
+
+  @@index([statusSemakan])
+}
+
+// === Aktiviti Luar (+ e-Cert) =============================================
+
+model AktivitiLuar {
+  id              String   @id @default(cuid())
+  pelajar         Pelajar  @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId       String
+  namaAktiviti    String
+  peringkat       String // Sekolah | Daerah | Zon/Daerah | Negeri | Kebangsaan | Antarabangsa
+  tarikh          DateTime?
+  lampiranSurat   String?
+  lampiranSijil   String?
+  statusPengesahan String  @default("Pending") // Pending | Approved | Kuiri
+  markahLuar      Float    @default(0)
+  komenGuru       String?
+  noSiriECert     String?  @unique
+  tarikhJanaECert DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([statusPengesahan])
+}

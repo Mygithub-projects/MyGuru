@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    # Nilai dummy — build/lint/test tidak menyambung ke DB sebenar.
+    env:
+      DATABASE_URL: "file:./ci.db"
+      DIRECT_URL: "file:./ci.db"
+      JWT_SECRET: "ci_dummy_secret_minimum_48_characters_long_xxxxxxxxxx"
+      NEXT_PUBLIC_INSTITUSI: "CI"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma validate
+        run: npx prisma validate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests (Vitest)
+        run: npm test
+
+      - name: Build
+        run: npm run build

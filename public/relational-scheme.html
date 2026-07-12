@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relational Schema — MYGURU AI</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0C1520;
+  --surface: #131F30;
+  --card:    #17253A;
+  --border:  #1E3050;
+  --border2: #243860;
+  --text:    #C8DCF0;
+  --muted:   #4A6A8C;
+  --dim:     #2A4060;
+
+  --pk:      #C8890A;
+  --pk-bg:   rgba(200,137,10,0.12);
+  --fk:      #4A8AC4;
+  --fk-bg:   rgba(74,138,196,0.12);
+
+  --c-identity: #3B82F6;
+  --c-koko:     #8B5CF6;
+  --c-report:   #F59E0B;
+  --c-record:   #EF4444;
+  --c-perf:     #10B981;
+  --c-actmgmt:  #F97316;
+  --c-smartrpt: #06B6D4;
+  --c-chatbot:  #A855F7;
+
+  --mono: ui-monospace, 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html { font-size: 13px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── TOP BAR ─────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  background: #0A1219;
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 48px;
+  display: flex; align-items: center; gap: 16px;
+}
+.topbar-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7AAEDE;
+}
+.topbar-sep { color: var(--dim); }
+.topbar-sub { font-size: 11px; color: var(--muted); }
+.topbar-stats { margin-left: auto; display: flex; gap: 14px; }
+.stat-chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 8px;
+}
+.stat-chip b { color: var(--text); font-weight: 600; }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.page { max-width: 1320px; margin: 0 auto; padding: 32px 24px 60px; }
+
+/* ── NOTATION KEY ────────────────────────────────── */
+.legend {
+  display: flex; align-items: center; gap: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.legend-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-right: 4px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; }
+.badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+  padding: 1px 5px; border-radius: 2px;
+  font-family: var(--mono);
+}
+.badge-pk { background: var(--pk-bg); color: var(--pk); border: 1px solid rgba(200,137,10,0.3); }
+.badge-fk { background: var(--fk-bg); color: var(--fk); border: 1px solid rgba(74,138,196,0.3); }
+.legend-arrow { color: var(--fk); font-family: var(--mono); font-size: 12px; }
+.legend-sep { width: 1px; height: 16px; background: var(--border); }
+
+/* ── DOMAIN GROUP ────────────────────────────────── */
+.domain-section { margin-bottom: 36px; }
+.domain-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.domain-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.domain-name {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted);
+}
+.domain-rule { flex: 1; height: 1px; background: var(--border); }
+
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+  gap: 14px;
+}
+.table-grid.single { grid-template-columns: 1fr; max-width: 640px; }
+
+/* ── TABLE CARD ──────────────────────────────────── */
+.tcard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.tcard-head {
+  display: flex; align-items: center; gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+.tcard-bar { width: 4px; align-self: stretch; flex-shrink: 0; }
+.tcard-title {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #E8F2FF;
+  letter-spacing: 0.02em;
+  padding: 10px 14px;
+  flex: 1;
+}
+.tcard-note {
+  font-size: 9.5px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  padding-right: 14px;
+  text-transform: uppercase;
+}
+
+/* ── FIELD ROWS ──────────────────────────────────── */
+.fields { padding: 0; }
+.field-row {
+  display: grid;
+  grid-template-columns: 32px 200px 110px 1fr;
+  align-items: baseline;
+  gap: 0;
+  padding: 4px 14px 4px 0;
+  border-bottom: 1px solid rgba(30,48,80,0.5);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+.field-row:last-child { border-bottom: none; }
+.field-row.pk-row { background: rgba(200,137,10,0.04); }
+.field-row.fk-row { background: rgba(74,138,196,0.04); }
+.field-row.pkfk-row { background: rgba(160,100,80,0.06); }
+
+.f-badge { display: flex; align-items: center; justify-content: center; padding: 0 0 0 8px; }
+.f-name { color: #D4E8FF; font-weight: 500; }
+.f-name.pk-name { color: #E8C46A; text-decoration: underline; text-decoration-color: rgba(200,137,10,0.5); text-underline-offset: 2px; }
+.f-type { color: var(--muted); font-size: 10.5px; font-weight: 400; }
+.f-ref { color: var(--fk); font-size: 10.5px; }
+.f-ref .arrow { color: #3A6A9A; margin: 0 2px; }
+
+/* ── NOTATION LINE ───────────────────────────────── */
+.notation-block {
+  background: #0A1520;
+  border-top: 1px solid var(--border);
+  padding: 8px 14px 8px 18px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.n-tname { color: #7AAEDE; font-weight: 700; }
+.n-pk { color: var(--pk); text-decoration: underline; text-decoration-color: rgba(200,137,10,0.6); text-underline-offset: 2px; }
+.n-fk { color: var(--fk); }
+.n-arrow { color: #3A6A9A; }
+.n-ref { color: #4A7A6A; }
+
+/* ── RELATIONSHIPS TABLE ─────────────────────────── */
+.rel-section { margin-top: 44px; }
+.section-head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.section-head h2 {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted);
+}
+.section-head .rule { flex: 1; height: 1px; background: var(--border); }
+
+.rel-table-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid var(--border); }
+table.rel-table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--mono); font-size: 11px;
+}
+.rel-table th {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px;
+  text-align: left;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--sans);
+}
+.rel-table td {
+  padding: 6px 14px;
+  border-bottom: 1px solid rgba(30,48,80,0.6);
+  vertical-align: middle;
+}
+.rel-table tr:last-child td { border-bottom: none; }
+.rel-table tr:hover td { background: rgba(30,48,80,0.4); }
+.rt-from { color: #E8C46A; }
+.rt-ff   { color: var(--fk); }
+.rt-to   { color: #7AAEDE; }
+.rt-tf   { color: var(--pk); }
+.rt-card {
+  font-size: 9.5px; font-weight: 700;
+  padding: 2px 6px; border-radius: 2px;
+  background: var(--surface); color: var(--muted);
+  border: 1px solid var(--border);
+}
+.rt-opt {
+  font-size: 9px; padding: 1px 5px; border-radius: 2px;
+  font-family: var(--sans); font-weight: 600; letter-spacing: 0.04em;
+}
+.opt-yes { background: rgba(16,185,129,0.1); color: #10B981; border: 1px solid rgba(16,185,129,0.2); }
+.opt-no  { background: rgba(239,68,68,0.08); color: #EF7070; border: 1px solid rgba(239,68,68,0.2); }
+
+/* ── domain color classes ─ */
+.dc-identity { background: var(--c-identity); }
+.dc-koko     { background: var(--c-koko); }
+.dc-report   { background: var(--c-report); }
+.dc-record   { background: var(--c-record); }
+.dc-perf     { background: var(--c-perf); }
+.dc-actmgmt  { background: var(--c-actmgmt); }
+.dc-smartrpt { background: var(--c-smartrpt); }
+.dc-chatbot  { background: var(--c-chatbot); }
+.dd-identity { color: var(--c-identity); }
+.dd-koko     { color: var(--c-koko); }
+.dd-report   { color: var(--c-report); }
+.dd-record   { color: var(--c-record); }
+.dd-perf     { color: var(--c-perf); }
+.dd-actmgmt  { color: var(--c-actmgmt); }
+.dd-smartrpt { color: var(--c-smartrpt); }
+.dd-chatbot  { color: var(--c-chatbot); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">MYGURU AI</span>
+  <span class="topbar-sep">/</span>
+  <span class="topbar-sub">Relational Schema</span>
+  <div class="topbar-stats">
+    <span class="stat-chip"><b>14</b> Tables</span>
+    <span class="stat-chip"><b>17</b> FK Relations</span>
+    <span class="stat-chip"><b>8</b> Domains</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <span class="legend-label">Notation</span>
+    <div class="legend-item"><span class="badge badge-pk">PK</span> Primary Key — underlined</div>
+    <div class="legend-sep"></div>
+    <div class="legend-item"><span class="badge badge-fk">FK</span> Foreign Key <span class="legend-arrow">→ Table.field</span></div>
+    <div class="legend-sep"></div>
+    <div class="legend-item" style="font-family:var(--mono);font-size:11px;color:var(--muted)">
+      <span style="color:#7AAEDE;font-weight:700">Table</span>(<span style="color:var(--pk);text-decoration:underline;text-underline-offset:2px">pk</span>, attr, <span style="color:var(--fk)">fk</span> <span style="color:#3A6A9A">→</span> <span style="color:#4A7A6A">Ref.pk</span>)
+    </div>
+  </div>
+
+  <!-- ══ IDENTITY & ACCESS ══════════════════════════════════════ -->
+  <div class="domain-section">
+    <div class="domain-header">
+      <div class="domain-dot dc-identity"></div>
+      <span class="domain-name dd-identity">Identity &amp; Access</span>
+      <div class="domain-rule"></div>
+    </div>
+    <div class="table-grid">
+
+      <!-- users -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-identity"></div>
+          <span class="tcard-title">users</span>
+          <span class="tcard-note">Auth root</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row">
+            <div class="f-badge"><span class="badge badge-pk">PK</span></div>
+            <span class="f-name pk-name">user_id</span>
+            <span class="f-type">INT</span>
+            <span class="f-ref"></span>
+          </div>
+          <div class="field-row">
+            <div class="f-badge"></div>
+            <span class="f-name">username</span>
+            <span class="f-type">VARCHAR(100)</span>
+            <span class="f-ref"></span>
+          </div>
+          <div class="field-row">
+            <div class="f-badge"></div>
+            <span class="f-name">email</span>
+            <span class="f-type">VARCHAR(150)</span>
+            <span class="f-ref"></span>
+          </div>
+          <div class="field-row">
+            <div class="f-badge"></div>
+            <span class="f-name">password_hash</span>
+            <span class="f-type">VARCHAR(255)</span>
+            <span class="f-ref"></span>
+          </div>
+          <div class="field-row">
+            <div class="f-badge"></div>
+            <span class="f-name">role</span>
+            <span class="f-type">ENUM</span>
+            <span class="f-ref"></span>
+          </div>
+          <div class="field-row fk-row">
+            <div class="f-badge"><span class="badge badge-fk">FK</span></div>
+            <span class="f-name">linked_id</span>
+            <span class="f-type">INT</span>
+            <span class="f-ref"><span class="arrow">→</span> students.student_id <span style="color:var(--muted)">| teachers.teacher_id</span></span>
+          </div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">users</span>(<span class="n-pk">user_id</span>, username, email, password_hash, role, <span class="n-fk">linked_id</span> <span class="n-arrow">→</span> <span class="n-ref">students.student_id | teachers.teacher_id</span>)
+        </div>
+      </div>
+
+      <!-- teachers -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-identity"></div>
+          <span class="tcard-title">teachers</span>
+          <span class="tcard-note">Staff</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row">
+            <div class="f-badge"><span class="badge badge-pk">PK</span></div>
+            <span class="f-name pk-name">teacher_id</span>
+            <span class="f-type">INT</span>
+            <span class="f-ref"></span>
+          </div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">name</span><span class="f-type">VARCHAR(150)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">ic_number</span><span class="f-type">VARCHAR(20)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">email</span><span class="f-type">VARCHAR(150)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">position</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">club_supervised</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">sport_supervised</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">uniform_supervised</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">is_active</span><span class="f-type">BOOLEAN</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">teachers</span>(<span class="n-pk">teacher_id</span>, name, ic_number, email, position, club_supervised, sport_supervised, uniform_supervised, is_active)
+        </div>
+      </div>
+
+      <!-- students -->
+      <div class="tcard" style="grid-column: 1 / -1;">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-identity"></div>
+          <span class="tcard-title">students</span>
+          <span class="tcard-note">Enrolment + PAJSK scores</span>
+        </div>
+        <div class="fields" style="display:grid;grid-template-columns:1fr 1fr;">
+          <div class="field-row pk-row">
+            <div class="f-badge"><span class="badge badge-pk">PK</span></div>
+            <span class="f-name pk-name">student_id</span>
+            <span class="f-type">INT</span>
+            <span class="f-ref"></span>
+          </div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">name</span><span class="f-type">VARCHAR(150)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">ic_number</span><span class="f-type">VARCHAR(20)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">class_t6</span><span class="f-type">VARCHAR(20)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">pajsk_score_t5</span><span class="f-type">DECIMAL(5,2)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">pajsk_pct_t5</span><span class="f-type">DECIMAL(5,2)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">pajsk_score_t6</span><span class="f-type">DECIMAL(5,2)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">pajsk_pct_t6</span><span class="f-type">DECIMAL(5,2)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">commitment</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">community_service</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">extra_score</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">is_active</span><span class="f-type">BOOLEAN</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">sub_role</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">gender</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">ethnicity</span><span class="f-type">VARCHAR(50)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">religion</span><span class="f-type">VARCHAR(50)</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">students</span>(<span class="n-pk">student_id</span>, name, ic_number, class_t6, pajsk_score_t5, pajsk_pct_t5, pajsk_score_t6, pajsk_pct_t6, commitment, community_service, extra_score, is_active, sub_role, gender, ethnicity, religion)
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ COCURRICULAR CONFIG ═════════════════════════════════════ -->
+  <div class="domain-section">
+    <div class="domain-header">
+      <div class="domain-dot dc-koko"></div>
+      <span class="domain-name dd-koko">Cocurricular Config</span>
+      <div class="domain-rule"></div>
+    </div>
+    <div class="table-grid">
+
+      <!-- mark_settings -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-koko"></div>
+          <span class="tcard-title">mark_settings</span>
+          <span class="tcard-note">Mark lookup</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">setting_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">category</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">item_name</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">mark_value</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">max_mark</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">mark_settings</span>(<span class="n-pk">setting_id</span>, category, item_name, mark_value, max_mark)
+        </div>
+      </div>
+
+      <!-- cocurricular -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-koko"></div>
+          <span class="tcard-title">cocurricular</span>
+          <span class="tcard-note">Unit enrolment T5→T6</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">koko_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">student_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> students.student_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">type</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">unit_name_t5</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">position_t5</span><span class="f-type">VARCHAR(50)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">level_t5</span><span class="f-type">VARCHAR(50)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">position_mark_t5</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">level_mark_t5</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">unit_name_t6</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">position_t6</span><span class="f-type">VARCHAR(50)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">level_t6</span><span class="f-type">VARCHAR(50)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">position_mark_t6</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">level_mark_t6</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">transfer_status</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">updated_at</span><span class="f-type">DATE</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">approved_by</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> teachers.teacher_id</span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">cocurricular</span>(<span class="n-pk">koko_id</span>, <span class="n-fk">student_id</span> <span class="n-arrow">→</span> <span class="n-ref">students</span>, type, unit_name_t5, position_t5, level_t5, position_mark_t5, level_mark_t5, unit_name_t6, position_t6, level_t6, position_mark_t6, level_mark_t6, transfer_status, updated_at, <span class="n-fk">approved_by</span> <span class="n-arrow">→</span> <span class="n-ref">teachers</span>)
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ REPORTS ════════════════════════════════════════════════ -->
+  <div class="domain-section">
+    <div class="domain-header">
+      <div class="domain-dot dc-report"></div>
+      <span class="domain-name dd-report">Reports</span>
+      <div class="domain-rule"></div>
+    </div>
+    <div class="table-grid">
+
+      <!-- weekly_reports -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-report"></div>
+          <span class="tcard-title">weekly_reports</span>
+          <span class="tcard-note">SU weekly log</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">report_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">unit_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> cocurricular.koko_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">date</span><span class="f-type">DATE</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">time</span><span class="f-type">TIME</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">activity</span><span class="f-type">TEXT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">attachment</span><span class="f-type">VARCHAR(255)</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">secretary_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> students.student_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">review_status</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">teacher_comment</span><span class="f-type">TEXT</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">weekly_reports</span>(<span class="n-pk">report_id</span>, <span class="n-fk">unit_id</span> <span class="n-arrow">→</span> <span class="n-ref">cocurricular</span>, date, time, activity, attachment, <span class="n-fk">secretary_id</span> <span class="n-arrow">→</span> <span class="n-ref">students</span>, review_status, teacher_comment)
+        </div>
+      </div>
+
+      <!-- project_reports -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-report"></div>
+          <span class="tcard-title">project_reports</span>
+          <span class="tcard-note">Project proposals</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">project_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">project_name</span><span class="f-type">VARCHAR(150)</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">secretary_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> students.student_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">proposal_file</span><span class="f-type">VARCHAR(255)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">impact_report_file</span><span class="f-type">VARCHAR(255)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">budget</span><span class="f-type">DECIMAL(10,2)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">approval_status</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">teacher_comment</span><span class="f-type">TEXT</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">project_reports</span>(<span class="n-pk">project_id</span>, project_name, <span class="n-fk">secretary_id</span> <span class="n-arrow">→</span> <span class="n-ref">students</span>, proposal_file, impact_report_file, budget, approval_status, teacher_comment)
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ RECORDS ════════════════════════════════════════════════ -->
+  <div class="domain-section">
+    <div class="domain-header">
+      <div class="domain-dot dc-record"></div>
+      <span class="domain-name dd-record">Records</span>
+      <div class="domain-rule"></div>
+    </div>
+    <div class="table-grid">
+
+      <!-- attendance -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-record"></div>
+          <span class="tcard-title">attendance</span>
+          <span class="tcard-note">Session presence</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">attendance_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">student_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> students.student_id</span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">unit_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> cocurricular.koko_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">date</span><span class="f-type">DATE</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">is_present</span><span class="f-type">TINYINT(1)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">cumulative_mark</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">attendance</span>(<span class="n-pk">attendance_id</span>, <span class="n-fk">student_id</span> <span class="n-arrow">→</span> <span class="n-ref">students</span>, <span class="n-fk">unit_id</span> <span class="n-arrow">→</span> <span class="n-ref">cocurricular</span>, date, is_present, cumulative_mark)
+        </div>
+      </div>
+
+      <!-- transfer_log -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-record"></div>
+          <span class="tcard-title">transfer_log</span>
+          <span class="tcard-note">Unit change audit</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">log_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">student_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> students.student_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">type</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">old_unit</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">new_unit</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">reason</span><span class="f-type">TEXT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">status</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">requested_at</span><span class="f-type">DATE</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">approved_at</span><span class="f-type">DATE</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">teacher_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> teachers.teacher_id</span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">transfer_log</span>(<span class="n-pk">log_id</span>, <span class="n-fk">student_id</span> <span class="n-arrow">→</span> <span class="n-ref">students</span>, type, old_unit, new_unit, reason, status, requested_at, approved_at, <span class="n-fk">teacher_id</span> <span class="n-arrow">→</span> <span class="n-ref">teachers</span>)
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ PERFORMANCE ════════════════════════════════════════════ -->
+  <div class="domain-section">
+    <div class="domain-header">
+      <div class="domain-dot dc-perf"></div>
+      <span class="domain-name dd-perf">Performance</span>
+      <div class="domain-rule"></div>
+    </div>
+    <div class="table-grid">
+
+      <!-- achievements -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-perf"></div>
+          <span class="tcard-title">achievements</span>
+          <span class="tcard-note">Pencapaian individu</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">achievement_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">student_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> students.student_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">achievement_name</span><span class="f-type">VARCHAR(200)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">evidence_file</span><span class="f-type">VARCHAR(255)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">review_status</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">mark</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">achievements</span>(<span class="n-pk">achievement_id</span>, <span class="n-fk">student_id</span> <span class="n-arrow">→</span> <span class="n-ref">students</span>, achievement_name, evidence_file, review_status, mark)
+        </div>
+      </div>
+
+      <!-- external_activities -->
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-perf"></div>
+          <span class="tcard-title">external_activities</span>
+          <span class="tcard-note">Aktiviti luar + e-Cert</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">activity_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">student_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> students.student_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">activity_name</span><span class="f-type">VARCHAR(200)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">level</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">letter_file</span><span class="f-type">VARCHAR(255)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">cert_file</span><span class="f-type">VARCHAR(255)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">approval_status</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">mark</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">ecert_serial</span><span class="f-type">VARCHAR(50)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">ecert_date</span><span class="f-type">DATE</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">external_activities</span>(<span class="n-pk">activity_id</span>, <span class="n-fk">student_id</span> <span class="n-arrow">→</span> <span class="n-ref">students</span>, activity_name, level, letter_file, cert_file, approval_status, mark, ecert_serial, ecert_date)
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ NEW AGENTS ════════════════════════════════════════════ -->
+  <div class="domain-section">
+    <div class="domain-header">
+      <div class="domain-dot dc-actmgmt"></div>
+      <span class="domain-name dd-actmgmt">Activity Management Agent</span>
+      <div class="domain-rule"></div>
+    </div>
+    <div class="table-grid single">
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-actmgmt"></div>
+          <span class="tcard-title">activity_schedule</span>
+          <span class="tcard-note">Scheduling + conflicts</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">schedule_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">unit_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> cocurricular.koko_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">title</span><span class="f-type">VARCHAR(200)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">date</span><span class="f-type">DATE</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">start_time</span><span class="f-type">TIME</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">end_time</span><span class="f-type">TIME</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">venue</span><span class="f-type">VARCHAR(150)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">status</span><span class="f-type">ENUM</span><span class="f-ref" style="color:var(--muted);font-size:10px">Planned · Ongoing · Done · Cancelled</span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">created_by</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> students.student_id</span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">activity_schedule</span>(<span class="n-pk">schedule_id</span>, <span class="n-fk">unit_id</span> <span class="n-arrow">→</span> <span class="n-ref">cocurricular</span>, title, date, start_time, end_time, venue, status, <span class="n-fk">created_by</span> <span class="n-arrow">→</span> <span class="n-ref">students</span>)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="domain-section">
+    <div class="domain-header">
+      <div class="domain-dot dc-smartrpt"></div>
+      <span class="domain-name dd-smartrpt">Smart Report Generator Agent</span>
+      <div class="domain-rule"></div>
+    </div>
+    <div class="table-grid single">
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-smartrpt"></div>
+          <span class="tcard-title">report_templates</span>
+          <span class="tcard-note">Auto-report config</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">template_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">template_name</span><span class="f-type">VARCHAR(150)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">report_type</span><span class="f-type">ENUM</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">created_by</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> users.user_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">config</span><span class="f-type">JSON</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">created_at</span><span class="f-type">DATETIME</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">report_templates</span>(<span class="n-pk">template_id</span>, template_name, report_type, <span class="n-fk">created_by</span> <span class="n-arrow">→</span> <span class="n-ref">users</span>, config, created_at)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="domain-section">
+    <div class="domain-header">
+      <div class="domain-dot dc-chatbot"></div>
+      <span class="domain-name dd-chatbot">Analytics &amp; Chatbot Agent</span>
+      <div class="domain-rule"></div>
+    </div>
+    <div class="table-grid single">
+      <div class="tcard">
+        <div class="tcard-head">
+          <div class="tcard-bar dc-chatbot"></div>
+          <span class="tcard-title">chat_logs</span>
+          <span class="tcard-note">Conversation history</span>
+        </div>
+        <div class="fields">
+          <div class="field-row pk-row"><div class="f-badge"><span class="badge badge-pk">PK</span></div><span class="f-name pk-name">chat_id</span><span class="f-type">INT</span><span class="f-ref"></span></div>
+          <div class="field-row fk-row"><div class="f-badge"><span class="badge badge-fk">FK</span></div><span class="f-name">user_id</span><span class="f-type">INT</span><span class="f-ref"><span class="arrow">→</span> users.user_id</span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">query</span><span class="f-type">TEXT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">response</span><span class="f-type">TEXT</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">intent</span><span class="f-type">VARCHAR(100)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">confidence</span><span class="f-type">DECIMAL(4,3)</span><span class="f-ref"></span></div>
+          <div class="field-row"><div class="f-badge"></div><span class="f-name">created_at</span><span class="f-type">DATETIME</span><span class="f-ref"></span></div>
+        </div>
+        <div class="notation-block">
+          <span class="n-tname">chat_logs</span>(<span class="n-pk">chat_id</span>, <span class="n-fk">user_id</span> <span class="n-arrow">→</span> <span class="n-ref">users</span>, query, response, intent, confidence, created_at)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RELATIONSHIP INDEX ═════════════════════════════════════ -->
+  <div class="rel-section">
+    <div class="section-head">
+      <h2>Foreign Key Relationships</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="rel-table-wrap">
+      <table class="rel-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>From Table</th>
+            <th>FK Field</th>
+            <th></th>
+            <th>To Table</th>
+            <th>PK Field</th>
+            <th>Cardinality</th>
+            <th>Required</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="color:var(--dim);font-size:10px">01</td><td class="rt-from">users</td><td class="rt-ff">linked_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">1 : 1</span></td><td><span class="rt-opt opt-no">Optional</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">02</td><td class="rt-from">users</td><td class="rt-ff">linked_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">teachers</td><td class="rt-tf">teacher_id</td><td><span class="rt-card">1 : 1</span></td><td><span class="rt-opt opt-no">Optional</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">03</td><td class="rt-from">cocurricular</td><td class="rt-ff">student_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">04</td><td class="rt-from">cocurricular</td><td class="rt-ff">approved_by</td><td style="color:#3A6A9A">→</td><td class="rt-to">teachers</td><td class="rt-tf">teacher_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-no">Optional</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">05</td><td class="rt-from">transfer_log</td><td class="rt-ff">student_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">06</td><td class="rt-from">transfer_log</td><td class="rt-ff">teacher_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">teachers</td><td class="rt-tf">teacher_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">07</td><td class="rt-from">attendance</td><td class="rt-ff">student_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">08</td><td class="rt-from">attendance</td><td class="rt-ff">unit_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">cocurricular</td><td class="rt-tf">koko_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">09</td><td class="rt-from">weekly_reports</td><td class="rt-ff">unit_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">cocurricular</td><td class="rt-tf">koko_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">10</td><td class="rt-from">weekly_reports</td><td class="rt-ff">secretary_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">11</td><td class="rt-from">project_reports</td><td class="rt-ff">secretary_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">12</td><td class="rt-from">achievements</td><td class="rt-ff">student_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">13</td><td class="rt-from">external_activities</td><td class="rt-ff">student_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">14</td><td class="rt-from">activity_schedule</td><td class="rt-ff">unit_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">cocurricular</td><td class="rt-tf">koko_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">15</td><td class="rt-from">activity_schedule</td><td class="rt-ff">created_by</td><td style="color:#3A6A9A">→</td><td class="rt-to">students</td><td class="rt-tf">student_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">16</td><td class="rt-from">report_templates</td><td class="rt-ff">created_by</td><td style="color:#3A6A9A">→</td><td class="rt-to">users</td><td class="rt-tf">user_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+          <tr><td style="color:var(--dim);font-size:10px">17</td><td class="rt-from">chat_logs</td><td class="rt-ff">user_id</td><td style="color:#3A6A9A">→</td><td class="rt-to">users</td><td class="rt-tf">user_id</td><td><span class="rt-card">N : 1</span></td><td><span class="rt-opt opt-yes">Mandatory</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

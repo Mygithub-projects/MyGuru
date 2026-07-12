@@ -19,6 +19,8 @@
     "db:seed-reports": "tsx scripts/seed-reports.ts",
     "db:seed-guru": "tsx scripts/seed-guru.ts",
     "db:bootstrap": "tsx scripts/bootstrap.ts",
+    "db:recalc-pajsk": "tsx scripts/recalc-pajsk.ts",
+    "db:migrate-penasihat": "tsx scripts/migrate-penasihat-kelab.ts",
     "db:studio": "prisma studio",
     "test": "vitest run",
     "test:watch": "vitest",

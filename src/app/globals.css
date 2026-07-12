@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* Mod gelap berasaskan kelas .dark (untuk halaman pendaratan). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* === Modern Corporate · Government Digital Transformation === */
+  --background: #f5f7fa;     /* kelabu muda */
+  --foreground: #1e293b;     /* slate-800 */
+
+  /* Royal Blue untuk tindakan/butang utama (teks PUTIH). */
+  --brand: #2563eb;          /* royal blue (CTA/butang) */
+  --brand-hover: #1d4ed8;    /* hover butang (blue-700) */
+  --brand-dark: #1e3a5f;     /* navy — pautan, tajuk, struktur */
+  --brand-light: #e8effb;    /* isian biru pucat (cip/banner) */
+  --gold-bright: #2563eb;    /* legasi token (tidak digunakan) */
+
+  /* Navy untuk header, footer, skrin log masuk */
+  --ink: #1e3a5f;
+  --ink-2: #2a4a73;
+
+  --accent: #2563eb;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-light: var(--brand-light);
+  --color-gold: var(--gold-bright);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-accent: var(--accent);
+  /* Font antara muka: Consolas (monospace) */
+  --font-sans: Consolas, "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Lencana status */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* ==========================================================================
+   MOD GELAP SELURUH APLIKASI
+   Memetakan utiliti terang biasa ke permukaan gelap, berskop pada .app-shell
+   (dashboard Pelajar/Guru/Admin + bantuan). Halaman pendaratan guna sistem
+   `dark:` sendiri. Peraturan tidak-berlapis ini mengatasi utiliti Tailwind.
+   ========================================================================== */
+:root {
+  --d-bg: #0f1a2b;        /* latar halaman gelap */
+  --d-surface: #1b2a44;   /* kad */
+  --d-surface-2: #243450; /* isian/hover/input */
+  --d-border: rgba(255, 255, 255, 0.10);
+  --d-text: #e2e8f0;
+  --d-text-strong: #f8fafc;
+  --d-muted: #94a3b8;
+}
+
+.dark body { background: var(--d-bg); }
+.dark .app-shell { background: var(--d-bg); color: var(--d-text); }
+
+.dark .app-shell .bg-white { background-color: var(--d-surface); }
+.dark .app-shell .bg-slate-50,
+.dark .app-shell .bg-slate-100 { background-color: var(--d-surface-2); }
+.dark .app-shell .hover\:bg-slate-50:hover,
+.dark .app-shell .hover\:bg-slate-100:hover,
+.dark .app-shell .hover\:bg-slate-200:hover { background-color: var(--d-surface-2); }
+
+.dark .app-shell .text-slate-800,
+.dark .app-shell .text-slate-700 { color: var(--d-text-strong); }
+.dark .app-shell .text-slate-600,
+.dark .app-shell .text-slate-500 { color: var(--d-text); }
+.dark .app-shell .text-slate-400 { color: var(--d-muted); }
+
+.dark .app-shell .ring-slate-200 { --tw-ring-color: var(--d-border); }
+.dark .app-shell .border-slate-100,
+.dark .app-shell .border-slate-200,
+.dark .app-shell .border-slate-300 { border-color: var(--d-border); }
+
+/* Aksen biru: brand-light terlalu cerah pada gelap; teks navy → biru muda */
+.dark .app-shell .bg-brand-light { background-color: rgba(37, 99, 235, 0.18); }
+.dark .app-shell .text-brand-dark { color: #93c5fd; }
+
+/* Input borang */
+.dark .app-shell input,
+.dark .app-shell select,
+.dark .app-shell textarea {
+  background-color: var(--d-surface-2);
+  color: var(--d-text);
+  border-color: var(--d-border);
+}
+.dark .app-shell ::placeholder { color: var(--d-muted); }
+
+/* Carta SVG */
+.dark .app-shell .fill-slate-700 { fill: var(--d-text-strong); }
+.dark .app-shell .fill-slate-500,
+.dark .app-shell .fill-slate-400 { fill: var(--d-muted); }

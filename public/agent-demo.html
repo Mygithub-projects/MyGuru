@@ -1,0 +1,611 @@
+<title>Activity Management Agent — MYGURU AI</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1E3A5F;--orange:#F97316;--orange-lt:#FFF7ED;
+  --green:#10B981;--red:#EF4444;--yellow:#F59E0B;
+  --bg:#F0F4F8;--surface:#fff;--border:#E2E8F0;
+  --txt:#1A2B40;--sub:#64748B;--mono:'Courier New',monospace;
+}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── top bar ── */
+#bar{background:var(--navy);height:50px;display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0}
+.agent-badge{background:var(--orange);color:#fff;font-size:9px;font-weight:800;padding:3px 7px;border-radius:3px;letter-spacing:.07em;text-transform:uppercase}
+#bar h1{color:#C8DCF4;font-size:13px;font-weight:700;letter-spacing:.02em}
+#bar .sub{color:#4E6E98;font-size:10px;margin-left:auto}
+
+/* ── stepper ── */
+#stepper{background:var(--surface);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;padding:0 8px;gap:0;overflow-x:auto;flex-shrink:0}
+.si{display:flex;align-items:center;gap:7px;padding:0 10px;height:100%;cursor:pointer;border-bottom:2.5px solid transparent;color:var(--sub);white-space:nowrap;font-size:12px;font-weight:600;transition:all .15s}
+.si:hover{color:var(--orange)}
+.si.active{border-bottom-color:var(--orange);color:var(--orange)}
+.si.done{color:var(--green)}
+.si.err{color:var(--red)}
+.snum{width:20px;height:20px;border-radius:50%;background:currentColor;color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sarr{color:#CBD5E1;padding:0 2px;font-size:12px}
+
+/* ── main ── */
+#main{flex:1;overflow-y:auto;padding:20px}
+.panel{display:none;max-width:820px;margin:0 auto;animation:fadeUp .2s ease}
+.panel.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* panel header */
+.ph{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px}
+.pico{width:38px;height:38px;border-radius:9px;background:var(--orange-lt);color:var(--orange);font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ptitle{font-size:17px;font-weight:700}
+.pdesc{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.5}
+
+/* card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px}
+.ctitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--sub);margin-bottom:12px}
+
+/* form */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+label{font-size:10px;font-weight:700;color:var(--sub);letter-spacing:.04em;text-transform:uppercase}
+input,select{padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;font-family:inherit;color:var(--txt);background:var(--bg);width:100%;transition:border .15s}
+input:focus,select:focus{outline:none;border-color:var(--orange);background:#fff}
+
+/* scenario pills */
+.pills{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--sub);transition:all .15s}
+.pill-a{border-color:var(--green);color:var(--green);background:#F0FDF4}
+.pill-b{border-color:var(--red);color:var(--red);background:#FEF2F2}
+.pill-c{border-color:var(--yellow);color:var(--yellow);background:#FFFBEB}
+.sdesc{font-size:11px;color:var(--sub);padding:8px 12px;background:var(--bg);border-radius:6px;margin-bottom:14px;line-height:1.5}
+
+/* buttons */
+.btn{padding:9px 18px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--orange);color:#fff}.btn-primary:hover{background:#EA6C0A}
+.btn-success{background:var(--green);color:#fff}
+.btn-danger{background:var(--red);color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--sub)}.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+.btn-sm{padding:5px 11px;font-size:11px;border-radius:5px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* checks */
+.chk{display:flex;flex-direction:column;gap:8px}
+.chk-row{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:7px;background:var(--bg);border:1px solid var(--border);font-size:12.5px;animation:slideIn .3s ease both}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.chk-row.pass{border-color:#A7F3D0}.chk-row.fail{border-color:#FCA5A5;background:#FEF2F2}
+.ci{width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.ci-ok{background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7}
+.ci-no{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+
+/* banner */
+.banner{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:8px;margin-bottom:14px;font-size:13px;font-weight:600}
+.b-ok{background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7}
+.b-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+.b-warn{background:#FEF3C7;color:#92400E;border:1px solid #FDE68A}
+.bico{font-size:19px}
+.b-sub{font-weight:400;font-size:11.5px;margin-top:2px}
+
+/* timeline */
+.tl-wrap{overflow-x:auto;padding-bottom:4px}
+.tl-canvas{position:relative;height:90px;min-width:560px}
+.tl-bar{position:absolute;height:20px;border-radius:4px;display:flex;align-items:center;padding:0 7px;font-size:9.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default;transition:opacity .2s}
+.tl-bar:hover{opacity:.85}
+.tl-hour{position:absolute;bottom:0;font-size:8.5px;color:#94A3B8;padding-left:3px;border-left:1px solid #E2E8F0;line-height:1}
+.tl-legend{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap}
+.tl-li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--sub)}
+.tl-swatch{width:12px;height:12px;border-radius:2px;display:inline-block}
+
+/* conflicts */
+.cf-item{display:flex;align-items:flex-start;gap:9px;padding:11px 13px;border-radius:7px;margin-bottom:8px;border:1px solid}
+.cf-block{border-color:#FCA5A5;background:#FEF2F2}
+.cf-warn{border-color:#FDE68A;background:#FFFBEB}
+.cf-badge{font-size:8.5px;font-weight:800;padding:2px 6px;border-radius:3px;letter-spacing:.05em;flex-shrink:0;margin-top:1px}
+.cb-block{background:var(--red);color:#fff}
+.cb-warn{background:var(--yellow);color:#fff}
+
+/* notif */
+.notif{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.notif-h{background:var(--navy);color:#A8C8E8;padding:8px 14px;font-size:10.5px;font-weight:600;display:flex;align-items:center;gap:6px}
+.notif-b{padding:11px 14px;font-size:12px;color:var(--txt);background:#F8FAFC;line-height:1.6}
+
+/* detail table */
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt td{padding:7px 0;border-bottom:1px solid var(--border)}
+.dt td:first-child{color:var(--sub);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;width:130px}
+.dt tr:last-child td{border-bottom:none}
+
+/* status flow */
+.sf{display:flex;align-items:center;gap:4px;margin:12px 0;flex-wrap:wrap}
+.snode{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:82px}
+.scircle{width:42px;height:42px;border-radius:50%;border:2px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .3s}
+.sc-cur{border-color:var(--orange);background:var(--orange-lt)}
+.sc-done{border-color:var(--green);background:#D1FAE5}
+.sc-err{border-color:var(--red);background:#FEE2E2}
+.slabel{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--sub)}
+.sarrow-sf{color:#CBD5E1;font-size:16px;margin-bottom:18px}
+
+.log-row{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;animation:slideIn .25s ease}
+.lts{color:var(--sub);font-family:var(--mono);font-size:10px;min-width:50px;padding-top:1px;flex-shrink:0}
+
+/* digest */
+.dig-row{display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:7px;margin-bottom:6px;border:1px solid var(--border);background:var(--surface);font-size:12.5px}
+.dig-time{font-family:var(--mono);font-size:10.5px;color:var(--sub);min-width:95px;flex-shrink:0}
+.sbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;letter-spacing:.04em;white-space:nowrap}
+.sb-planned{background:#DBEAFE;color:#1D4ED8}
+.sb-ongoing{background:#FEF3C7;color:#92400E}
+.sb-done{background:#D1FAE5;color:#065F46}
+.sb-cancelled{background:#F1F5F9;color:#64748B}
+
+/* nav */
+#nav{background:var(--surface);border-top:1px solid var(--border);padding:11px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.nind{font-size:11px;color:var(--sub)}
+</style>
+
+<div id="bar">
+  <span class="agent-badge">Agent</span>
+  <h1>Activity Management Agent</h1>
+  <span class="sub">MYGURU AI · Step-by-Step Process</span>
+</div>
+
+<div id="stepper">
+  <div class="si active" id="si0" onclick="goTo(0)"><div class="snum">1</div>Submit Request</div>
+  <span class="sarr">›</span>
+  <div class="si" id="si1" onclick="goTo(1)"><div class="snum">2</div>Validate Fields</div>
+  <span class="sarr">›</span>
+  <div class="si" id="si2" onclick="goTo(2)"><div class="snum">3</div>Detect Conflicts</div>
+  <span class="sarr">›</span>
+  <div class="si" id="si3" onclick="goTo(3)"><div class="snum">4</div>Register & Notify</div>
+  <span class="sarr">›</span>
+  <div class="si" id="si4" onclick="goTo(4)"><div class="snum">5</div>Status Lifecycle</div>
+  <span class="sarr">›</span>
+  <div class="si" id="si5" onclick="goTo(5)"><div class="snum">6</div>Daily Digest</div>
+</div>
+
+<div id="main">
+
+  <!-- ── STEP 1 ── -->
+  <div class="panel active" id="p0">
+    <div class="ph"><div class="pico">📋</div><div>
+      <div class="ptitle">Step 1 — Submit Activity Request</div>
+      <div class="pdesc">The Secretary (SU/NSU) fills in this form to request a new activity slot for their unit. Choose a scenario below to see how the agent handles different situations.</div>
+    </div></div>
+    <div class="card">
+      <div class="ctitle">Choose a Scenario</div>
+      <div class="pills">
+        <div class="pill pill-a" id="pA" onclick="loadS('A')">✓ Scenario A — No Conflict</div>
+        <div class="pill" id="pB" onclick="loadS('B')">✗ Scenario B — Venue Conflict</div>
+        <div class="pill" id="pC" onclick="loadS('C')">⚠ Scenario C — Unit Conflict</div>
+      </div>
+      <div class="sdesc" id="sdesc">Clean registration — no scheduling conflicts. Activity will be registered successfully.</div>
+      <div class="ctitle">Activity Request Form</div>
+      <div class="fgrid">
+        <div class="fg full"><label>Activity Title</label><input id="ft" value="Ceramah Kepimpinan Pengakap"/></div>
+        <div class="fg"><label>Unit</label>
+          <select id="fu">
+            <option value="Pengakap|Uniform|Cikgu Rohana|3">Pengakap (Uniform)</option>
+            <option value="Olahraga|Sport|Cikgu Hafizuddin|1">Olahraga (Sport)</option>
+            <option value="Bola Jaring|Sport|Cikgu Azimah|2">Bola Jaring (Sport)</option>
+            <option value="Kelab Sukan|Club|Cikgu Farid|4">Kelab Sukan (Club)</option>
+          </select>
+        </div>
+        <div class="fg"><label>Secretary Name</label><input id="fsec" value="Siti Nabilah"/></div>
+        <div class="fg"><label>Date</label><input type="date" id="fd" value="2026-07-07"/></div>
+        <div class="fg"><label>Venue</label><input id="fv" value="Dewan Serbaguna"/></div>
+        <div class="fg"><label>Start Time</label><input type="time" id="fs" value="14:00"/></div>
+        <div class="fg"><label>End Time</label><input type="time" id="fe" value="16:00"/></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn btn-primary" onclick="step1Next()">Submit to Agent →</button>
+    </div>
+  </div>
+
+  <!-- ── STEP 2 ── -->
+  <div class="panel" id="p1">
+    <div class="ph"><div class="pico">✔️</div><div>
+      <div class="ptitle">Step 2 — Field Validation</div>
+      <div class="pdesc">The agent checks every required field before any database operation. A single failure stops the process immediately and returns an error to the Secretary.</div>
+    </div></div>
+    <div class="card">
+      <div class="ctitle">Submitted Data</div>
+      <table class="dt" id="sub-table"></table>
+    </div>
+    <div class="card">
+      <div class="ctitle">Validation Checks</div>
+      <div class="chk" id="chk-list"></div>
+    </div>
+    <div id="val-result"></div>
+  </div>
+
+  <!-- ── STEP 3 ── -->
+  <div class="panel" id="p2">
+    <div class="ph"><div class="pico">🔍</div><div>
+      <div class="ptitle">Step 3 — Conflict Detection</div>
+      <div class="pdesc">The agent scans all existing activities on the requested date and checks for three types of conflict: same venue, same unit, and same secretary — using precise time-overlap logic.</div>
+    </div></div>
+    <div class="card">
+      <div class="ctitle">Schedule Timeline — <span id="tl-date"></span></div>
+      <div class="tl-wrap">
+        <div class="tl-canvas" id="tl-canvas"></div>
+      </div>
+      <div class="tl-legend">
+        <span class="tl-li"><span class="tl-swatch" style="background:#60A5FA"></span>Existing Activities</span>
+        <span class="tl-li"><span class="tl-swatch" style="background:#F97316"></span>New Request</span>
+        <span class="tl-li"><span class="tl-swatch" style="background:#EF4444"></span>Conflict Overlap</span>
+      </div>
+    </div>
+    <div class="card" id="cf-card"></div>
+  </div>
+
+  <!-- ── STEP 4 ── -->
+  <div class="panel" id="p3">
+    <div class="ph"><div class="pico">✅</div><div>
+      <div class="ptitle">Step 4 — Register & Notify</div>
+      <div class="pdesc">If no blocking conflicts exist, the activity is saved to the <code style="background:var(--bg);padding:1px 5px;border-radius:3px;font-size:11px;">activity_schedule</code> table and confirmation notifications are dispatched immediately.</div>
+    </div></div>
+    <div id="reg-content"></div>
+  </div>
+
+  <!-- ── STEP 5 ── -->
+  <div class="panel" id="p4">
+    <div class="ph"><div class="pico">🔄</div><div>
+      <div class="ptitle">Step 5 — Status Lifecycle</div>
+      <div class="pdesc">The agent enforces a strict one-way status flow. Click the buttons to transition the activity. Try the invalid transition button to see the agent block it.</div>
+    </div></div>
+    <div class="card">
+      <div class="ctitle">Status Flow Diagram</div>
+      <div class="sf" id="sf"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;" id="sf-actions"></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Transition Log</div>
+      <div id="tlog"></div>
+    </div>
+  </div>
+
+  <!-- ── STEP 6 ── -->
+  <div class="panel" id="p5">
+    <div class="ph"><div class="pico">📅</div><div>
+      <div class="ptitle">Step 6 — Daily Activity Digest</div>
+      <div class="pdesc">A time-sorted view of all scheduled activities for any given date. Accessible to Secretaries and Teacher Advisors at any time.</div>
+    </div></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div class="ctitle" style="margin:0">View Date</div>
+        <select id="dig-date" onchange="renderDigest()" style="font-size:11px;padding:4px 10px;width:auto">
+          <option value="2026-07-05">5 July 2026</option>
+          <option value="2026-07-07">7 July 2026</option>
+          <option value="2026-07-08">8 July 2026</option>
+        </select>
+      </div>
+      <div id="dig-list"></div>
+    </div>
+    <div style="text-align:center">
+      <button class="btn btn-outline" onclick="resetAll();goTo(0)">↩ Start Over with New Request</button>
+    </div>
+  </div>
+</div>
+
+<div id="nav">
+  <span class="nind" id="nind">Step 1 of 6</span>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button class="btn btn-outline" id="bprev" onclick="goTo(cur-1)" disabled>← Back</button>
+    <button class="btn btn-primary" id="bnext" onclick="goTo(cur+1)">Next →</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────
+const existing = [
+  {id:101,title:'Latihan Olahraga Mingguan', unit:'Olahraga',   type:'Sport',   venue:'Padang Utama',   date:'2026-07-05',start:'14:00',end:'16:00',sec:'Amirul Hakim', status:'Planned',teacher:'Cikgu Hafizuddin'},
+  {id:102,title:'Mesyuarat AJK Pengakap',    unit:'Pengakap',   type:'Uniform', venue:'Bilik Aktiviti', date:'2026-07-05',start:'14:30',end:'16:30',sec:'Siti Nabilah', status:'Planned',teacher:'Cikgu Rohana'},
+  {id:103,title:'Pertandingan Bola Jaring',  unit:'Bola Jaring',type:'Sport',   venue:'Padang Utama',   date:'2026-07-08',start:'08:00',end:'13:00',sec:'Nurul Ain',    status:'Planned',teacher:'Cikgu Azimah'},
+];
+
+const scenarios = {
+  A:{title:'Ceramah Kepimpinan Pengakap',  unit:'Pengakap|Uniform|Cikgu Rohana|3',   date:'2026-07-07',start:'14:00',end:'16:00',venue:'Dewan Serbaguna', sec:'Siti Nabilah',  desc:'Clean registration — no scheduling conflicts. Activity will be registered successfully.'},
+  B:{title:'Latihan Balapan 100m',          unit:'Olahraga|Sport|Cikgu Hafizuddin|1', date:'2026-07-05',start:'15:00',end:'17:00',venue:'Padang Utama',    sec:'Hazwan Fikri',  desc:'Venue conflict — Padang Utama is already booked 14:00–16:00. The agent will BLOCK this request.'},
+  C:{title:'Mesyuarat Kewangan Pengakap',   unit:'Pengakap|Uniform|Cikgu Rohana|3',   date:'2026-07-05',start:'14:30',end:'15:30',venue:'Bilik Guru',      sec:'Siti Nabilah',  desc:'Unit conflict — Pengakap already has an activity at the same time. The agent will BLOCK this request.'},
+};
+
+// ── STATE ────────────────────────────────────────────────────
+let cur=0, fd={}, valOk=false, cfs=[], regId=null, status='Planned', logEntries=[];
+
+// ── STEPS ────────────────────────────────────────────────────
+function goTo(n){
+  if(n<0||n>5) return;
+  document.querySelector('.panel.active').classList.remove('active');
+  document.getElementById(`p${n}`).classList.add('active');
+  for(let i=0;i<6;i++){
+    const el=document.getElementById(`si${i}`);
+    el.className='si'+(i<n?' done':i===n?' active':'');
+  }
+  cur=n;
+  document.getElementById('bprev').disabled=n===0;
+  document.getElementById('bnext').disabled=n===5;
+  document.getElementById('nind').textContent=`Step ${n+1} of 6`;
+  if(n===2) renderConflicts();
+  if(n===3) renderRegister();
+  if(n===4) renderStatus();
+  if(n===5) renderDigest();
+}
+
+function loadS(k){
+  const s=scenarios[k];
+  document.getElementById('ft').value=s.title;
+  document.getElementById('fu').value=s.unit;
+  document.getElementById('fd').value=s.date;
+  document.getElementById('fs').value=s.start;
+  document.getElementById('fe').value=s.end;
+  document.getElementById('fv').value=s.venue;
+  document.getElementById('fsec').value=s.sec;
+  document.getElementById('sdesc').textContent=s.desc;
+  ['A','B','C'].forEach(x=>{
+    const p=document.getElementById('p'+x);
+    p.className='pill'+(x===k?' pill-'+x.toLowerCase():'');
+  });
+  resetAll();
+}
+
+function step1Next(){
+  const up=document.getElementById('fu').value.split('|');
+  fd={title:document.getElementById('ft').value.trim(),
+      unitName:up[0],unitType:up[1],teacher:up[2],unitId:up[3],
+      date:document.getElementById('fd').value,
+      start:document.getElementById('fs').value,
+      end:document.getElementById('fe').value,
+      venue:document.getElementById('fv').value.trim(),
+      sec:document.getElementById('fsec').value.trim()};
+  renderValidation();
+  goTo(1);
+}
+
+// ── STEP 2 ───────────────────────────────────────────────────
+function renderValidation(){
+  document.getElementById('sub-table').innerHTML=[
+    ['Title',fd.title],['Unit',`${fd.unitName} (${fd.unitType})`],
+    ['Secretary',fd.sec],['Date',fd.date],
+    ['Time',`${fd.start} – ${fd.end}`],['Venue',fd.venue],
+  ].map(([k,v])=>`<tr><td>${k}</td><td style="font-weight:600">${v||'—'}</td></tr>`).join('');
+
+  const today=new Date().toISOString().slice(0,10);
+  const checks=[
+    {txt:'Activity title is not empty',           ok:fd.title.length>0},
+    {txt:'End time is after start time',           ok:fd.end>fd.start},
+    {txt:'Activity date is not in the past',       ok:fd.date>=today},
+    {txt:'Venue is specified',                     ok:fd.venue.length>0},
+    {txt:'Secretary name is provided',             ok:fd.sec.length>0},
+  ];
+  valOk=checks.every(c=>c.ok);
+
+  const list=document.getElementById('chk-list');
+  list.innerHTML='';
+  checks.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className=`chk-row ${c.ok?'pass':'fail'}`;
+    d.style.animationDelay=`${i*70}ms`;
+    d.innerHTML=`<div class="ci ${c.ok?'ci-ok':'ci-no'}">${c.ok?'✓':'✗'}</div>
+      <span>${c.txt}</span>
+      <span style="margin-left:auto;font-size:10.5px;font-weight:700;color:var(--${c.ok?'green':'red'})">${c.ok?'PASS':'FAIL'}</span>`;
+    list.appendChild(d);
+  });
+
+  document.getElementById('val-result').innerHTML=valOk
+    ?`<div class="banner b-ok"><span class="bico">✅</span><div>All 5 checks passed.<div class="b-sub">Proceeding to conflict detection in Step 3.</div></div></div>`
+    :`<div class="banner b-err"><span class="bico">❌</span><div>Validation failed — request rejected.<div class="b-sub">Fix the errors and resubmit from Step 1.</div></div></div>`;
+}
+
+// ── STEP 3 ───────────────────────────────────────────────────
+const t2m=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
+const m2t=m=>`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+const COLORS=['#60A5FA','#818CF8','#34D399','#FB923C'];
+
+function renderConflicts(){
+  const DAY=8*60, END=19*60, SPAN=END-DAY;
+  const rDate=fd.date, rS=t2m(fd.start), rE=t2m(fd.end);
+  document.getElementById('tl-date').textContent=new Date(rDate+'T12:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+
+  const canvas=document.getElementById('tl-canvas');
+  canvas.innerHTML='';
+
+  // Hour markers
+  for(let h=8;h<=18;h++){
+    const d=document.createElement('div');
+    d.className='tl-hour';
+    d.style.cssText=`left:${((h*60-DAY)/SPAN*100).toFixed(1)}%;bottom:0;position:absolute`;
+    d.textContent=`${h}:00`;
+    canvas.appendChild(d);
+  }
+
+  // Existing bars
+  const dayActs=existing.filter(a=>a.date===rDate);
+  dayActs.forEach((a,i)=>{
+    const s=t2m(a.start),e=t2m(a.end);
+    const overlap=(rS<e&&s<rE);
+    const b=document.createElement('div');
+    b.className='tl-bar';
+    const topRow=i%2===0?2:24;
+    b.style.cssText=`left:${((s-DAY)/SPAN*100).toFixed(1)}%;width:${((e-s)/SPAN*100).toFixed(1)}%;top:${topRow}px;background:${overlap?'#EF4444':COLORS[i%COLORS.length]}`;
+    b.title=`${a.title} | ${a.unit} | ${a.start}–${a.end} | ${a.venue}`;
+    b.textContent=a.title.length>16?a.title.slice(0,14)+'…':a.title;
+    canvas.appendChild(b);
+  });
+
+  // New request bar
+  const nb=document.createElement('div');
+  nb.className='tl-bar';
+  nb.style.cssText=`left:${((rS-DAY)/SPAN*100).toFixed(1)}%;width:${((rE-rS)/SPAN*100).toFixed(1)}%;top:48px;background:#F97316;border:2px solid #C2410C`;
+  nb.textContent='★ '+fd.title;
+  canvas.appendChild(nb);
+
+  // Detect conflicts
+  cfs=[];
+  dayActs.forEach(a=>{
+    const s=t2m(a.start),e=t2m(a.end);
+    if(!(rS<e&&s<rE)) return;
+    if(a.venue.toLowerCase()===fd.venue.toLowerCase())
+      cfs.push({type:'BLOCKED',reason:'Same venue at overlapping time',with:a.title,unit:a.unit,time:`${a.start}–${a.end}`,venue:a.venue});
+    if(a.unit.toLowerCase()===fd.unitName.toLowerCase())
+      cfs.push({type:'BLOCKED',reason:'Same unit has another activity',with:a.title,unit:a.unit,time:`${a.start}–${a.end}`});
+    if(a.sec.toLowerCase()===fd.sec.toLowerCase())
+      cfs.push({type:'WARNING',reason:'Secretary already assigned to another activity',with:a.title,unit:a.unit,time:`${a.start}–${a.end}`});
+  });
+
+  const blocked=cfs.filter(c=>c.type==='BLOCKED');
+  const cfCard=document.getElementById('cf-card');
+  cfCard.innerHTML=`<div class="ctitle">${cfs.length===0?'✅ No Conflicts Found':`Conflicts Detected — ${blocked.length} Blocking, ${cfs.filter(c=>c.type==='WARNING').length} Warning`}</div>`;
+
+  if(!cfs.length){
+    cfCard.innerHTML+=`<div style="font-size:13px;color:var(--green);font-weight:600;padding:6px 0">No existing activities conflict with this slot on ${rDate}.</div>`;
+  } else {
+    cfs.forEach(c=>{
+      const isB=c.type==='BLOCKED';
+      cfCard.innerHTML+=`<div class="cf-item ${isB?'cf-block':'cf-warn'}">
+        <span class="cf-badge ${isB?'cb-block':'cb-warn'}">${c.type}</span>
+        <div><div style="font-size:13px;font-weight:600;margin-bottom:3px">${c.reason}</div>
+        <div style="font-size:11px;color:var(--sub)">With: <strong>"${c.with}"</strong> (${c.unit}) at ${c.time}</div></div></div>`;
+    });
+    if(blocked.length)
+      cfCard.innerHTML+=`<div class="banner b-err" style="margin-top:10px"><span class="bico">🚫</span><div>Request BLOCKED — ${blocked.length} conflict(s) must be resolved.<div class="b-sub">Secretary must choose a different time, date, or venue.</div></div></div>`;
+    else
+      cfCard.innerHTML+=`<div class="banner b-warn" style="margin-top:10px"><span class="bico">⚠️</span><div>Request approved with warnings.<div class="b-sub">Secretary has been notified of the scheduling note.</div></div></div>`;
+  }
+}
+
+// ── STEP 4 ───────────────────────────────────────────────────
+function renderRegister(){
+  const blocked=cfs.filter(c=>c.type==='BLOCKED');
+  const rc=document.getElementById('reg-content');
+  if(!valOk){rc.innerHTML=`<div class="banner b-err"><span class="bico">❌</span><div>Cannot register — validation failed in Step 2.<div class="b-sub">Go back to Step 1 and correct the errors.</div></div></div>`;return}
+  if(blocked.length){rc.innerHTML=`<div class="banner b-err"><span class="bico">🚫</span><div>Cannot register — blocking conflict(s) in Step 3.<div class="b-sub">Go back to Step 1 and change the venue, date, or time.</div></div></div>`;return}
+  if(!regId) regId=Math.floor(Math.random()*800)+200;
+  rc.innerHTML=`
+    <div class="banner b-ok"><span class="bico">✅</span><div>Activity registered — ID <strong>#${regId}</strong><div class="b-sub">Saved to activity_schedule · Notifications sent</div></div></div>
+    <div class="card">
+      <div class="ctitle">Registered Activity</div>
+      <table class="dt">
+        <tr><td>Activity ID</td><td><strong>#${regId}</strong></td></tr>
+        <tr><td>Title</td><td>${fd.title}</td></tr>
+        <tr><td>Unit</td><td>${fd.unitName} (${fd.unitType})</td></tr>
+        <tr><td>Secretary</td><td>${fd.sec}</td></tr>
+        <tr><td>Date</td><td>${fd.date}</td></tr>
+        <tr><td>Time</td><td>${fd.start} – ${fd.end}</td></tr>
+        <tr><td>Venue</td><td>${fd.venue}</td></tr>
+        <tr><td>Status</td><td><span class="sbadge sb-planned">Planned</span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="ctitle">Notifications Dispatched</div>
+      <div class="notif">
+        <div class="notif-h">📧 To: ${fd.sec} (Secretary) · Web + Email</div>
+        <div class="notif-b"><strong>[MYGURU AI] ${fd.title}</strong><br><br>
+          Your activity has been successfully scheduled.<br>
+          Date: ${fd.date} · Time: ${fd.start}–${fd.end} · Venue: ${fd.venue}<br>
+          Status: <strong>Planned</strong> · Activity ID: <strong>#${regId}</strong></div>
+      </div>
+      <div class="notif">
+        <div class="notif-h">📧 To: ${fd.teacher} (Teacher Advisor) · Web + Email</div>
+        <div class="notif-b"><strong>[MYGURU AI] New Activity — ${fd.unitName}</strong><br><br>
+          A new activity has been registered under your unit.<br>
+          Title: ${fd.title}<br>
+          Date: ${fd.date} · Time: ${fd.start}–${fd.end} · Venue: ${fd.venue}</div>
+      </div>
+    </div>`;
+}
+
+// ── STEP 5 ───────────────────────────────────────────────────
+const transitions={Planned:['Ongoing','Cancelled'],Ongoing:['Done','Cancelled'],Done:[],Cancelled:[]};
+const statusIco={Planned:'📋',Ongoing:'▶️',Done:'✅',Cancelled:'❌'};
+const allSt=['Planned','Ongoing','Done','Cancelled'];
+
+function renderStatus(){
+  const blocked=cfs.filter(c=>c.type==='BLOCKED');
+  const sf=document.getElementById('sf'),sa=document.getElementById('sf-actions');
+  if(!valOk||blocked.length){
+    sf.innerHTML=`<div style="font-size:13px;color:var(--sub);padding:8px 0">Status lifecycle unavailable — activity was not registered.</div>`;
+    sa.innerHTML=''; return;
+  }
+  // diagram (Planned→Ongoing→Done, Cancelled separate)
+  sf.innerHTML='';
+  ['Planned','Ongoing','Done'].forEach((s,i)=>{
+    const idx=allSt.indexOf(s), cur2=allSt.indexOf(status);
+    const cls=idx<cur2?'sc-done':s===status?'sc-cur':'';
+    const n=document.createElement('div');
+    n.className='snode';
+    n.innerHTML=`<div class="scircle ${cls}">${statusIco[s]}</div><div class="slabel">${s}</div>`;
+    sf.appendChild(n);
+    if(i<2){const a=document.createElement('div');a.className='sarrow-sf';a.textContent='→';sf.appendChild(a);}
+  });
+  // cancelled branch
+  const cb=document.createElement('div');
+  cb.style.cssText='display:flex;align-items:center;gap:6px;margin-left:20px;padding-left:20px;border-left:2px dashed #E2E8F0;margin-bottom:22px';
+  const cc=status==='Cancelled'?'sc-err':'';
+  cb.innerHTML=`<div class="scircle ${cc}" style="width:34px;height:34px;font-size:13px">${statusIco.Cancelled}</div><div class="slabel">Cancelled</div>`;
+  sf.appendChild(cb);
+
+  // action buttons
+  sa.innerHTML=`<span style="font-size:11px;color:var(--sub);margin-right:4px">Current: <strong style="color:var(--txt)">${status}</strong> &nbsp;→ Transition to:</span>`;
+  const avail=transitions[status];
+  if(!avail.length){sa.innerHTML+=`<span style="font-size:12px;color:var(--sub);font-style:italic">No further transitions available.</span>`;}
+  else{
+    avail.forEach(t=>{
+      const b=document.createElement('button');
+      b.className=`btn btn-sm ${t==='Cancelled'?'btn-danger':t==='Done'?'btn-success':'btn-primary'}`;
+      b.textContent=`→ ${t}`;
+      b.onclick=()=>doTransition(t);
+      sa.appendChild(b);
+    });
+  }
+  // invalid button
+  const invalid=allSt.filter(s=>s!==status&&!avail.includes(s));
+  if(invalid.length&&status!=='Planned'){
+    const b=document.createElement('button');
+    b.className='btn btn-sm btn-outline';
+    b.textContent=`⚠ Try → ${invalid[0]} (invalid)`;
+    b.onclick=()=>tryInvalid(invalid[0]);
+    sa.appendChild(b);
+  }
+}
+
+function doTransition(next){
+  const avail=transitions[status];
+  if(!avail.includes(next)){addLog(`❌ BLOCKED: Cannot transition ${status} → ${next}`,true);return;}
+  const old=status;
+  status=next;
+  addLog(`✓ ${old} → ${next} &nbsp;·&nbsp; Notification sent to ${fd.sec} & ${fd.teacher}`);
+  renderStatus();
+}
+
+function tryInvalid(t){addLog(`❌ BLOCKED: Cannot transition ${status} → ${t} — invalid state flow`,true);}
+
+function addLog(msg,isErr=false){
+  const n=new Date(),ts=`${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}:${n.getSeconds().toString().padStart(2,'0')}`;
+  const tlog=document.getElementById('tlog');
+  const d=document.createElement('div');
+  d.className='log-row';
+  d.innerHTML=`<span class="lts">${ts}</span><span style="color:${isErr?'var(--red)':'var(--txt)'}">${msg}</span>`;
+  tlog.prepend(d);
+}
+
+// ── STEP 6 ───────────────────────────────────────────────────
+function renderDigest(){
+  const dt=document.getElementById('dig-date').value;
+  let all=[...existing.filter(a=>a.date===dt)];
+  if(regId&&fd.date===dt&&valOk&&!cfs.filter(c=>c.type==='BLOCKED').length)
+    all.push({id:regId,title:fd.title,unit:fd.unitName,type:fd.unitType,venue:fd.venue,date:fd.date,start:fd.start,end:fd.end,sec:fd.sec,status,teacher:fd.teacher});
+  all.sort((a,b)=>a.start.localeCompare(b.start));
+  const list=document.getElementById('dig-list');
+  if(!all.length){list.innerHTML=`<div style="text-align:center;color:var(--sub);padding:24px;font-size:13px">No activities scheduled for this date.</div>`;return;}
+  const sc=s=>s.toLowerCase().replace(' ','');
+  list.innerHTML=all.map(a=>`
+    <div class="dig-row">
+      <span class="dig-time">${a.start} – ${a.end}</span>
+      <span class="sbadge sb-${sc(a.status)}">${a.status}</span>
+      <div style="flex:1"><div style="font-weight:600">${a.title}</div>
+        <div style="font-size:11px;color:var(--sub)">${a.unit} (${a.type}) · ${a.venue}</div></div>
+      <div style="text-align:right;font-size:11px;color:var(--sub)">${a.sec}<br><span style="color:#94A3B8">${a.teacher}</span></div>
+    </div>`).join('');
+}
+
+function resetAll(){regId=null;status='Planned';cfs=[];valOk=false;logEntries=[];document.getElementById('tlog').innerHTML='';}
+
+loadS('A');
+</script>
