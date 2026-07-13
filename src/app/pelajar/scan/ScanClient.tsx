@@ -1,13 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { getDict } from "@/lib/i18n";
+import { useLocale } from "@/components/LocaleProvider";
 
 export function ScanClient() {
+  const locale = useLocale();
+  const t = getDict(locale).pelajar;
   const params = useSearchParams();
   const token = params.get("token");
-  // Keadaan awal diterbitkan dari token — elak setState segerak dalam effect.
   const [state, setState] = useState<"loading" | "ok" | "err">(token ? "loading" : "err");
-  const [msg, setMsg] = useState(token ? "" : "Tiada token. Sila imbas kod QR yang sah.");
+  const [msg, setMsg] = useState(token ? "" : t.scanNoToken);
 
   useEffect(() => {
     if (!token) return;
@@ -23,9 +26,9 @@ export function ScanClient() {
       })
       .catch(() => {
         setState("err");
-        setMsg("Ralat rangkaian.");
+        setMsg(t.scanNetworkError);
       });
-  }, [token]);
+  }, [token, t]);
 
   const tone =
     state === "ok"
@@ -38,7 +41,7 @@ export function ScanClient() {
     <div className={`rounded-xl p-6 text-center ring-1 ${tone}`}>
       <div className="text-3xl">{state === "ok" ? "✅" : state === "err" ? "⚠️" : "⏳"}</div>
       <p className="mt-2 text-sm font-medium">
-        {state === "loading" ? "Merekod kehadiran..." : msg}
+        {state === "loading" ? t.scanLoading : msg}
       </p>
     </div>
   );

@@ -2,19 +2,21 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getT } from "@/lib/locale";
 import { JawatanPanel } from "./JawatanPanel";
 
 export default async function JawatanPage() {
   const session = await getSession();
   if (!session?.pelajarId) redirect("/login");
+  const { t } = await getT();
 
   const isSU = session.subRole === "SU" || session.subRole === "NSU";
   if (!isSU) {
     return (
       <div className="space-y-4">
-        <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">← Kembali</Link>
+        <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">{t.pelajar.backToDashboard}</Link>
         <div className="rounded-xl bg-white p-6 text-sm text-slate-500 shadow-sm ring-1 ring-slate-200">
-          Penetapan jawatan ahli hanya untuk Setiausaha (SU) / Naib Setiausaha (NSU).
+          {t.pelajar.positionRestricted}
         </div>
       </div>
     );
@@ -45,11 +47,10 @@ export default async function JawatanPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">← Kembali ke Dashboard</Link>
-        <h1 className="mt-1 text-xl font-bold text-slate-800">Jawatan Ahli (T6)</h1>
+        <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">{t.pelajar.backToDashboard}</Link>
+        <h1 className="mt-1 text-xl font-bold text-slate-800">{t.pelajar.positionTitle}</h1>
         <p className="text-sm text-slate-500">
-          Cadangkan jawatan tertinggi ahli unit. Cadangan dihantar untuk pengesahan guru sebelum
-          markah PAJSK dikemas kini.
+          {t.pelajar.positionSubtitle}
         </p>
       </div>
       <JawatanPanel members={members} />

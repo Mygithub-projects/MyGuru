@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getDict } from "@/lib/i18n";
+import { useLocale } from "@/components/LocaleProvider";
 
 export function TukarUnitForm({
   pelajarId,
@@ -10,6 +12,10 @@ export function TukarUnitForm({
   unitSemasa: { jenisKoko: string; namaUnitT6: string | null; statusPertukaran: string }[];
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const dict = getDict(locale);
+  const t = dict.pelajar;
+  const common = dict.common;
   const [jenisKoko, setJenisKoko] = useState("Sukan");
   const [unitBaru, setUnitBaru] = useState("");
   const [sebab, setSebab] = useState("");
@@ -37,7 +43,7 @@ export function TukarUnitForm({
         router.refresh();
       }
     } catch {
-      setMsg({ text: "Ralat rangkaian", ok: false });
+      setMsg({ text: t.transferNetworkError ?? t.activityForm.networkError, ok: false });
     } finally {
       setBusy(false);
     }
@@ -46,7 +52,7 @@ export function TukarUnitForm({
   return (
     <form onSubmit={submit} className="space-y-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">
-        Borang Permohonan Pertukaran
+        {t.transferFormTitle}
       </h2>
 
       {msg && (
@@ -60,27 +66,27 @@ export function TukarUnitForm({
       )}
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">Jenis Kokurikulum</label>
+        <label className="mb-1 block text-sm font-medium text-slate-700">{t.transferTypeLabel}</label>
         <select
           value={jenisKoko}
           onChange={(e) => setJenisKoko(e.target.value)}
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
         >
-          <option value="Sukan">Sukan / Permainan</option>
-          <option value="Kelab">Kelab / Persatuan</option>
-          <option value="Uniform">Badan Beruniform</option>
+          <option value="Sukan">{common.sukan}</option>
+          <option value="Kelab">{common.kelab}</option>
+          <option value="Uniform">{common.uniform}</option>
         </select>
         <p className="mt-1 text-xs text-slate-500">
-          Unit semasa: <strong>{pilihan?.namaUnitT6 ?? "Belum ditetapkan"}</strong>
+          {t.transferCurrentUnit} <strong>{pilihan?.namaUnitT6 ?? t.transferUnitNotRegistered}</strong>
         </p>
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">Unit Baru</label>
+        <label className="mb-1 block text-sm font-medium text-slate-700">{t.transferNewUnitLabel}</label>
         <input
           value={unitBaru}
           onChange={(e) => setUnitBaru(e.target.value)}
-          placeholder="cth: Olahraga"
+          placeholder={t.transferExample}
           required
           minLength={2}
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
@@ -88,7 +94,7 @@ export function TukarUnitForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">Sebab (pilihan)</label>
+        <label className="mb-1 block text-sm font-medium text-slate-700">{t.transferReasonLabel}</label>
         <textarea
           value={sebab}
           onChange={(e) => setSebab(e.target.value)}
@@ -102,11 +108,11 @@ export function TukarUnitForm({
         disabled={busy || adaPending}
         className="w-full rounded-lg bg-brand py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:opacity-50"
       >
-        {adaPending ? "Ada permohonan menunggu kelulusan" : busy ? "Menghantar..." : "Hantar Permohonan"}
+        {adaPending ? t.transferPending : busy ? t.activityForm.loading : t.transferSubmit}
       </button>
       {adaPending && (
         <p className="text-center text-xs text-amber-600">
-          Anda perlu menunggu keputusan permohonan semasa sebelum memohon lagi.
+          {t.transferPendingNotice}
         </p>
       )}
     </form>

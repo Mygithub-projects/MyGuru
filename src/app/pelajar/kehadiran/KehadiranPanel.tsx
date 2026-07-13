@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import QRCode from "qrcode";
+import { getDict } from "@/lib/i18n";
+import { useLocale } from "@/components/LocaleProvider";
 
 interface Ahli {
   id: string;
@@ -14,6 +16,8 @@ interface Unit {
 }
 
 export function KehadiranPanel({ units }: { units: Unit[] }) {
+  const locale = useLocale();
+  const t = getDict(locale).pelajar.attendancePanel;
   const [unitIdx, setUnitIdx] = useState(0);
   const [bil, setBil] = useState(1);
   const [tarikh, setTarikh] = useState("");
@@ -28,7 +32,7 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
   if (units.length === 0) {
     return (
       <div className="rounded-xl bg-white p-6 text-sm text-slate-500 shadow-sm ring-1 ring-slate-200">
-        Tiada unit dengan ahli ditemui untuk akaun anda.
+        {t.noUnits}
       </div>
     );
   }
@@ -52,7 +56,7 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
       setSesi({ id: json.data.id, token: json.data.token });
       const url = `${window.location.origin}/pelajar/scan?token=${json.data.token}`;
       setQr(await QRCode.toDataURL(url, { width: 220, margin: 1 }));
-      setMsg({ text: "Sesi dibuka. Tanda kehadiran atau paparkan QR.", ok: true });
+      setMsg({ text: t.recording, ok: true });
     } finally {
       setBusy(false);
     }
@@ -82,10 +86,10 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-4 lg:col-span-2">
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">Buka Sesi Perjumpaan</h2>
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.openSessionTitle}</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm">
-              <span className="mb-1 block font-medium text-slate-700">Unit</span>
+              <span className="mb-1 block font-medium text-slate-700">{t.unitLabel}</span>
               <select
                 value={unitIdx}
                 onChange={(e) => { setUnitIdx(Number(e.target.value)); setSesi(null); setQr(null); }}
@@ -97,19 +101,19 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
               </select>
             </label>
             <label className="text-sm">
-              <span className="mb-1 block font-medium text-slate-700">Perjumpaan #</span>
+              <span className="mb-1 block font-medium text-slate-700">{t.meetingNumber}</span>
               <input type="number" min={1} max={40} value={bil} onChange={(e) => setBil(Number(e.target.value))}
                 className="w-full rounded-lg border border-slate-300 px-2 py-2 text-sm" />
             </label>
             <label className="text-sm">
-              <span className="mb-1 block font-medium text-slate-700">Tarikh</span>
+              <span className="mb-1 block font-medium text-slate-700">{t.dateLabel}</span>
               <input type="date" value={tarikh} onChange={(e) => setTarikh(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-2 py-2 text-sm" />
             </label>
           </div>
           <button onClick={bukaSesi} disabled={busy}
             className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50">
-            {busy ? "..." : "Buka Sesi"}
+            {busy ? "..." : t.openSessionButton}
           </button>
         </section>
 
@@ -123,11 +127,11 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
           <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">
-                Senarai Ahli ({bilHadir}/{unit.ahli.length} hadir)
+                {t.memberListTitle} ({bilHadir}/{unit.ahli.length} {t.attendanceCount})
               </h2>
               <button onClick={simpan} disabled={busy}
                 className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover disabled:opacity-50">
-                Simpan Kehadiran
+                {t.saveAttendanceButton}
               </button>
             </div>
             <div className="space-y-1">
@@ -148,14 +152,14 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
       <div>
         {qr ? (
           <section className="rounded-xl bg-white p-5 text-center shadow-sm ring-1 ring-slate-200">
-            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">Imbas QR Kehadiran</h2>
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.attendanceQrTitle}</h2>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={qr} alt="QR Kehadiran" className="mx-auto" width={220} height={220} />
-            <p className="mt-2 text-xs text-slate-500">Ahli imbas kod ini (perlu log masuk) untuk menanda hadir sendiri.</p>
+            <img src={qr} alt={t.attendanceQrTitle} className="mx-auto" width={220} height={220} />
+            <p className="mt-2 text-xs text-slate-500">{t.attendanceQrInfo}</p>
           </section>
         ) : (
           <section className="rounded-xl bg-slate-50 p-5 text-center text-xs text-slate-400 ring-1 ring-slate-200">
-            Buka sesi untuk menjana kod QR kehadiran.
+            {t.attendanceQrInfo}
           </section>
         )}
       </div>

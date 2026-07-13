@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getDict } from "@/lib/i18n";
+import { useLocale } from "@/components/LocaleProvider";
 
 // Borang ringkas untuk pelajar memuat naik surat & sijil bagi rekod aktiviti
 // luar yang dipilih oleh guru (Pending tanpa eviden lengkap).
@@ -16,6 +18,8 @@ export function EvidenUpload({
   adaSijil: boolean;
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = getDict(locale).pelajar.activityForm;
   const [buka, setBuka] = useState(false);
   const [hantar, setHantar] = useState(false);
   const [ralat, setRalat] = useState<string | null>(null);
@@ -31,13 +35,13 @@ export function EvidenUpload({
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        setRalat(json.message ?? "Ralat memuat naik.");
+        setRalat(json.message ?? t.networkError);
       } else {
         setBuka(false);
         router.refresh();
       }
     } catch {
-      setRalat("Ralat rangkaian.");
+      setRalat(t.networkError);
     } finally {
       setHantar(false);
     }
@@ -49,7 +53,7 @@ export function EvidenUpload({
         onClick={() => setBuka(true)}
         className="mt-2 inline-block rounded-md bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-200"
       >
-        ⬆ Muat naik eviden (surat & sijil)
+        {t.uploadEvidence}
       </button>
     );
   }
@@ -57,20 +61,20 @@ export function EvidenUpload({
   return (
     <form onSubmit={submit} className="mt-2 space-y-2 rounded-lg bg-slate-50 p-3 text-xs">
       <label className="block">
-        <span className="text-slate-500">Surat {adaSurat && "✓ (ada)"}</span>
+        <span className="text-slate-500">{t.letterLabel} {adaSurat && "✓ (ada)"}</span>
         <input type="file" name="surat" className="mt-1 block w-full text-xs" />
       </label>
       <label className="block">
-        <span className="text-slate-500">Sijil {adaSijil && "✓ (ada)"}</span>
+        <span className="text-slate-500">{t.certificateLabel} {adaSijil && "✓ (ada)"}</span>
         <input type="file" name="sijil" className="mt-1 block w-full text-xs" />
       </label>
       {ralat && <p className="text-rose-600">{ralat}</p>}
       <div className="flex gap-2">
         <button type="submit" disabled={hantar} className="rounded-md bg-blue-600 px-3 py-1 font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-          {hantar ? "Memuat naik…" : "Simpan"}
+          {hantar ? t.loading : t.submit}
         </button>
         <button type="button" onClick={() => setBuka(false)} className="rounded-md bg-slate-200 px-3 py-1 font-semibold text-slate-600 hover:bg-slate-300">
-          Batal
+          {t.cancel}
         </button>
       </div>
     </form>

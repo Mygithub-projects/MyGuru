@@ -5,11 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AktivitiForm } from "./AktivitiForm";
 import { EvidenUpload } from "./EvidenUpload";
+import { getT } from "@/lib/locale";
 
 export default async function AktivitiPage() {
   const session = await getSession();
   if (!session?.pelajarId) redirect("/login");
   const pid = session.pelajarId;
+  const { t } = await getT();
 
   const [pencapaian, aktivitiLuar] = await Promise.all([
     prisma.pencapaian.findMany({ where: { pelajarId: pid }, orderBy: { createdAt: "desc" } }),
@@ -19,17 +21,17 @@ export default async function AktivitiPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">← Kembali ke Dashboard</Link>
-        <h1 className="mt-1 text-xl font-bold text-slate-800">Pencapaian & Aktiviti Luar</h1>
-        <p className="text-sm text-slate-500">Isi pencapaian & aktiviti luar, muat naik eviden (surat/sijil), tunggu pengesahan guru.</p>
+        <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">{t.pelajar.backToDashboard}</Link>
+        <h1 className="mt-1 text-xl font-bold text-slate-800">{t.pelajar.activityTitle}</h1>
+        <p className="text-sm text-slate-500">{t.pelajar.activitySubtitle}</p>
       </div>
 
       <AktivitiForm pelajarId={pid} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">Pencapaian</h2>
-          {pencapaian.length === 0 ? <p className="text-sm text-slate-400">Tiada rekod.</p> : (
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.pelajar.achievementSection}</h2>
+          {pencapaian.length === 0 ? <p className="text-sm text-slate-400">{t.pelajar.noRecords}</p> : (
             <div className="space-y-2">
               {pencapaian.map((p) => (
                 <div key={p.id} className="rounded-lg border border-slate-100 px-3 py-2 text-sm">
@@ -38,9 +40,9 @@ export default async function AktivitiPage() {
                     <StatusBadge status={p.statusSemakan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {p.peringkat ?? ""} {p.statusSemakan === "Approved" ? `· ${p.markah} markah` : ""}
+                    {p.peringkat ?? ""} {p.statusSemakan === "Approved" ? `· ${p.markah} ${t.pelajar.commentLabel}` : ""}
                   </p>
-                  {p.komenGuru && <p className="mt-1 text-xs text-amber-600">Komen: {p.komenGuru}</p>}
+                  {p.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.pelajar.commentLabel}: {p.komenGuru}</p>}
                 </div>
               ))}
             </div>
@@ -48,8 +50,8 @@ export default async function AktivitiPage() {
         </section>
 
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">Aktiviti Luar</h2>
-          {aktivitiLuar.length === 0 ? <p className="text-sm text-slate-400">Tiada rekod.</p> : (
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.pelajar.externalActivitiesSection}</h2>
+          {aktivitiLuar.length === 0 ? <p className="text-sm text-slate-400">{t.pelajar.noRecords}</p> : (
             <div className="space-y-2">
               {aktivitiLuar.map((a) => (
                 <div key={a.id} className="rounded-lg border border-slate-100 px-3 py-2 text-sm">
@@ -59,9 +61,9 @@ export default async function AktivitiPage() {
                   </div>
                   <p className="text-xs text-slate-400">
                     {a.peringkat}
-                    {a.statusPengesahan === "Approved" ? ` · ${a.markahLuar} markah · ${a.noSiriECert}` : ""}
+                    {a.statusPengesahan === "Approved" ? ` · ${a.markahLuar} ${t.pelajar.commentLabel} · ${a.noSiriECert}` : ""}
                   </p>
-                  {a.komenGuru && <p className="mt-1 text-xs text-amber-600">Komen: {a.komenGuru}</p>}
+                  {a.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.pelajar.commentLabel}: {a.komenGuru}</p>}
                   {a.statusPengesahan !== "Approved" && (!a.lampiranSurat || !a.lampiranSijil) && (
                     <EvidenUpload
                       pelajarId={pid}
@@ -73,7 +75,7 @@ export default async function AktivitiPage() {
                   {a.statusPengesahan === "Approved" && (
                     <a href={`/api/pelajar/${pid}/ecert/${a.id}`} target="_blank"
                       className="mt-2 inline-block rounded-md bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-hover">
-                      ⬇ Jana e-Cert (PDF)
+                      {t.pelajar.generateECert}
                     </a>
                   )}
                 </div>

@@ -20,6 +20,7 @@
     "db:seed-guru": "tsx scripts/seed-guru.ts",
     "db:bootstrap": "tsx scripts/bootstrap.ts",
     "db:recalc-pajsk": "tsx scripts/recalc-pajsk.ts",
+    "db:import-demografi": "tsx scripts/import-kelas-jantina.ts",
     "db:migrate-penasihat": "tsx scripts/migrate-penasihat-kelab.ts",
     "db:studio": "prisma studio",
     "test": "vitest run",
@@ -41,10 +42,12 @@
     "next": "16.2.9",
     "nodemailer": "^9.0.1",
     "openai": "^6.45.0",
+    "papaparse": "^5.5.4",
     "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -52,6 +55,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.1",
+    "@types/papaparse": "^5.5.2",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",

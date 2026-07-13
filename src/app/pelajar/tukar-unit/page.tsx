@@ -2,12 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getT } from "@/lib/locale";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TukarUnitForm } from "./TukarUnitForm";
 
 export default async function TukarUnitPage() {
   const session = await getSession();
   if (!session?.pelajarId) redirect("/login");
+  const { t } = await getT();
+  const jenisLabel: Record<string, string> = { Sukan: t.common.sukan, Kelab: t.common.kelab, Uniform: t.common.uniform };
 
   const [koko, sejarah] = await Promise.all([
     prisma.kokurikulum.findMany({ where: { pelajarId: session.pelajarId } }),
@@ -22,11 +25,11 @@ export default async function TukarUnitPage() {
     <div className="space-y-6">
       <div>
         <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">
-          ← Kembali ke Dashboard
+          {t.pelajar.backToDashboard}
         </Link>
-        <h1 className="mt-1 text-xl font-bold text-slate-800">Pertukaran Unit Kokurikulum</h1>
+        <h1 className="mt-1 text-xl font-bold text-slate-800">{t.pelajar.transferTitle}</h1>
         <p className="text-sm text-slate-500">
-          Mohon tukar Kelab/Sukan/Badan Beruniform. Unit dikemas kini selepas guru meluluskan.
+          {t.pelajar.transferSubtitle}
         </p>
       </div>
 
@@ -43,7 +46,7 @@ export default async function TukarUnitPage() {
         <div className="space-y-4">
           <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">
-              Unit Semasa (T6)
+              {t.pelajar.transferCurrentUnits}
             </h2>
             <div className="space-y-2">
               {koko.map((k) => (
@@ -52,7 +55,7 @@ export default async function TukarUnitPage() {
                   className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm"
                 >
                   <span>
-                    <span className="font-semibold text-brand-dark">{k.jenisKoko}:</span>{" "}
+                    <span className="font-semibold text-brand-dark">{jenisLabel[k.jenisKoko] ?? k.jenisKoko}:</span>{" "}
                     {k.namaUnitT6 ?? "-"}
                   </span>
                   <StatusBadge status={k.statusPertukaran} />
@@ -63,22 +66,22 @@ export default async function TukarUnitPage() {
 
           <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">
-              Sejarah Permohonan
+              {t.pelajar.transferHistory}
             </h2>
             {sejarah.length === 0 ? (
-              <p className="text-sm text-slate-400">Tiada permohonan lagi.</p>
+              <p className="text-sm text-slate-400">{t.pelajar.transferNoRequest}</p>
             ) : (
               <div className="space-y-2">
                 {sejarah.map((s) => (
                   <div key={s.id} className="rounded-lg border border-slate-100 px-3 py-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-slate-700">
-                        {s.jenisKoko}: {s.unitLama ?? "-"} → {s.unitBaru}
+                        {jenisLabel[s.jenisKoko] ?? s.jenisKoko}: {s.unitLama ?? "-"} → {s.unitBaru}
                       </span>
                       <StatusBadge status={s.status} />
                     </div>
                     {s.komenGuru && (
-                      <p className="mt-1 text-xs text-slate-500">Komen guru: {s.komenGuru}</p>
+                      <p className="mt-1 text-xs text-slate-500">{t.laporan.comment}: {s.komenGuru}</p>
                     )}
                   </div>
                 ))}

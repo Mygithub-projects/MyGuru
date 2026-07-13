@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getDict } from "@/lib/i18n";
+import { useLocale } from "@/components/LocaleProvider";
 
 const JAWATAN = [
   "Pengerusi", "Naib Pengerusi", "Ketua Pasukan", "Setiausaha", "Kapten",
@@ -18,6 +20,8 @@ interface Member {
 }
 
 export function JawatanPanel({ members }: { members: Member[] }) {
+  const locale = useLocale();
+  const t = getDict(locale).pelajar;
   const router = useRouter();
   const [pilih, setPilih] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
@@ -32,7 +36,7 @@ export function JawatanPanel({ members }: { members: Member[] }) {
   async function cadang(m: Member) {
     const key = `${m.pelajarId}:${m.jenisKoko}`;
     const jawatanBaru = pilih[key];
-    if (!jawatanBaru) { setMsg({ text: "Pilih jawatan dahulu", ok: false }); return; }
+    if (!jawatanBaru) { setMsg({ text: t.positionChooseFirst, ok: false }); return; }
     setBusy(key);
     setMsg(null);
     try {
@@ -50,7 +54,7 @@ export function JawatanPanel({ members }: { members: Member[] }) {
   }
 
   if (members.length === 0) {
-    return <div className="rounded-xl bg-white p-6 text-sm text-slate-400 shadow-sm ring-1 ring-slate-200">Tiada ahli unit ditemui.</div>;
+    return <div className="rounded-xl bg-white p-6 text-sm text-slate-400 shadow-sm ring-1 ring-slate-200">{t.positionNoMembers}</div>;
   }
 
   return (
@@ -82,7 +86,7 @@ export function JawatanPanel({ members }: { members: Member[] }) {
                       disabled={!!m.pending}
                       className="rounded-md border border-slate-300 px-2 py-1 text-sm disabled:opacity-50"
                     >
-                      <option value="">— Pilih jawatan —</option>
+                      <option value="">{t.positionChoose}</option>
                       {JAWATAN.map((j) => <option key={j} value={j}>{j}</option>)}
                     </select>
                     <button

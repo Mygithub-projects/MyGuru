@@ -24,7 +24,7 @@ export default async function LaporanPage({
       <div className="space-y-4">
         <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">← {t.common.kembali}</Link>
         <div className="rounded-xl bg-white p-6 text-sm text-slate-500 shadow-sm ring-1 ring-slate-200">
-          {t.laporan.title} — SU / NSU.
+          {t.laporan.suNsuOnly}
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ export default async function LaporanPage({
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.laporan.weekly}</h2>
-          {mingguan.length === 0 ? <Empty /> : (
+          {mingguan.length === 0 ? <Empty message={t.laporan.noRecords} /> : (
             <div className="space-y-2">
               {mingguan.map((m) => (
                 <div key={m.id} className="rounded-lg border border-slate-100 px-3 py-2 text-sm">
@@ -78,10 +78,10 @@ export default async function LaporanPage({
                   </div>
                   <p className="text-xs text-slate-400">
                     {new Date(m.tarikh).toLocaleDateString("ms-MY")} {m.masa ? `· ${m.masa}` : ""}
-                    {m.lampiran ? " · 📎 lampiran" : ""}
+                    {m.lampiran ? t.laporan.attachmentLabel : ""}
                   </p>
-                  <Kehadiran sesiId={m.sesiId} r={ringkasan} />
-                  {m.komenGuru && <p className="mt-1 text-xs text-amber-600">Komen: {m.komenGuru}</p>}
+                  <Kehadiran sesiId={m.sesiId} r={ringkasan} labelHadir={t.laporan.reportAttendanceLabel} labelLihat={t.laporan.reportViewSession} />
+                  {m.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.laporan.comment}: {m.komenGuru}</p>}
                   {m.statusSemakan === "Approved" && (
                     <a href={`/api/laporan/mingguan/${m.id}/pdf`} className="mt-1 inline-block text-xs font-semibold text-brand-dark hover:underline">{t.laporan.downloadVerified}</a>
                   )}
@@ -93,7 +93,7 @@ export default async function LaporanPage({
 
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.laporan.project}</h2>
-          {projek.length === 0 ? <Empty /> : (
+          {projek.length === 0 ? <Empty message={t.laporan.noRecords} /> : (
             <div className="space-y-2">
               {projek.map((p) => (
                 <div key={p.id} className="rounded-lg border border-slate-100 px-3 py-2 text-sm">
@@ -102,10 +102,10 @@ export default async function LaporanPage({
                     <StatusBadge status={p.statusPengesahan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {p.failKertasKerja ? "📋 kertas kerja" : ""} {p.failLaporanImpak ? "· 📊 laporan impak" : ""}
+                    {p.failKertasKerja ? t.laporan.attachmentWorkPlan : ""} {p.failLaporanImpak ? `· ${t.laporan.attachmentImpactReport}` : ""}
                   </p>
-                  <Kehadiran sesiId={p.sesiId} r={ringkasan} />
-                  {p.komenGuru && <p className="mt-1 text-xs text-amber-600">Komen: {p.komenGuru}</p>}
+                  <Kehadiran sesiId={p.sesiId} r={ringkasan} labelHadir={t.laporan.reportAttendanceLabel} labelLihat={t.laporan.reportViewSession} />
+                  {p.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.laporan.comment}: {p.komenGuru}</p>}
                   {p.statusPengesahan === "Approved" && (
                     <a href={`/api/laporan/projek/${p.id}/pdf`} className="mt-1 inline-block text-xs font-semibold text-brand-dark hover:underline">{t.laporan.downloadVerified}</a>
                   )}
@@ -122,22 +122,26 @@ export default async function LaporanPage({
 function Kehadiran({
   sesiId,
   r,
+  labelHadir,
+  labelLihat,
 }: {
   sesiId: string | null;
   r: Record<string, { hadir: number; total: number; peratus: number }>;
+  labelHadir: string;
+  labelLihat: string;
 }) {
   if (!sesiId || !r[sesiId]) return null;
   const s = r[sesiId];
   return (
     <p className="mt-1 flex items-center gap-2 text-xs">
       <span className="rounded bg-brand-light px-1.5 py-0.5 font-semibold text-brand-dark">
-        Kehadiran: {s.hadir}/{s.total} ({s.peratus}%)
+        {labelHadir}: {s.hadir}/{s.total} ({s.peratus}%)
       </span>
-      <Link href="/pelajar/kehadiran" className="text-brand-dark hover:underline">Lihat sesi →</Link>
+      <Link href="/pelajar/kehadiran" className="text-brand-dark hover:underline">{labelLihat}</Link>
     </p>
   );
 }
 
-function Empty() {
-  return <p className="text-sm text-slate-400">Tiada rekod lagi.</p>;
+function Empty({ message }: { message: string }) {
+  return <p className="text-sm text-slate-400">{message}</p>;
 }

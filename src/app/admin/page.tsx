@@ -38,13 +38,29 @@ export default async function AdminDashboard() {
             {t.admin.noDemographics}
           </p>
         ) : (
-          <ul className="text-sm text-slate-700">
-            {jantina.map((j) => (
-              <li key={j.jantina ?? "NA"}>
-                {j.jantina ?? t.common.tiadaData}: {j._count}
-              </li>
-            ))}
-          </ul>
+          (() => {
+            const total = jantina.reduce((s, j) => s + j._count, 0);
+            const label = (v: string | null) =>
+              v === "L" ? t.admin.male : v === "P" ? t.admin.female : t.common.tiadaData;
+            return (
+              <ul className="space-y-2.5 text-sm text-slate-700">
+                {jantina.map((j) => {
+                  const pct = total ? Math.round((j._count / total) * 100) : 0;
+                  return (
+                    <li key={j.jantina ?? "NA"}>
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="font-medium">{label(j.jantina)}</span>
+                        <span className="text-slate-500">{j._count} ({pct}%)</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            );
+          })()
         )}
       </section>
 

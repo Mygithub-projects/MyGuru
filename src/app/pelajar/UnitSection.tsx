@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Modal } from "@/components/Modal";
 import { StatusBadge } from "@/components/StatusBadge";
 import { statusPilihanT6 } from "@/lib/pajsk";
+import { getDict } from "@/lib/i18n";
+import { useLocale } from "@/components/LocaleProvider";
 
 interface U {
   jenisKoko: string;
@@ -16,15 +18,19 @@ interface U {
 }
 
 const KATEGORI = [
-  { v: "Sukan", l: "Sukan / Permainan" },
-  { v: "Kelab", l: "Kelab / Persatuan" },
-  { v: "Uniform", l: "Badan Beruniform" },
+  { v: "Sukan" },
+  { v: "Kelab" },
+  { v: "Uniform" },
 ];
 
 type Senarai = Record<string, string[]>;
 
 export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; senarai: Senarai; units: U[] }) {
   const router = useRouter();
+  const locale = useLocale();
+  const dict = getDict(locale);
+  const t = dict.pelajar;
+  const common = dict.common;
   const [openJenis, setOpenJenis] = useState<string | null>(null);
   const [pilihan, setPilihan] = useState(""); // unit dipilih dari dropdown
   const [sebab, setSebab] = useState("");
@@ -38,11 +44,13 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
   // Gabung 3 kategori tetap dengan baris sedia ada
   const kategori = KATEGORI.map((k) => ({
     ...k,
+    label: k.v === "Sukan" ? common.sukan : k.v === "Kelab" ? common.kelab : common.uniform,
     unit: units.find((u) => u.jenisKoko === k.v) ?? null,
   }));
 
   const semasa = openJenis ? units.find((u) => u.jenisKoko === openJenis) ?? null : null;
   const mode = semasa?.namaUnitT6 ? "Pertukaran" : "Pendaftaran";
+  const modalTitle = mode === "Pendaftaran" ? t.unitDialogTitleRegister : t.unitDialogTitleChange;
   const pending = semasa?.statusPertukaran === "Pending";
 
   function buka(jenis: string) {
@@ -66,7 +74,7 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
       });
       const json = await res.json();
       if (json.success) {
-        setMsg({ text: `${mode} dihantar — menunggu kelulusan guru.`, ok: true });
+        setMsg({ text: t.unitRequestSuccess, ok: true });
         setPilihan("");
         setSebab("");
         setSahkan(false);
@@ -75,7 +83,7 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
         setMsg({ text: json.message, ok: false });
       }
     } catch {
-      setMsg({ text: "Ralat rangkaian.", ok: false });
+      setMsg({ text: t.activityForm.networkError, ok: false });
     } finally {
       setBusy(false);
     }
@@ -87,8 +95,8 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
   return (
     <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">Unit Kokurikulum Semasa (T6)</h2>
-        <Link href="/pelajar/tukar-unit" className="text-xs font-semibold text-brand-dark hover:underline">Sejarah</Link>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{t.unitSectionTitle}</h2>
+        <Link href="/pelajar/tukar-unit" className="text-xs font-semibold text-brand-dark hover:underline">{t.unitHistoryLink}</Link>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -97,8 +105,8 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
           const berdaftar = !!u?.namaUnitT6;
           return (
             <div key={k.v} className="flex flex-col rounded-lg border border-slate-200 p-3">
-              <p className="text-xs font-semibold uppercase text-brand-dark">{k.l}</p>
-              <p className="mt-1 font-medium text-slate-800">{u?.namaUnitT6 ?? "Belum berdaftar"}</p>
+              <p className="text-xs font-semibold uppercase text-brand-dark">{k.label}</p>
+              <p className="mt-1 font-medium text-slate-800">{u?.namaUnitT6 ?? t.unitNotRegistered}</p>
               {berdaftar && <p className="text-xs text-slate-500">{u?.jawatanT6} · {u?.peringkatT6}</p>}
               <div className="mt-2 flex items-center justify-between gap-2">
                 <StatusBadge status={u ? statusPilihanT6(u) : "Belum Pilih"} />
@@ -106,7 +114,7 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
                   onClick={() => buka(k.v)}
                   className={`rounded-md px-3 py-1 text-xs font-semibold text-white ${berdaftar ? "bg-ink hover:bg-ink-2" : "bg-brand hover:bg-brand-hover"}`}
                 >
-                  {berdaftar ? "Tukar" : "Daftar"}
+                  {berdaftar ? t.unitChange : t.unitRegister}
                 </button>
               </div>
             </div>
@@ -114,7 +122,7 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
         })}
       </div>
 
-      <Modal open={openJenis !== null} onClose={() => setOpenJenis(null)} title={`${mode} ${KATEGORI.find((k) => k.v === openJenis)?.l ?? ""}`}>
+      <Modal open={openJenis !== null} onClose={() => setOpenJenis(null)} title={modalTitle}>
         <form onSubmit={submit} className="space-y-4">
           {msg && (
             <div className={`rounded-md px-3 py-2 text-sm ${msg.ok ? "bg-brand-light text-brand-dark ring-1 ring-brand/30" : "bg-red-50 text-red-700 ring-1 ring-red-200"}`}>
@@ -123,46 +131,46 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
           )}
 
           <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            Unit semasa: <strong>{semasa?.namaUnitT6 ?? "Belum berdaftar"}</strong>
+            {t.unitCurrentUnitLabel} <strong>{semasa?.namaUnitT6 ?? t.unitNotRegistered}</strong>
           </div>
 
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
-              {mode === "Pendaftaran" ? "Unit Dipohon" : "Unit Baru"}
+              {mode === "Pendaftaran" ? t.transferNewUnitLabel : t.transferNewUnitLabel}
             </label>
             {opsyen.length === 0 ? (
               <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 ring-1 ring-amber-200">
-                Tiada unit dengan guru penasihat untuk kategori ini. Sila hubungi pentadbir.
+                {t.unitNoAdvisorMessage}
               </p>
             ) : (
               <select value={pilihan} onChange={(e) => setPilihan(e.target.value)} required className={input} autoFocus>
-                <option value="" disabled>— Pilih unit —</option>
+                <option value="" disabled>{t.unitSelectPlaceholder}</option>
                 {opsyen.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             )}
-            <p className="mt-1 text-[11px] text-slate-400">Hanya unit yang mempunyai guru penasihat disenaraikan.</p>
+            <p className="mt-1 text-[11px] text-slate-400">{t.unitNotes}</p>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Sebab / Catatan (pilihan)</label>
+            <label className="mb-1 block text-sm font-medium text-slate-700">{t.unitReasonLabel}</label>
             <textarea value={sebab} onChange={(e) => setSebab(e.target.value)} rows={2} className={input} />
           </div>
 
           {mode === "Pertukaran" && (
             <label className="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-amber-200">
               <input type="checkbox" checked={sahkan} onChange={(e) => setSahkan(e.target.checked)} className="mt-0.5 h-4 w-4 accent-brand" />
-              <span>Saya faham unit semasa <strong>{semasa?.namaUnitT6}</strong> akan diganti, dan jawatan akan diset semula kepada &quot;Ahli Aktif&quot; selepas diluluskan.</span>
+              <span>{t.unitConfirmReplace.replace("{unit}", semasa?.namaUnitT6 ?? "")}</span>
             </label>
           )}
 
           <p className="text-xs text-slate-500">
-            ℹ️ Setiap kategori hanya satu unit. Permohonan perlu <strong>kelulusan guru</strong> sebelum unit dikemas kini.
+            ℹ️ {t.unitApplyInfo}
           </p>
 
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={() => setOpenJenis(null)} className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">Batal</button>
+            <button type="button" onClick={() => setOpenJenis(null)} className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">{t.unitCancel}</button>
             <button type="submit" disabled={!bolehHantar} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50">
-              {pending ? "Menunggu kelulusan" : busy ? "Menghantar..." : `Hantar ${mode}`}
+              {pending ? t.unitRequestPending : busy ? t.activityForm.loading : (mode === "Pendaftaran" ? t.unitRegister : t.unitChange)}
             </button>
           </div>
         </form>
