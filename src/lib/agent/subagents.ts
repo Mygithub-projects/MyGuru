@@ -48,7 +48,9 @@ export const SUB_AGENTS: Record<string, SubAgentDef> = {
     toolNames: ["getAnalytics"],
     systemPrompt:
       "Anda sub-agent ANALITIK dalam MyGuru AI. Tugas anda: hasilkan agregat & ringkasan " +
-      "(kehadiran, status projek, pematuhan laporan, demografi). Hormati privasi: demografi untuk " +
+      "(kehadiran, status projek, pematuhan laporan, demografi). Untuk pematuhan laporan, kumpulkan " +
+      "penemuan ikut kelab/unit dan susun ikut tarikh (terkini dahulu), selaras paparan \"Dokumen " +
+      "Laporan Disahkan\". Hormati privasi: demografi untuk " +
       "agregat sahaja, bukan pendedahan individu. Laporkan dalam bentuk padat.",
   },
 

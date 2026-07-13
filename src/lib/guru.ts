@@ -151,8 +151,10 @@ export async function getLaporanDisahkan(guru: Guru) {
     }),
   ]);
   return {
-    mingguan: mingguan.map((m) => ({ id: m.id, tajuk: m.aktiviti, namaUnit: m.namaUnit, setiausaha: m.setiausaha.nama })),
-    projek: projek.map((p) => ({ id: p.id, tajuk: p.namaProjek, namaUnit: p.namaUnit, setiausaha: p.setiausaha.nama })),
+    // tarikh: mingguan guna tarikh aktiviti; projek tiada tarikh aktiviti,
+    // guna createdAt (tarikh laporan dicipta) untuk pengisihan.
+    mingguan: mingguan.map((m) => ({ id: m.id, tajuk: m.aktiviti, namaUnit: m.namaUnit, jenisKoko: m.jenisKoko, setiausaha: m.setiausaha.nama, tarikh: m.tarikh.toISOString() })),
+    projek: projek.map((p) => ({ id: p.id, tajuk: p.namaProjek, namaUnit: p.namaUnit, jenisKoko: p.jenisKoko, setiausaha: p.setiausaha.nama, tarikh: p.createdAt.toISOString() })),
   };
 }
 

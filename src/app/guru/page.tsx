@@ -12,6 +12,10 @@ import { LivePending } from "./LivePending";
 import { CadanganAiPanel, type CadanganRow } from "./CadanganAiPanel";
 import type { CadanganAgent } from "@prisma/client";
 
+function fmtTarikh(d: Date) {
+  return new Intl.DateTimeFormat("ms-MY", { day: "2-digit", month: "short", year: "numeric" }).format(d);
+}
+
 /** Lengkapkan satu CadanganAgent dengan nama pelajar + label rujukan utk paparan. */
 async function enrichCadangan(c: CadanganAgent): Promise<CadanganRow> {
   let pelajarNama: string | null = null;
@@ -108,6 +112,34 @@ export default async function GuruDashboard() {
   const statusT6 = await getStatusPilihanT6(guruEff);
   const laporanDisahkan = await getLaporanDisahkan(guruEff);
   const { t } = await getT();
+
+  // Dokumen laporan disahkan: kumpulkan ikut kelab (namaUnit), isih ikut tarikh
+  // (terbaharu dahulu) dalam setiap kumpulan. Laporan mingguan & projek dicampur.
+  type DokRow = {
+    id: string;
+    tajuk: string;
+    namaUnit: string | null;
+    setiausaha: string;
+    tarikh: string;
+    jenis: "mingguan" | "projek";
+  };
+  const semuaDok: DokRow[] = [
+    ...laporanDisahkan.mingguan.map((m) => ({ ...m, jenis: "mingguan" as const })),
+    ...laporanDisahkan.projek.map((p) => ({ ...p, jenis: "projek" as const })),
+  ];
+  const grupDokMap = new Map<string, DokRow[]>();
+  for (const d of semuaDok) {
+    const key = d.namaUnit ?? "-";
+    if (!grupDokMap.has(key)) grupDokMap.set(key, []);
+    grupDokMap.get(key)!.push(d);
+  }
+  // ISO string isih leksikografik = kronologi; songsang utk terbaharu dahulu.
+  const grupDok = [...grupDokMap.entries()]
+    .map(([namaUnit, rows]) => ({
+      namaUnit,
+      rows: rows.sort((a, b) => b.tarikh.localeCompare(a.tarikh)),
+    }))
+    .sort((a, b) => a.namaUnit.localeCompare(b.namaUnit, "ms"));
 
   // Cadangan AI menunggu kelulusan (skop: guru-sekolah/admin lihat semua;
   // guru biasa lihat yang dialamatkan kepadanya).
@@ -228,29 +260,27 @@ export default async function GuruDashboard() {
         <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">
           {t.guru.verifiedDocs}
         </h2>
-        {laporanDisahkan.mingguan.length === 0 && laporanDisahkan.projek.length === 0 ? (
+        {semuaDok.length === 0 ? (
           <p className="text-sm text-slate-400">{t.guru.noVerifiedDocs}</p>
         ) : (
-          <ul className="space-y-2">
-            {laporanDisahkan.mingguan.map((l) => (
-              <li key={`m-${l.id}`} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2 text-sm">
-                <span className="text-slate-700">
-                  <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">{t.guru.weekly}</span>
-                  {l.tajuk} <span className="text-xs text-slate-400">· {l.namaUnit ?? "-"} · {l.setiausaha}</span>
-                </span>
-                <a href={`/api/laporan/mingguan/${l.id}/pdf`} className="shrink-0 text-xs font-semibold text-brand-dark hover:underline">{t.common.muatTurun}</a>
-              </li>
+          <div className="space-y-4">
+            {grupDok.map((g) => (
+              <div key={g.namaUnit}>
+                <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">{g.namaUnit}</h3>
+                <ul className="space-y-2">
+                  {g.rows.map((l) => (
+                    <li key={`${l.jenis}-${l.id}`} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2 text-sm">
+                      <span className="text-slate-700">
+                        <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">{l.jenis === "mingguan" ? t.guru.weekly : t.guru.project}</span>
+                        {l.tajuk} <span className="text-xs text-slate-400">· {fmtTarikh(new Date(l.tarikh))} · {l.setiausaha}</span>
+                      </span>
+                      <a href={`/api/laporan/${l.jenis}/${l.id}/pdf`} className="shrink-0 text-xs font-semibold text-brand-dark hover:underline">{t.common.muatTurun}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-            {laporanDisahkan.projek.map((l) => (
-              <li key={`p-${l.id}`} className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2 text-sm">
-                <span className="text-slate-700">
-                  <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">{t.guru.project}</span>
-                  {l.tajuk} <span className="text-xs text-slate-400">· {l.namaUnit ?? "-"} · {l.setiausaha}</span>
-                </span>
-                <a href={`/api/laporan/projek/${l.id}/pdf`} className="shrink-0 text-xs font-semibold text-brand-dark hover:underline">{t.common.muatTurun}</a>
-              </li>
-            ))}
-          </ul>
+          </div>
         )}
       </section>
     </div>
