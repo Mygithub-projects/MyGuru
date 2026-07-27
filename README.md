@@ -10,7 +10,7 @@ spesifikasi `e-KokoT6.md`.
 |---|---|
 | Frontend & Backend | **Next.js 16** (App Router, Turbopack) + React 19 + TypeScript |
 | Styling | Tailwind CSS v4 |
-| Pangkalan Data | **Prisma 6** — SQLite (dev) / PostgreSQL (produksi) |
+| Pangkalan Data | **Prisma 6** — PostgreSQL (pembangunan & produksi) |
 | Auth | JWT (`jose`) + cookie HttpOnly, RBAC 3 peringkat + sub-role SU/NSU |
 | Kata laluan | bcrypt (`bcryptjs`) |
 | Import Excel | `exceljs` (IC dibaca sebagai teks) |
@@ -25,8 +25,9 @@ spesifikasi `e-KokoT6.md`.
 ```bash
 cd ekokot6
 npm install
-cp .env.example .env          # kemudian set JWT_SECRET yang kuat
-npm run db:migrate            # cipta pangkalan data SQLite + skema
+createdb ekokot6              # perlukan PostgreSQL berjalan secara tempatan
+cp .env.example .env          # set DATABASE_URL + JWT_SECRET yang kuat
+npm run db:migrate            # terap skema ke pangkalan data
 npm run db:seed               # import roster T6 (namelist) + Guru & cipta akaun
 npm run dev                   # http://localhost:3000
 ```
@@ -46,18 +47,29 @@ Beruniform / Kelab / Sukan) — markah PAJSK T6 diisi kemudian oleh guru.
 
 Kata laluan lalai dikonfigur melalui `DEFAULT_SEED_PASSWORD` dalam `.env`.
 
-## Tukar ke PostgreSQL (produksi)
+## Pangkalan data
 
-1. `prisma/schema.prisma` → tukar `provider = "sqlite"` kepada `"postgresql"` + tambah `directUrl`.
-2. Set `DATABASE_URL` PostgreSQL dalam `.env`.
-3. `npm run db:migrate && npm run db:bootstrap`.
+Projek menggunakan PostgreSQL sepenuhnya — pembangunan dan produksi. Skema
+sengaja mengelak enum/array native supaya kekal mudah-alih antara pembekal SQL.
 
-Skema sengaja mengelak enum/array native supaya mudah-alih antara kedua-dua DB.
+Sejarah migrasi telah di-*baseline* (`prisma/migrations/0_init`) terhadap DB
+sedia ada. Untuk perubahan skema seterusnya, guna aliran biasa:
+
+```bash
+npx prisma migrate dev --name <nama_perubahan>
+```
+
+> ⚠️ `npm run db:reset` menggugurkan **setiap** jadual. Ia dilindungi oleh
+> `scripts/db-reset-guard.ts` yang membatalkan operasi jika DB tidak kosong.
+> Untuk memaksa: `ALLOW_DESTRUCTIVE_RESET=1 npm run db:reset`.
+
+Untuk produksi, tambah `directUrl` pada blok `datasource` (pooled untuk runtime,
+direct untuk migrasi) — lihat [`DEPLOY.md`](./DEPLOY.md) Langkah 2.
 
 ## Ujian & CI
 
 ```bash
-npm test          # Vitest — ujian unit enjin PAJSK & penghurai (29 ujian)
+npm test          # Vitest — ujian unit enjin PAJSK, RBAC & penghurai (49 ujian)
 npm run lint      # ESLint
 npm run build     # Semakan jenis + binaan produksi
 ```
@@ -76,7 +88,7 @@ dan bootstrap admin (`npm run db:bootstrap`).
 
 **Siap:**
 - ✅ Asas projek, keselamatan rahsia (`.env`, `.gitignore`)
-- ✅ Skema pangkalan data penuh (11 jadual, T5 read-only vs T6 aktif)
+- ✅ Skema pangkalan data penuh (18 jadual, T5 read-only vs T6 aktif)
 - ✅ Enjin pengiraan markah PAJSK (parser kurungan + formula §5.6 + delta T5↔T6) — diuji
 - ✅ Auth: login No. IC / emel, JWT, RBAC 3 peringkat + sub-role, proxy guard
 - ✅ Import Excel sebenar (280 pelajar T6 dari `namelist.xlsx`, 32 guru) — IC sebagai teks (sifar di hadapan yang digugurkan Excel dipulihkan)
@@ -102,7 +114,7 @@ dan bootstrap admin (`npm run db:bootstrap`).
 - ✅ **Dokumentasi pengguna** — manual Pelajar/Guru/Admin (`docs/`) + halaman bantuan dalam-app (`/bantuan`)
 
 **Konfigurasi produksi** (lihat `.env.example`):
-- Tukar `provider` Prisma ke `postgresql` + `DATABASE_URL`
+- `DATABASE_URL` (pooled) + `DIRECT_URL` (direct, untuk migrasi) + `directUrl` dalam skema
 - `STORAGE_DRIVER=s3` + `S3_*` untuk storan objek
 - `SMTP_*` dan/atau `TELEGRAM_BOT_TOKEN` untuk notifikasi
 - Putar `JWT_SECRET`; pertimbang imbasan virus pada muat naik fail

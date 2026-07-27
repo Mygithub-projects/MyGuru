@@ -4,7 +4,7 @@ Panduan langkah-demi-langkah untuk menerbitkan e-KokoT6 ke produksi pada **Verce
 dengan **PostgreSQL** terurus dan storan objek untuk muat naik fail.
 
 > **Tiga keputusan produksi penting** (berbeza daripada pembangunan tempatan):
-> 1. **PostgreSQL** menggantikan SQLite (Vercel tiada cakera kekal).
+> 1. **Postgres terurus** menggantikan Postgres tempatan (Vercel tiada cakera kekal).
 > 2. **Storan objek (S3/R2)** wajib untuk muat naik fail — fail sistem Vercel
 >    *read-only* kecuali `/tmp`, jadi `STORAGE_DRIVER=local` **tidak berfungsi**.
 > 3. **Semua rahsia** dalam Vercel Environment Variables — jangan commit ke Git.
@@ -36,36 +36,35 @@ DIRECT_URL   = postgresql://user:pass@ep-xxx.region.aws.neon.tech/ekokot6?sslmod
 
 ---
 
-## Langkah 2 — Tukar Prisma ke PostgreSQL
+## Langkah 2 — Tambah `directUrl` pada skema
 
-Edit `prisma/schema.prisma` — blok `datasource`:
+`prisma/schema.prisma` sudah pun `provider = "postgresql"`, dan sejarah migrasi
+sudah di-*baseline* untuk Postgres (`prisma/migrations/0_init`). Satu-satunya
+perubahan yang tinggal ialah menambah `directUrl`, supaya migrasi menggunakan
+sambungan *direct* manakala runtime menggunakan *pooled*:
 
 ```prisma
 datasource db {
-  provider  = "postgresql"          // ← tukar dari "sqlite"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")    // pooled (runtime)
   directUrl = env("DIRECT_URL")      // direct (migrasi) ← tambah baris ini
 }
 ```
 
-Migrasi sedia ada dijana untuk SQLite, jadi **jana semula untuk Postgres**:
+> 🚫 **Jangan** `rm -rf prisma/migrations`. Folder itu kini mengandungi baseline
+> Postgres yang sah. Membuangnya akan memecahkan `migrate deploy` di Vercel.
+
+Vercel menjalankan `prisma migrate deploy` semasa build, yang menerapkan
+`0_init` ke pangkalan data produksi yang masih kosong. Untuk perubahan skema
+selepas ini, jana migrasi seperti biasa dan commit hasilnya:
 
 ```bash
-# Padam migrasi SQLite lama
-rm -rf prisma/migrations
-
-# Halakan ke Postgres (guna DIRECT_URL untuk migrasi) & jana migrasi Postgres
-export DATABASE_URL="postgresql://...pooler.../ekokot6?sslmode=require"
-export DIRECT_URL="postgresql://...direct.../ekokot6?sslmode=require"
-npx prisma migrate dev --name init
+npx prisma migrate dev --name <nama_perubahan>
 ```
 
-Commit folder `prisma/migrations` yang baharu. Vercel akan menjalankan
-`prisma migrate deploy` semasa build untuk menerapkannya.
-
-> **Pembangunan tempatan selepas ini:** gunakan satu *branch* Postgres pembangunan
-> (Neon menyokong branching) atau Postgres tempatan (Docker), supaya `provider`
-> kekal `postgresql`. Elakkan bertukar-tukar provider.
+> **Pembangunan tempatan:** kekalkan Postgres (branch Neon pembangunan, atau
+> Postgres tempatan). Jangan sesekali tukar `provider` — itulah punca sejarah
+> migrasi rosak sebelum ini.
 
 ---
 
@@ -103,17 +102,18 @@ Simpan output sebagai `JWT_SECRET` (Langkah 6). Jana satu kata laluan admin awal
 
 ## Langkah 5 — Tolak ke GitHub
 
+Repo sudah wujud (**privat** — ia mengandungi rekod pelajar sebenar) pada
+`https://github.com/Applephy/myguruAI.git`, dengan branch utama `master`:
+
 ```bash
 cd ekokot6
-git init
-git add .
-git commit -m "e-KokoT6"
-git branch -M main
-git remote add origin https://github.com/<anda>/ekokot6.git
-git push -u origin main
+git push origin master
 ```
 
 > Pastikan `.gitignore` mengecualikan `.env`, `*.db`, `/uploads/`, `node_modules` (sudah dikonfigur).
+>
+> ⚠️ Repo **mesti kekal privat** — ia mengandungi nombor Kad Pengenalan pelajar
+> di bawah PDPA 2010.
 
 ---
 
@@ -214,7 +214,8 @@ Ini mencipta:
 | Gejala | Punca & penyelesaian |
 |---|---|
 | Build gagal: `@prisma/client did not initialize` | `postinstall: prisma generate` tiada/ gagal — sahkan ia dalam `package.json`. |
-| `migrate deploy` gagal / tiada migrasi | Anda belum jana migrasi Postgres (Langkah 2) — `rm -rf prisma/migrations` lalu `prisma migrate dev --name init` terhadap Postgres, commit. |
+| `migrate deploy` gagal / tiada migrasi | Sahkan `prisma/migrations/0_init` ada dalam repo dan `migration_lock.toml` berbunyi `postgresql`. Jangan padam folder migrasi. |
+| `P3019 provider does not match` | `migration_lock.toml` tidak sepadan dengan `provider` skema. Jangan tukar provider; jika DB sedia ada perlu diguna semula, *baseline* dengan `migrate diff` + `migrate resolve --applied`. |
 | Muat naik fail gagal / ralat tulis fail | `STORAGE_DRIVER` masih `local` — set `s3` + kredensial S3/R2 (Langkah 3). |
 | `Too many connections` pada beban | Guna rentetan **pooled** untuk `DATABASE_URL` (PgBouncer), bukan direct. |
 | Login berfungsi tetapi dashboard kosong | Data belum diimport — guna UI Admin → Import Data. |
@@ -226,10 +227,8 @@ Ini mencipta:
 ## Ringkasan perintah (rujukan pantas)
 
 ```bash
-# Tempatan: sediakan Postgres prod
-rm -rf prisma/migrations
-DATABASE_URL=... DIRECT_URL=... npx prisma migrate dev --name init
-git add . && git commit -m "postgres" && git push
+# Tambah directUrl pada prisma/schema.prisma (Langkah 2), kemudian:
+git add . && git commit -m "directUrl untuk produksi" && git push origin master
 
 # Selepas deploy Vercel pertama:
 DATABASE_URL=... DIRECT_URL=... ADMIN_PASSWORD=... npm run db:bootstrap
