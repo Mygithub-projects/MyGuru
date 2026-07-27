@@ -43,6 +43,16 @@ interface Cadangan extends ItemPelajar {
   jawatanBaru: string;
   markahJawatan: number;
 }
+interface ReviewPanelDict {
+  networkError: string; emptyAll: string;
+  unitTransferTitle: string; positionSuggestionTitle: string; achievementTitle: string;
+  externalActivityTitle: string; attendanceSessionTitle: string;
+  weeklyReportTitle: string; projectReportTitle: string;
+  approve: string; reject: string; confirm: string; query: string;
+  rejectReasonPrompt: string; queryCommentPrompt: string;
+  evidenceComplete: string; evidenceIncomplete: string; marksPlaceholder: string;
+  aiSuggestTitle: string;
+}
 
 export function ReviewPanel({
   pencapaian,
@@ -52,6 +62,7 @@ export function ReviewPanel({
   laporanProjek = [],
   sesiKehadiran = [],
   cadanganJawatan = [],
+  t,
 }: {
   pencapaian: Pencapaian[];
   aktivitiLuar: AktivitiLuar[];
@@ -60,6 +71,7 @@ export function ReviewPanel({
   laporanProjek?: Laporan[];
   sesiKehadiran?: Sesi[];
   cadanganJawatan?: Cadangan[];
+  t: ReviewPanelDict;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -78,7 +90,7 @@ export function ReviewPanel({
       setMsg({ text: json.message, ok: json.success });
       if (json.success) router.refresh();
     } catch {
-      setMsg({ text: "Ralat rangkaian", ok: false });
+      setMsg({ text: t.networkError, ok: false });
     } finally {
       setBusy(null);
     }
@@ -107,13 +119,13 @@ export function ReviewPanel({
 
       {kosong && (
         <div className="rounded-xl bg-white p-6 text-center text-sm text-slate-400 shadow-sm ring-1 ring-slate-200">
-          🎉 Tiada item menunggu tindakan. Semua telah disemak.
+          {t.emptyAll}
         </div>
       )}
 
       {/* Pertukaran Unit */}
       {pertukaran.length > 0 && (
-        <Section title={`Permohonan Pertukaran Unit (${pertukaran.length})`}>
+        <Section title={`${t.unitTransferTitle} (${pertukaran.length})`}>
           {pertukaran.map((p) => (
             <Row
               key={p.id}
@@ -123,17 +135,17 @@ export function ReviewPanel({
               nota={p.sebab ?? undefined}
             >
               <Btn
-                label="Lulus"
+                label={t.approve}
                 tone="ok"
                 loading={busy === `tukar-${p.id}-a`}
                 onClick={() => act(`/api/tukar-unit/${p.id}`, { status: "Approved" }, `tukar-${p.id}-a`)}
               />
               <Btn
-                label="Tolak"
+                label={t.reject}
                 tone="danger"
                 loading={busy === `tukar-${p.id}-r`}
                 onClick={() => {
-                  const sebab = prompt("Sebab penolakan (pilihan):") ?? undefined;
+                  const sebab = prompt(t.rejectReasonPrompt) ?? undefined;
                   act(`/api/tukar-unit/${p.id}`, { status: "Reject", sebab }, `tukar-${p.id}-r`);
                 }}
               />
@@ -144,18 +156,18 @@ export function ReviewPanel({
 
       {/* Cadangan Jawatan */}
       {cadanganJawatan.length > 0 && (
-        <Section title={`Cadangan Jawatan Tertinggi (${cadanganJawatan.length})`}>
+        <Section title={`${t.positionSuggestionTitle} (${cadanganJawatan.length})`}>
           {cadanganJawatan.map((c) => (
             <Row
               key={c.id}
               nama={c.pelajar.nama}
               kelas={c.pelajar.kelasT6}
-              tajuk={`${c.jenisKoko}: ${c.jawatanBaru} (${c.markahJawatan} markah)`}
+              tajuk={`${c.jenisKoko}: ${c.jawatanBaru} (${c.markahJawatan} ${t.marksPlaceholder.toLowerCase()})`}
             >
-              <Btn label="Sahkan" tone="ok" loading={busy === `jw-${c.id}-a`}
+              <Btn label={t.confirm} tone="ok" loading={busy === `jw-${c.id}-a`}
                 onClick={() => act(`/api/jawatan/${c.id}`, { status: "Approved" }, `jw-${c.id}-a`)} />
-              <Btn label="Tolak" tone="danger" loading={busy === `jw-${c.id}-r`}
-                onClick={() => { const komen = prompt("Sebab penolakan (pilihan):") ?? undefined; act(`/api/jawatan/${c.id}`, { status: "Reject", komen }, `jw-${c.id}-r`); }} />
+              <Btn label={t.reject} tone="danger" loading={busy === `jw-${c.id}-r`}
+                onClick={() => { const komen = prompt(t.rejectReasonPrompt) ?? undefined; act(`/api/jawatan/${c.id}`, { status: "Reject", komen }, `jw-${c.id}-r`); }} />
             </Row>
           ))}
         </Section>
@@ -163,16 +175,16 @@ export function ReviewPanel({
 
       {/* Pencapaian */}
       {pencapaian.length > 0 && (
-        <Section title={`Pencapaian Menunggu Pengesahan (${pencapaian.length})`}>
+        <Section title={`${t.achievementTitle} (${pencapaian.length})`}>
           {pencapaian.map((p) => (
-            <PencapaianRow key={p.id} item={p} busy={busy} act={act} />
+            <PencapaianRow key={p.id} item={p} busy={busy} act={act} t={t} />
           ))}
         </Section>
       )}
 
       {/* Aktiviti Luar */}
       {aktivitiLuar.length > 0 && (
-        <Section title={`Aktiviti Luar Menunggu Pengesahan (${aktivitiLuar.length})`}>
+        <Section title={`${t.externalActivityTitle} (${aktivitiLuar.length})`}>
           {aktivitiLuar.map((a) => {
             const lengkap = a.lampiranSurat && a.lampiranSijil;
             return (
@@ -181,21 +193,21 @@ export function ReviewPanel({
                 nama={a.pelajar.nama}
                 kelas={a.pelajar.kelasT6}
                 tajuk={`${a.namaAktiviti} · ${a.peringkat}`}
-                nota={lengkap ? "Eviden lengkap (surat + sijil)" : "⚠ Eviden tidak lengkap"}
+                nota={lengkap ? t.evidenceComplete : t.evidenceIncomplete}
               >
                 <Btn
-                  label="Sahkan"
+                  label={t.confirm}
                   tone="ok"
                   disabled={!lengkap}
                   loading={busy === `akt-${a.id}-a`}
                   onClick={() => act(`/api/aktiviti-luar/${a.id}/sahkan`, { status: "Approved" }, `akt-${a.id}-a`)}
                 />
                 <Btn
-                  label="Kuiri"
+                  label={t.query}
                   tone="warn"
                   loading={busy === `akt-${a.id}-k`}
                   onClick={() => {
-                    const komen = prompt("Komen kuiri:") ?? undefined;
+                    const komen = prompt(t.queryCommentPrompt) ?? undefined;
                     act(`/api/aktiviti-luar/${a.id}/sahkan`, { status: "Kuiri", komen }, `akt-${a.id}-k`);
                   }}
                 />
@@ -207,13 +219,13 @@ export function ReviewPanel({
 
       {/* Laporan Mingguan */}
       {laporanMingguan.length > 0 && (
-        <Section title={`Laporan Mingguan (${laporanMingguan.length})`}>
+        <Section title={`${t.weeklyReportTitle} (${laporanMingguan.length})`}>
           {laporanMingguan.map((l) => (
             <Row key={l.id} nama={l.setiausaha.nama} kelas={l.setiausaha.kelasT6} tajuk={l.tajuk}>
-              <Btn label="Sahkan" tone="ok" loading={busy === `lm-${l.id}-a`}
+              <Btn label={t.confirm} tone="ok" loading={busy === `lm-${l.id}-a`}
                 onClick={() => act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Approved" }, `lm-${l.id}-a`)} />
-              <Btn label="Kuiri" tone="warn" loading={busy === `lm-${l.id}-k`}
-                onClick={() => { const komen = prompt("Komen kuiri:") ?? undefined; act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Kuiri", komen }, `lm-${l.id}-k`); }} />
+              <Btn label={t.query} tone="warn" loading={busy === `lm-${l.id}-k`}
+                onClick={() => { const komen = prompt(t.queryCommentPrompt) ?? undefined; act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Kuiri", komen }, `lm-${l.id}-k`); }} />
             </Row>
           ))}
         </Section>
@@ -221,13 +233,13 @@ export function ReviewPanel({
 
       {/* Laporan Projek */}
       {laporanProjek.length > 0 && (
-        <Section title={`Laporan Projek (${laporanProjek.length})`}>
+        <Section title={`${t.projectReportTitle} (${laporanProjek.length})`}>
           {laporanProjek.map((l) => (
             <Row key={l.id} nama={l.setiausaha.nama} kelas={l.setiausaha.kelasT6} tajuk={l.tajuk}>
-              <Btn label="Sahkan" tone="ok" loading={busy === `lp-${l.id}-a`}
+              <Btn label={t.confirm} tone="ok" loading={busy === `lp-${l.id}-a`}
                 onClick={() => act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Approved" }, `lp-${l.id}-a`)} />
-              <Btn label="Kuiri" tone="warn" loading={busy === `lp-${l.id}-k`}
-                onClick={() => { const komen = prompt("Komen kuiri:") ?? undefined; act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Kuiri", komen }, `lp-${l.id}-k`); }} />
+              <Btn label={t.query} tone="warn" loading={busy === `lp-${l.id}-k`}
+                onClick={() => { const komen = prompt(t.queryCommentPrompt) ?? undefined; act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Kuiri", komen }, `lp-${l.id}-k`); }} />
             </Row>
           ))}
         </Section>
@@ -235,10 +247,10 @@ export function ReviewPanel({
 
       {/* Sesi Kehadiran */}
       {sesiKehadiran.length > 0 && (
-        <Section title={`Sesi Kehadiran Belum Disahkan (${sesiKehadiran.length})`}>
+        <Section title={`${t.attendanceSessionTitle} (${sesiKehadiran.length})`}>
           {sesiKehadiran.map((s) => (
             <Row key={s.id} nama={s.namaUnit} kelas={null} tajuk={`${s.jenisKoko}: ${s.namaUnit} — Perjumpaan ${s.bilPerjumpaan}`}>
-              <Btn label="Sahkan" tone="ok" loading={busy === `sk-${s.id}`}
+              <Btn label={t.confirm} tone="ok" loading={busy === `sk-${s.id}`}
                 onClick={() => act(`/api/kehadiran/sesi/${s.id}/sahkan`, {}, `sk-${s.id}`)} />
             </Row>
           ))}
@@ -252,10 +264,12 @@ function PencapaianRow({
   item,
   busy,
   act,
+  t,
 }: {
   item: Pencapaian;
   busy: string | null;
   act: (url: string, body: Record<string, unknown>, key: string) => void;
+  t: ReviewPanelDict;
 }) {
   // Pra-isi dengan markah yang dicadang AI (ikut peringkat). Guru boleh laras.
   const [markah, setMarkah] = useState(item.markahCadangan > 0 ? String(item.markahCadangan) : "");
@@ -268,7 +282,7 @@ function PencapaianRow({
     >
       <span
         className="rounded bg-brand-light px-1.5 py-0.5 text-xs font-semibold text-brand-dark"
-        title="Markah dicadang AI mengikut peringkat (rubrik §5.5). Boleh laras sebelum sahkan."
+        title={t.aiSuggestTitle}
       >
         🤖 {item.markahCadangan}
       </span>
@@ -278,12 +292,12 @@ function PencapaianRow({
         max={50}
         value={markah}
         onChange={(e) => setMarkah(e.target.value)}
-        placeholder="Markah"
-        title="Cadangan AI ikut peringkat — boleh laras"
+        placeholder={t.marksPlaceholder}
+        title={t.aiSuggestTitle}
         className="w-20 rounded-md border border-slate-300 px-2 py-1 text-sm"
       />
       <Btn
-        label="Sahkan"
+        label={t.confirm}
         tone="ok"
         loading={busy === `pen-${item.id}-a`}
         onClick={() =>
@@ -295,11 +309,11 @@ function PencapaianRow({
         }
       />
       <Btn
-        label="Kuiri"
+        label={t.query}
         tone="warn"
         loading={busy === `pen-${item.id}-k`}
         onClick={() => {
-          const komen = prompt("Komen kuiri:") ?? undefined;
+          const komen = prompt(t.queryCommentPrompt) ?? undefined;
           act(`/api/pencapaian/${item.id}/sahkan`, { status: "Kuiri", komen }, `pen-${item.id}-k`);
         }}
       />

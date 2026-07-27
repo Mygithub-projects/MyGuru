@@ -1,11 +1,14 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getT } from "@/lib/locale";
 import { guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
 import { PemilihanForm } from "./PemilihanForm";
 
 export default async function PemilihanPertandinganPage() {
   const session = await getSession();
+  const { t } = await getT();
+  const d = t.guru.pemilihan;
   if (!session) redirect("/login");
 
   const guru = session.guruId
@@ -53,22 +56,20 @@ export default async function PemilihanPertandinganPage() {
   return (
     <div className="space-y-6">
       <div>
-        <a href="/guru" className="text-xs font-semibold text-slate-500 hover:text-slate-700">← Kembali ke Dashboard</a>
-        <h1 className="mt-1 text-xl font-bold text-slate-800">Pilih Pelajar untuk Pertandingan / Sukan</h1>
+        <a href="/guru" className="text-xs font-semibold text-slate-500 hover:text-slate-700">{d.back}</a>
+        <h1 className="mt-1 text-xl font-bold text-slate-800">{d.title}</h1>
         <p className="text-sm text-slate-500">
-          Pilih pelajar mewakili pada peringkat Zon/Daerah, Negeri, Kebangsaan atau Antarabangsa.
-          Setiap pilihan mencipta penyertaan <strong>Menunggu Pengesahan</strong> — markah & e-Cert diberi
-          selepas surat & sijil dimuat naik dan disahkan.
-          {seluruh ? " Skop: seluruh sekolah." : " Skop: unit seliaan anda."}
+          {d.subtitle}
+          {seluruh ? ` ${t.guru.scopeSchool}.` : ` ${t.guru.scopeUnit}.`}
         </p>
       </div>
 
       {senarai.length === 0 ? (
         <p className="rounded-xl bg-white p-5 text-sm text-slate-400 shadow-sm ring-1 ring-slate-200">
-          Tiada pelajar dalam skop seliaan anda.
+          {d.noStudents}
         </p>
       ) : (
-        <PemilihanForm pelajar={senarai} />
+        <PemilihanForm pelajar={senarai} t={d} />
       )}
     </div>
   );

@@ -23,6 +23,7 @@
 // ===========================================================================
 
 import type { Peringkat } from "./enums";
+import { getDict, type Locale } from "./i18n";
 
 /** Markah penuh teras (tanpa bonus ekstra kurikulum). */
 export const MARKAH_PENUH_DEFAULT = 100;
@@ -481,4 +482,18 @@ export function statusPilihanT6(k: {
   if (k.namaUnitT5 && buangKurungan(k.namaUnitT5).toUpperCase() === buangKurungan(k.namaUnitT6).toUpperCase())
     return "Kekal";
   return "Disahkan";
+}
+
+/** Label dwibahasa untuk keluaran statusPilihanT6() — status itu sendiri ialah
+ *  kod dalaman (kekal BM, dipadan warna dalam StatusBadge); fungsi ini terjemah
+ *  untuk paparan sahaja. */
+export function labelStatusPilihanT6(status: string, locale: Locale = "ms"): string {
+  const c = getDict(locale).common;
+  const map: Record<string, string> = {
+    "Belum Pilih": c.statusBelumPilih,
+    "Mohon Tukar": c.statusMohonTukar,
+    Disahkan: c.disahkan,
+    Kekal: c.statusKekal,
+  };
+  return map[status] ?? status;
 }

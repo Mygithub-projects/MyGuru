@@ -1,6 +1,9 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Dict } from "@/lib/i18n";
+
+type LivePendingDict = Dict["guru"]["livePending"];
 
 interface PendingData {
   skop: string;
@@ -8,20 +11,14 @@ interface PendingData {
   ringkasan: Record<string, number>;
 }
 
-const LABEL: Record<string, string> = {
-  pencapaian: "Pencapaian",
-  aktivitiLuar: "Aktiviti Luar",
-  pertukaran: "Pertukaran Unit",
-  laporanMingguan: "Laporan Mingguan",
-  laporanProjek: "Laporan Projek",
-  sesiKehadiran: "Sesi Kehadiran",
-  cadanganJawatan: "Cadangan Jawatan",
-};
-
 // Widget langsung: tinjau /api/guru/pending pada selang masa & segar semula
 // kandungan dirender pelayan (ReviewPanel + kad) apabila jumlah berubah.
-export function LivePending({ intervalMs = 15000 }: { intervalMs?: number }) {
+// Nota: terima hanya sub-objek `guru.livePending` (rentetan sahaja) — bukan
+// seluruh `Dict`, kerana Dict mengandungi fungsi (cth insights.avgHigh) yang
+// tidak boleh dihantar merentasi sempadan Server->Client Component.
+export function LivePending({ t: lp, intervalMs = 15000 }: { t: LivePendingDict; intervalMs?: number }) {
   const router = useRouter();
+  const LABEL: Record<string, string> = lp.labels;
   const [data, setData] = useState<PendingData | null>(null);
   const [updatedAt, setUpdatedAt] = useState("");
   const [auto, setAuto] = useState(true);
@@ -68,15 +65,15 @@ export function LivePending({ intervalMs = 15000 }: { intervalMs?: number }) {
             )}
             <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${auto ? "bg-emerald-500" : "bg-slate-300"}`} />
           </span>
-          Menunggu Tindakan (Langsung)
+          {lp.title}
         </h2>
         <div className="flex items-center gap-2 text-xs text-slate-400">
-          {updatedAt && <span>Dikemas kini: {updatedAt}</span>}
+          {updatedAt && <span>{lp.updatedAt} {updatedAt}</span>}
           <button
             onClick={() => setAuto((a) => !a)}
             className={`rounded-md px-2 py-1 font-semibold ${auto ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
           >
-            {auto ? "Auto: ON" : "Auto: OFF"}
+            {auto ? lp.autoOn : lp.autoOff}
           </button>
           <button
             onClick={load}
@@ -88,13 +85,13 @@ export function LivePending({ intervalMs = 15000 }: { intervalMs?: number }) {
       </div>
 
       {data === null ? (
-        <p className="text-sm text-slate-400">Memuatkan…</p>
+        <p className="text-sm text-slate-400">{lp.loading}</p>
       ) : data.jumlah === 0 ? (
-        <p className="text-sm text-emerald-600">✓ Tiada item menunggu tindakan.</p>
+        <p className="text-sm text-emerald-600">{lp.noItems}</p>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700 ring-1 ring-amber-200">
-            {data.jumlah} jumlah
+            {data.jumlah} {lp.total}
           </span>
           {entries.map(([k, n]) => (
             <span key={k} className="rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-600">

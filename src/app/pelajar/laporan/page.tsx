@@ -62,7 +62,7 @@ export default async function LaporanPage({
 
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{t.laporan.title}</h2>
-        <SortToggle />
+        <SortToggle t={t.common.sortToggle} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

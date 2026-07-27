@@ -16,24 +16,85 @@ interface P {
   badan: string | null;
 }
 
+type SortKey = "nama" | "noIc" | "kelasT6" | "markahPajskT6" | "statusAktif";
+type SortDir = "asc" | "desc";
+
+function cmpValues(a: P, b: P, key: SortKey): number {
+  switch (key) {
+    case "markahPajskT6": {
+      if (a.markahPajskT6 == null && b.markahPajskT6 == null) return 0;
+      if (a.markahPajskT6 == null) return 1;
+      if (b.markahPajskT6 == null) return -1;
+      return a.markahPajskT6 - b.markahPajskT6;
+    }
+    case "statusAktif":
+      return Number(b.statusAktif) - Number(a.statusAktif);
+    case "kelasT6":
+      return (a.kelasT6 ?? "").localeCompare(b.kelasT6 ?? "");
+    default:
+      return a[key].localeCompare(b[key]);
+  }
+}
+
 export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[]; locale?: Locale }) {
   const t = getDict(locale);
   const L = (ms: string, en: string) => (locale === "en" ? en : ms);
   const [rows, setRows] = useState(initial);
   const [cari, setCari] = useState("");
+  const [kelasFilter, setKelasFilter] = useState("");
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "nama", dir: "asc" });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; teks: string } | null>(null);
 
+  const senaraiKelas = useMemo(
+    () => [...new Set(rows.map((p) => p.kelasT6).filter((k): k is string => !!k))].sort(),
+    [rows]
+  );
+
+  function toggleSort(key: SortKey) {
+    setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
+  }
+  function SortIcon({ sortKey }: { sortKey: SortKey }) {
+    if (sort.key !== sortKey) return <span className="text-slate-300">↕</span>;
+    return <span className="text-brand-dark">{sort.dir === "asc" ? "↑" : "↓"}</span>;
+  }
+
   const ditapis = useMemo(() => {
     const q = cari.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
-      (p) =>
-        p.nama.toLowerCase().includes(q) ||
-        p.noIc.includes(q) ||
-        (p.kelasT6 ?? "").toLowerCase().includes(q)
-    );
-  }, [rows, cari]);
+    let hasil = rows;
+    if (q) {
+      hasil = hasil.filter(
+        (p) =>
+          p.nama.toLowerCase().includes(q) ||
+          p.noIc.includes(q) ||
+          (p.kelasT6 ?? "").toLowerCase().includes(q)
+      );
+    }
+    if (kelasFilter) hasil = hasil.filter((p) => p.kelasT6 === kelasFilter);
+    const dirMul = sort.dir === "asc" ? 1 : -1;
+    return [...hasil].sort((a, b) => cmpValues(a, b, sort.key) * dirMul);
+  }, [rows, cari, kelasFilter, sort]);
+
+  async function resetKataLaluan(p: P) {
+    if (!window.confirm(`Reset kata laluan "${p.nama}"?\n\nKata laluan akan ditetapkan semula kepada No. IC (${p.noIc}). Pelajar dipaksa menukar kata laluan semasa log masuk berikutnya.`)) {
+      return;
+    }
+    setBusyId(p.id);
+    setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/pelajar/${p.id}/reset-kata-laluan`, { method: "POST" });
+      const j = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setMsg({ ok: true, teks: j.message ?? `Kata laluan direset kepada No. IC (${p.noIc}).` });
+      } else {
+        setMsg({ ok: false, teks: j.message ?? "Gagal reset kata laluan." });
+      }
+    } catch {
+      setMsg({ ok: false, teks: "Ralat rangkaian." });
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function padam(p: P) {
     if (!window.confirm(`Padam pelajar "${p.nama}"?\n\nTindakan ini KEKAL dan akan memadam akaun log masuk serta semua rekod berkaitan (markah, kehadiran, pencapaian, laporan). Tidak boleh dibatalkan.`)) {
@@ -66,6 +127,16 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
           placeholder={L("Cari nama, No. IC, atau kelas…", "Search name, IC, or class…")}
           className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
         />
+        <select
+          value={kelasFilter}
+          onChange={(e) => setKelasFilter(e.target.value)}
+          className="shrink-0 rounded-md border border-slate-300 px-3 py-2 text-sm"
+        >
+          <option value="">{L("Semua Kelas", "All Classes")}</option>
+          {senaraiKelas.map((k) => (
+            <option key={k} value={k}>{k}</option>
+          ))}
+        </select>
         <span className="shrink-0 text-xs text-slate-400">{ditapis.length} / {rows.length}</span>
       </div>
 
@@ -79,12 +150,32 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-3">{t.guru.colName}</th>
-              <th className="px-4 py-3">{L("No. IC", "IC No.")}</th>
-              <th className="px-4 py-3">{L("Kelas T6", "Class F6")}</th>
+              <th className="px-4 py-3">
+                <button type="button" onClick={() => toggleSort("nama")} className="inline-flex items-center gap-1 hover:text-slate-700">
+                  {t.guru.colName} <SortIcon sortKey="nama" />
+                </button>
+              </th>
+              <th className="px-4 py-3">
+                <button type="button" onClick={() => toggleSort("noIc")} className="inline-flex items-center gap-1 hover:text-slate-700">
+                  {L("No. IC", "IC No.")} <SortIcon sortKey="noIc" />
+                </button>
+              </th>
+              <th className="px-4 py-3">
+                <button type="button" onClick={() => toggleSort("kelasT6")} className="inline-flex items-center gap-1 hover:text-slate-700">
+                  {L("Kelas T6", "Class F6")} <SortIcon sortKey="kelasT6" />
+                </button>
+              </th>
               <th className="px-4 py-3">{t.admin.colUnits}</th>
-              <th className="px-4 py-3">{t.admin.colPajsk}</th>
-              <th className="px-4 py-3">{t.admin.colStatus}</th>
+              <th className="px-4 py-3">
+                <button type="button" onClick={() => toggleSort("markahPajskT6")} className="inline-flex items-center gap-1 hover:text-slate-700">
+                  {t.admin.colPajsk} <SortIcon sortKey="markahPajskT6" />
+                </button>
+              </th>
+              <th className="px-4 py-3">
+                <button type="button" onClick={() => toggleSort("statusAktif")} className="inline-flex items-center gap-1 hover:text-slate-700">
+                  {t.admin.colStatus} <SortIcon sortKey="statusAktif" />
+                </button>
+              </th>
               <th className="px-4 py-3 text-right">{t.admin.colActions}</th>
             </tr>
           </thead>
@@ -129,6 +220,14 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
                     >
                       {t.admin.edit}
                     </Link>
+                    <button
+                      onClick={() => resetKataLaluan(p)}
+                      disabled={busyId === p.id}
+                      title={L("Reset kata laluan kepada No. IC", "Reset password to IC No.")}
+                      className="rounded-md bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200 hover:bg-amber-500 hover:text-white disabled:opacity-50"
+                    >
+                      {busyId === p.id ? L("Menetapkan…", "Resetting…") : L("Reset KL", "Reset PW")}
+                    </button>
                     <button
                       onClick={() => padam(p)}
                       disabled={busyId === p.id}

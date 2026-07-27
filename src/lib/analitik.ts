@@ -171,7 +171,7 @@ export async function crosstabJantinaKoko() {
   const koko = await prisma.kokurikulum.findMany({
     select: { jenisKoko: true, pelajar: { select: { jantina: true } } },
   });
-  const jenisList = ["Sukan", "Kelab", "Uniform"];
+  const jenisList = ["Sukan", "Kelab", "Uniform", "Perkhidmatan"];
   const jantinaList = ["L", "P", "Tiada data"];
   const tab: Record<string, Record<string, number>> = {};
   for (const j of jantinaList) {

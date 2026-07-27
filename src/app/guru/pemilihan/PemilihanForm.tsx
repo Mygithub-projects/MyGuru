@@ -8,12 +8,26 @@ interface PelajarRingkas {
   kelasT6: string | null;
   sukan: string | null;
 }
+interface PemilihanDict {
+  detailsTitle: string; competitionName: string; competitionNamePlaceholder: string;
+  level: string; dateOptional: string;
+  selectStudents: string; selectedSuffix: string; searchPlaceholder: string;
+  selectAll: string; noMatch: string; submitBtnTpl: string; submittingBtn: string;
+  footerNote: string; errNameRequired: string; errNoSelection: string; errGeneric: string; networkError: string;
+  levels: { zonDaerah: string; daerah: string; negeri: string; kebangsaan: string; antarabangsa: string };
+}
 
-// Peringkat pertandingan (tanpa "Sekolah" — pemilihan ini untuk mewakili keluar).
-const PERINGKAT_PERTANDINGAN = ["Zon/Daerah", "Daerah", "Negeri", "Kebangsaan", "Antarabangsa"] as const;
-
-export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
+export function PemilihanForm({ pelajar, t }: { pelajar: PelajarRingkas[]; t: PemilihanDict }) {
   const router = useRouter();
+  // Peringkat pertandingan (tanpa "Sekolah" — pemilihan ini untuk mewakili keluar).
+  // Nilai (v) kekal BM — dihantar ke API; label (l) diterjemah untuk paparan.
+  const PERINGKAT_PERTANDINGAN = [
+    { v: "Zon/Daerah", l: t.levels.zonDaerah },
+    { v: "Daerah", l: t.levels.daerah },
+    { v: "Negeri", l: t.levels.negeri },
+    { v: "Kebangsaan", l: t.levels.kebangsaan },
+    { v: "Antarabangsa", l: t.levels.antarabangsa },
+  ];
   const [namaAktiviti, setNamaAktiviti] = useState("");
   const [peringkat, setPeringkat] = useState<string>("Negeri");
   const [tarikh, setTarikh] = useState("");
@@ -55,11 +69,11 @@ export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
   async function submit() {
     setMesej(null);
     if (namaAktiviti.trim().length < 2) {
-      setMesej({ ok: false, teks: "Masukkan nama pertandingan." });
+      setMesej({ ok: false, teks: t.errNameRequired });
       return;
     }
     if (dipilih.size === 0) {
-      setMesej({ ok: false, teks: "Pilih sekurang-kurangnya seorang pelajar." });
+      setMesej({ ok: false, teks: t.errNoSelection });
       return;
     }
     setHantar(true);
@@ -76,7 +90,7 @@ export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        setMesej({ ok: false, teks: json.message ?? "Ralat memproses." });
+        setMesej({ ok: false, teks: json.message ?? t.errGeneric });
       } else {
         setMesej({ ok: true, teks: json.message });
         setDipilih(new Set());
@@ -85,7 +99,7 @@ export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
         router.refresh();
       }
     } catch {
-      setMesej({ ok: false, teks: "Ralat rangkaian." });
+      setMesej({ ok: false, teks: t.networkError });
     } finally {
       setHantar(false);
     }
@@ -97,31 +111,31 @@ export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
     <div className="space-y-5">
       {/* Butiran pertandingan */}
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">Butiran Pertandingan</h2>
+        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.detailsTitle}</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="sm:col-span-1 block">
-            <span className="text-xs font-medium text-slate-500">Nama Pertandingan / Sukan</span>
+            <span className="text-xs font-medium text-slate-500">{t.competitionName}</span>
             <input
               value={namaAktiviti}
               onChange={(e) => setNamaAktiviti(e.target.value)}
-              placeholder="cth: Kejohanan Bola Tampar MSSD"
+              placeholder={t.competitionNamePlaceholder}
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-slate-500">Peringkat</span>
+            <span className="text-xs font-medium text-slate-500">{t.level}</span>
             <select
               value={peringkat}
               onChange={(e) => setPeringkat(e.target.value)}
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             >
               {PERINGKAT_PERTANDINGAN.map((p) => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p.v} value={p.v}>{p.l}</option>
               ))}
             </select>
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-slate-500">Tarikh (pilihan)</span>
+            <span className="text-xs font-medium text-slate-500">{t.dateOptional}</span>
             <input
               type="date"
               value={tarikh}
@@ -136,12 +150,12 @@ export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">
-            Pilih Pelajar <span className="text-slate-400">({dipilih.size} dipilih)</span>
+            {t.selectStudents} <span className="text-slate-400">({dipilih.size} {t.selectedSuffix})</span>
           </h2>
           <input
             value={carian}
             onChange={(e) => setCarian(e.target.value)}
-            placeholder="Cari nama / kelas / sukan…"
+            placeholder={t.searchPlaceholder}
             className="w-56 rounded-md border border-slate-300 px-3 py-1.5 text-sm"
           />
         </div>
@@ -149,7 +163,7 @@ export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
         <div className="overflow-hidden rounded-lg border border-slate-200">
           <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs">
             <input type="checkbox" checked={semuaDitapisDipilih} onChange={pilihSemua} className="h-4 w-4" />
-            <span className="font-semibold text-slate-600">Pilih semua ({ditapis.length})</span>
+            <span className="font-semibold text-slate-600">{t.selectAll} ({ditapis.length})</span>
           </div>
           <ul className="max-h-80 divide-y divide-slate-100 overflow-y-auto">
             {ditapis.map((p) => (
@@ -163,7 +177,7 @@ export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
               </li>
             ))}
             {ditapis.length === 0 && (
-              <li className="px-3 py-4 text-center text-sm text-slate-400">Tiada pelajar sepadan.</li>
+              <li className="px-3 py-4 text-center text-sm text-slate-400">{t.noMatch}</li>
             )}
           </ul>
         </div>
@@ -181,10 +195,10 @@ export function PemilihanForm({ pelajar }: { pelajar: PelajarRingkas[] }) {
           disabled={hantar}
           className="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {hantar ? "Memproses…" : `Pilih ${dipilih.size || ""} Pelajar`}
+          {hantar ? t.submittingBtn : t.submitBtnTpl.replace("{n}", String(dipilih.size || ""))}
         </button>
         <span className="text-xs text-slate-400">
-          Penyertaan akan berstatus “Menunggu Pengesahan”. Markah peringkat diberi selepas sijil disahkan.
+          {t.footerNote}
         </span>
       </div>
     </div>

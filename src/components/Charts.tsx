@@ -2,9 +2,9 @@
 
 const PALETTE = ["#2563eb", "#1e3a5f", "#059669", "#d97706", "#dc2626", "#0891b2", "#7c3aed"];
 
-export function BarChart({ data }: { data: { nama: string; nilai: number; sufiks?: string }[] }) {
+export function BarChart({ data, emptyLabel }: { data: { nama: string; nilai: number; sufiks?: string }[]; emptyLabel?: string }) {
   const max = Math.max(1, ...data.map((d) => d.nilai));
-  if (data.length === 0) return <Kosong />;
+  if (data.length === 0) return <Kosong label={emptyLabel} />;
   return (
     <div className="space-y-2">
       {data.map((d, i) => (
@@ -28,9 +28,9 @@ export function BarChart({ data }: { data: { nama: string; nilai: number; sufiks
   );
 }
 
-export function DonutChart({ data }: { data: { nama: string; bil: number }[] }) {
+export function DonutChart({ data, emptyLabel }: { data: { nama: string; bil: number }[]; emptyLabel?: string }) {
   const total = data.reduce((s, d) => s + d.bil, 0);
-  if (total === 0) return <Kosong />;
+  if (total === 0) return <Kosong label={emptyLabel} />;
   const R = 60, C = 2 * Math.PI * R;
   // Offset terkumpul dikira secara immutable (tiada penetapan semula).
   const segmen = data.map((d, i) => ({
@@ -72,8 +72,8 @@ export function DonutChart({ data }: { data: { nama: string; bil: number }[] }) 
   );
 }
 
-export function LineChart({ data, sufiks = "%" }: { data: { label: string; nilai: number }[]; sufiks?: string }) {
-  if (data.length === 0) return <Kosong />;
+export function LineChart({ data, sufiks = "%", emptyLabel, valueInLabel = "Nilai dalam" }: { data: { label: string; nilai: number }[]; sufiks?: string; emptyLabel?: string; valueInLabel?: string }) {
+  if (data.length === 0) return <Kosong label={emptyLabel} />;
   const W = 360, H = 140, padX = 28, padY = 16;
   const max = Math.max(100, ...data.map((d) => d.nilai));
   const min = 0;
@@ -100,11 +100,11 @@ export function LineChart({ data, sufiks = "%" }: { data: { label: string; nilai
           </g>
         ))}
       </svg>
-      <p className="mt-1 text-center text-xs text-slate-400">Nilai dalam {sufiks}</p>
+      <p className="mt-1 text-center text-xs text-slate-400">{valueInLabel} {sufiks}</p>
     </div>
   );
 }
 
-function Kosong() {
-  return <p className="py-4 text-center text-sm text-slate-400">Tiada data untuk dipaparkan.</p>;
+function Kosong({ label = "Tiada data untuk dipaparkan." }: { label?: string }) {
+  return <p className="py-4 text-center text-sm text-slate-400">{label}</p>;
 }

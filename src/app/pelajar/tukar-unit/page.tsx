@@ -10,7 +10,9 @@ export default async function TukarUnitPage() {
   const session = await getSession();
   if (!session?.pelajarId) redirect("/login");
   const { t } = await getT();
-  const jenisLabel: Record<string, string> = { Sukan: t.common.sukan, Kelab: t.common.kelab, Uniform: t.common.uniform };
+  const jenisLabel: Record<string, string> = {
+    Sukan: t.common.sukan, Kelab: t.common.kelab, Uniform: t.common.uniform, Perkhidmatan: t.common.perkhidmatan,
+  };
 
   const [koko, sejarah] = await Promise.all([
     prisma.kokurikulum.findMany({ where: { pelajarId: session.pelajarId } }),

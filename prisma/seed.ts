@@ -81,7 +81,6 @@ async function seedPelajar() {
   const wb = await loadWorkbookFromFile(FILE_NAMELIST);
   const ws = wb.worksheets[0];
   const rows = parseNamelistWorksheet(ws);
-  const passwordHash = await hashPassword(DEFAULT_PW);
   let ok = 0;
   const ralatRows: string[] = [];
 
@@ -143,7 +142,10 @@ async function seedPelajar() {
     // Kira semula skor PAJSK T6 dari komponen yang ada (jawatan/peringkat).
     await kiraSemulaT6(pelajar.id);
 
-    // Akaun login (username = No. IC)
+    // Akaun login — username = No. IC, kata laluan awal = No. IC (dipaksa tukar).
+    // Hanya akaun BAHARU ditetapkan kata laluan = IC; akaun sedia ada tidak
+    // disentuh supaya kata laluan yang telah ditukar pengguna tidak dipadam.
+    const passwordHash = await hashPassword(r.noIc);
     await prisma.user.upsert({
       where: { username: r.noIc },
       update: { pelajarId: pelajar.id },
@@ -184,11 +186,6 @@ async function seedSejarahT5() {
       takJumpa++;
       continue;
     }
-
-    await prisma.pelajar.update({
-      where: { id: pelajar.id },
-      data: { markahPajskT5: r.markahPajsk, peratusPajskT5: r.peratusPajsk },
-    });
 
     // Isi medan T5 pada baris kokurikulum sedia ada (dipadan ikut Jenis_Koko)
     for (const k of r.koko) {
@@ -243,7 +240,6 @@ async function seedGuru() {
   const wb = await loadWorkbookFromFile(FILE_GURU);
   const ws = wb.worksheets[0];
   const rows = parseGuruWorksheet(ws);
-  const passwordHash = await hashPassword(DEFAULT_PW);
   let ok = 0;
   for (const g of rows) {
     if (!g.email) continue;
@@ -270,18 +266,20 @@ async function seedGuru() {
       guru.id,
       penasihatDariMedanLama({ kelabDiselia: g.kelab, sukanDiselia: g.sukan, badanDiselia: g.badan })
     );
-    await prisma.user.upsert({
-      where: { username: g.email },
-      update: { guruId: guru.id },
-      create: {
-        username: g.email,
-        email: g.email,
-        passwordHash,
-        role: "Guru",
-        guruId: guru.id,
-        mustChangePw: true,
-      },
-    });
+    // Akaun login guru — username & kata laluan awal = No. IC (dipaksa tukar).
+    // Jika No. IC tidak sah, guna emel sebagai username & kata laluan lalai.
+    // Dikunci ikut guruId supaya akaun sedia ada tidak diduplikasi/dipadam.
+    const icSah = /^\d{12}$/.test(guru.noIc);
+    const username = icSah ? guru.noIc : g.email;
+    const passwordHash = await hashPassword(icSah ? guru.noIc : DEFAULT_PW);
+    const akaun = await prisma.user.findFirst({ where: { guruId: guru.id }, select: { id: true } });
+    if (akaun) {
+      await prisma.user.update({ where: { id: akaun.id }, data: { guruId: guru.id } });
+    } else {
+      await prisma.user.create({
+        data: { username, email: g.email, passwordHash, role: "Guru", guruId: guru.id, mustChangePw: true },
+      });
+    }
     ok++;
   }
   console.log(`  Guru diimport: ${ok}/${rows.length}`);

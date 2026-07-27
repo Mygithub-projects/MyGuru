@@ -2,8 +2,9 @@
 import { useState } from "react";
 
 interface Item { id: string; kategori: string; namaItem: string; nilaiMarkah: number; }
+interface TetapanDict { saveSettings: string; saving: string }
 
-export function TetapanClient({ items: initial }: { items: Item[] }) {
+export function TetapanClient({ items: initial, t }: { items: Item[]; t: TetapanDict }) {
   const [items, setItems] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -54,7 +55,7 @@ export function TetapanClient({ items: initial }: { items: Item[] }) {
       ))}
       <button onClick={simpan} disabled={busy}
         className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50">
-        {busy ? "Menyimpan..." : "Simpan Tetapan"}
+        {busy ? t.saving : t.saveSettings}
       </button>
     </div>
   );

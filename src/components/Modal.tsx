@@ -7,11 +7,13 @@ export function Modal({
   open,
   onClose,
   title,
+  closeLabel = "Tutup",
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  closeLabel?: string;
   children: React.ReactNode;
 }) {
   useEffect(() => {
@@ -42,7 +44,7 @@ export function Modal({
           <h2 className="text-lg font-bold text-slate-800">{title}</h2>
           <button
             onClick={onClose}
-            aria-label="Tutup"
+            aria-label={closeLabel}
             className="-mr-1 -mt-1 rounded-md p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
           >
             ✕

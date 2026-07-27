@@ -77,18 +77,6 @@ async function main() {
     await kiraSemulaKehadiran(id);
   }
 
-  // Re-baseline T5 = T6 + delta kecil (varian tahun-ke-tahun) supaya perbandingan
-  // T5 vs T6 kekal konsisten selepas markah T6 berubah dek kehadiran.
-  const delta = [-4, -2, 0, 3, 5, -3, 2, 6, -1, 1];
-  const semua = await prisma.pelajar.findMany({ select: { id: true, markahPajskT6: true }, orderBy: { nama: "asc" } });
-  let bi = 0;
-  for (const p of semua) {
-    const t6 = p.markahPajskT6 ?? 0;
-    const t5 = Math.max(0, Math.min(100, Math.round((t6 + delta[bi % delta.length]) * 100) / 100));
-    await prisma.pelajar.update({ where: { id: p.id }, data: { markahPajskT5: t5, peratusPajskT5: t5 } });
-    bi++;
-  }
-
   const agg = await prisma.pelajar.aggregate({
     _avg: { markahKehadiran: true, peratusPajskT6: true },
     _min: { markahKehadiran: true },

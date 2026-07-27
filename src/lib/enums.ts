@@ -17,16 +17,18 @@ export const JAWATAN_GURU = [
 ] as const;
 export type JawatanGuru = (typeof JAWATAN_GURU)[number];
 
-// Guru dengan skop seluruh sekolah (bukan hanya unit selia sendiri)
-// KetuaGP (Ketua Guru Penasihat) boleh muat turun rumusan/analitik seluruh sekolah.
+// Guru dengan skop seluruh sekolah (lihat SEMUA data pelajar).
+// Peraturan RBAC: Penyelaras Kokurikulum & Pemantau KUPP lihat semua; PenolongSU
+// dikekalkan seluruh sekolah. KetuaGP, PenolongKetuaGP & GuruPenasihat pula hanya
+// lihat/urus pelajar dalam UNIT yang ditugaskan kepada mereka — lihat
+// unitSeliaan()/bolehAksesUnit() di workflow.ts.
 export const JAWATAN_GURU_SELURUH_SEKOLAH: JawatanGuru[] = [
   "Penyelaras",
   "PemantauKUPP",
   "PenolongSU",
-  "KetuaGP",
 ];
 
-export const JENIS_KOKO = ["Sukan", "Kelab", "Uniform"] as const;
+export const JENIS_KOKO = ["Sukan", "Kelab", "Uniform", "Perkhidmatan"] as const;
 export type JenisKoko = (typeof JENIS_KOKO)[number];
 
 // Peranan guru dalam sesuatu unit (jadual GuruPenasihatKelab §3).

@@ -4,22 +4,22 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* === Modern Corporate · Government Digital Transformation === */
+  /* === Governance Platform · navy + gold === */
   --background: #f5f7fa;     /* kelabu muda */
   --foreground: #1e293b;     /* slate-800 */
 
-  /* Royal Blue untuk tindakan/butang utama (teks PUTIH). */
-  --brand: #2563eb;          /* royal blue (CTA/butang) */
-  --brand-hover: #1d4ed8;    /* hover butang (blue-700) */
+  /* Gold/amber untuk tindakan/butang utama (teks PUTIH). */
+  --brand: #d97706;          /* amber-600 (CTA/butang) */
+  --brand-hover: #b45309;    /* hover butang (amber-700) */
   --brand-dark: #1e3a5f;     /* navy — pautan, tajuk, struktur */
-  --brand-light: #e8effb;    /* isian biru pucat (cip/banner) */
-  --gold-bright: #2563eb;    /* legasi token (tidak digunakan) */
+  --brand-light: #fef3e2;    /* isian gold pucat (cip/banner) */
+  --gold-bright: #f5a524;    /* gold terang — teks aksen atas navy */
 
-  /* Navy untuk header, footer, skrin log masuk */
-  --ink: #1e3a5f;
-  --ink-2: #2a4a73;
+  /* Navy gelap untuk sidebar, header, footer, skrin log masuk */
+  --ink: #0f1c33;
+  --ink-2: #182b4a;
 
-  --accent: #2563eb;
+  --accent: #d97706;
 }
 
 @theme inline {
@@ -33,8 +33,8 @@
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-accent: var(--accent);
-  /* Font antara muka: Consolas (monospace) */
-  --font-sans: Consolas, "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  /* Font antara muka: Inter (sans-serif), dimuatkan via next/font di layout.tsx */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {

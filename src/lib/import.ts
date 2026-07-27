@@ -215,10 +215,13 @@ export interface NamelistRow {
 
 // Pulihkan IC 12-digit: normalkan sel (icToString tangani nombor/rich-text),
 // kemudian pad sifar di hadapan jika Excel menggugurkannya (cth 11-digit
-// "70406101797" -> "070406101797").
+// "70406101797" -> "070406101797"). Had 10-11 digit sahaja — nombor IC benar
+// hanya boleh kehilangan 1-2 sifar di hadapan (YY tahun lahir "00"-"09"); apa-apa
+// yang lebih pendek ialah IC tidak sah sebenar, bukan sifar yang digugurkan, jadi
+// dibiar tidak sah supaya ditangkap oleh semakan `/^\d{12}$/` di pemanggil.
 export function padIC(val: unknown): string {
   const norm = icToString(val);
-  return norm.length > 0 && norm.length < 12 ? norm.padStart(12, "0") : norm;
+  return norm.length >= 10 && norm.length < 12 ? norm.padStart(12, "0") : norm;
 }
 
 export function parseNamelistWorksheet(ws: ExcelJS.Worksheet): NamelistRow[] {
@@ -236,7 +239,7 @@ export function parseNamelistWorksheet(ws: ExcelJS.Worksheet): NamelistRow[] {
     return undefined;
   };
   const cKelas = find("KELAS");
-  const cNama = find("NAMA");
+  const cNama = find("NAMA", "NAME", "MURID", "PELAJAR");
   const cIc = find("KAD PENGENALAN", "MYKAD", "IC");
   const cJantina = find("JANTINA");
   const cKaum = find("KAUM");
@@ -301,6 +304,54 @@ export function parseNamelistWorksheet(ws: ExcelJS.Worksheet): NamelistRow[] {
 }
 
 // ---------------------------------------------------------------------------
+//  PELAJAR BAHARU (tanpa unit — pelajar daftar Kelab/Sukan/Uniform/Perkhidmatan
+//  sendiri selepas log masuk kali pertama, tertakluk kelulusan guru penasihat).
+// ---------------------------------------------------------------------------
+
+export interface PelajarBaruRow {
+  nama: string;
+  kelasT6: string;
+  noIc: string;
+  ralat: string[];
+}
+
+export function parsePelajarBaruWorksheet(ws: ExcelJS.Worksheet): PelajarBaruRow[] {
+  // Peta header -> indeks lajur (baris 1) supaya tahan susunan lajur berubah.
+  const headerRow = ws.getRow(1);
+  const idx: Record<string, number> = {};
+  headerRow.eachCell((cell, col) => {
+    idx[cellText(cell.value).toUpperCase().replace(/\s+/g, " ").trim()] = col;
+  });
+  const find = (...keys: string[]): number | undefined => {
+    for (const k of keys) {
+      const hit = Object.keys(idx).find((h) => h.includes(k));
+      if (hit) return idx[hit];
+    }
+    return undefined;
+  };
+  const cNama = find("NAMA", "NAME", "MURID", "PELAJAR");
+  const cKelas = find("KELAS");
+  const cIc = find("KAD PENGENALAN", "MYKAD", "IC");
+
+  const rows: PelajarBaruRow[] = [];
+  ws.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return; // langkau header
+    const get = (c?: number) => (c ? cellText(row.getCell(c).value) : "");
+    const nama = get(cNama);
+    const icRaw = cIc ? row.getCell(cIc).value : "";
+    const noIc = padIC(icRaw);
+    if (!nama && !noIc) return; // baris kosong
+
+    const ralat: string[] = [];
+    if (!nama) ralat.push("Nama kosong");
+    if (!/^\d{12}$/.test(noIc)) ralat.push(`No. IC tidak sah: "${cellText(icRaw)}"`);
+
+    rows.push({ nama, kelasT6: get(cKelas), noIc, ralat });
+  });
+  return rows;
+}
+
+// ---------------------------------------------------------------------------
 //  GURU (Google Form responses)
 // ---------------------------------------------------------------------------
 
@@ -330,7 +381,7 @@ export function parseGuruWorksheet(ws: ExcelJS.Worksheet): GuruRow[] {
     return undefined;
   };
   const cEmail = find("EMAIL");
-  const cNama = find("NAMA");
+  const cNama = find("NAMA", "NAME", "MURID", "PELAJAR");
   const cIc = find("KAD PENGENALAN", "MYKAD", "IC");
   const cJawatan = find("JAWATAN");
   const cKelab = find("KELAB");

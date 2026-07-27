@@ -116,14 +116,8 @@ async function main() {
       });
     }
 
-    // Kira markah PAJSK T6, kemudian tetapkan T5 = baseline sama
-    const skor = await kiraSemulaT6(pelajar.id);
-    const t6 = skor?.jumlahTeras ?? 0;
-    const pct6 = skor?.peratus ?? 0;
-    await prisma.pelajar.update({
-      where: { id: pelajar.id },
-      data: { markahPajskT5: t6, peratusPajskT5: pct6 },
-    });
+    // Kira markah PAJSK T6 dari komponen
+    await kiraSemulaT6(pelajar.id);
 
     await prisma.user.create({
       data: { username: r.noIc, passwordHash, role: "Pelajar", pelajarId: pelajar.id, mustChangePw: false },

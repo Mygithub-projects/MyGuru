@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSession, ok, fail } from "@/lib/api";
-import { ciptaSesi } from "@/lib/kehadiran";
+import { ciptaSesi, bilPerjumpaanSeterusnya } from "@/lib/kehadiran";
 import { JENIS_KOKO } from "@/lib/enums";
 
 const schema = z.object({
@@ -11,6 +11,18 @@ const schema = z.object({
   tarikh: z.string(),
   bilPerjumpaan: z.number().int().min(1).max(40),
 });
+
+/** Cadangan nombor perjumpaan seterusnya untuk unit ini (borang "Buka Sesi"). */
+export async function GET(request: NextRequest) {
+  const auth = await requireSession();
+  if ("response" in auth) return auth.response;
+
+  const namaUnit = request.nextUrl.searchParams.get("namaUnit");
+  if (!namaUnit) return fail("namaUnit diperlukan", 400);
+
+  const seterusnya = await bilPerjumpaanSeterusnya(namaUnit);
+  return ok({ seterusnya });
+}
 
 export async function POST(request: NextRequest) {
   const auth = await requireSession();
@@ -39,12 +51,16 @@ export async function POST(request: NextRequest) {
     if (!ahli) return fail("Anda hanya boleh membuka sesi untuk unit sendiri", 403);
   }
 
-  const sesi = await ciptaSesi({
-    jenisKoko: parsed.data.jenisKoko,
-    namaUnit: parsed.data.namaUnit,
-    tarikh: new Date(parsed.data.tarikh),
-    bilPerjumpaan: parsed.data.bilPerjumpaan,
-    dibuatOlehId: session.pelajarId ?? undefined,
-  });
-  return ok(sesi, "Sesi kehadiran dibuka", 201);
+  try {
+    const sesi = await ciptaSesi({
+      jenisKoko: parsed.data.jenisKoko,
+      namaUnit: parsed.data.namaUnit,
+      tarikh: new Date(parsed.data.tarikh),
+      bilPerjumpaan: parsed.data.bilPerjumpaan,
+      dibuatOlehId: session.pelajarId ?? undefined,
+    });
+    return ok(sesi, "Sesi kehadiran dibuka", 201);
+  } catch (e) {
+    return fail(e instanceof Error ? e.message : "Ralat", 409);
+  }
 }

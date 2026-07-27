@@ -32,7 +32,9 @@ export function guruSeluruhSekolah(guru: Pick<Guru, "jawatanKoko">): boolean {
 /**
  * Senarai nama unit yang diselia guru (padan namaUnitT6).
  * SUMBER KEBENARAN (§3): jadual pautan GuruPenasihatKelab — bukan lagi medan
- * kelabDiselia/sukanDiselia/badanDiselia (deprecated).
+ * kelabDiselia/sukanDiselia/badanDiselia (deprecated). Skop di peringkat UNIT:
+ * KetuaGP/PenolongKetuaGP/GuruPenasihat hanya melihat/mengurus pelajar dalam
+ * unit yang ditugaskan secara langsung kepada mereka.
  */
 export async function unitSeliaan(guru: Pick<Guru, "id">): Promise<string[]> {
   const rows = await prisma.guruPenasihatKelab.findMany({
@@ -112,7 +114,7 @@ export function bolehAksesUnit(opts: {
   return opts.unitPelajar.some((u) => skop.has(u));
 }
 
-/** Adakah guru boleh mengakses/menyemak rekod pelajar ini? */
+/** Adakah guru boleh mengakses/menyemak rekod pelajar ini? (skop unit) */
 export async function bolehGuruAksesPelajar(
   guru: Pick<Guru, "id" | "jawatanKoko">,
   pelajarId: string

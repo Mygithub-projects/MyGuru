@@ -59,6 +59,7 @@ export default async function SenaraiAhliPage() {
             setPos: t.guru.colSetPos,
             members: t.guru.memberCount,
           }}
+          t={{ ...t.guru.senaraiAhliTabs, jawatanAssign: t.guru.jawatanAssign }}
         />
       )}
     </div>

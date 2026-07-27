@@ -27,12 +27,12 @@ const WARNA: Record<string, string> = {
   Disahkan: EMERALD,
 };
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, label }: { status: string; label?: string }) {
   const style = WARNA[status] ?? WARNA["-"];
   const css = Object.fromEntries(style.split(";").map((s) => s.split(":"))) as Record<string, string>;
   return (
     <span className="badge" style={{ backgroundColor: css.background, color: css.color }}>
-      {status}
+      {label ?? status}
     </span>
   );
 }

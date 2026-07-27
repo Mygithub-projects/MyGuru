@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Modal } from "@/components/Modal";
 import { StatusBadge } from "@/components/StatusBadge";
-import { statusPilihanT6 } from "@/lib/pajsk";
+import { statusPilihanT6, labelStatusPilihanT6 } from "@/lib/pajsk";
 import { getDict } from "@/lib/i18n";
 import { useLocale } from "@/components/LocaleProvider";
 
@@ -21,6 +21,7 @@ const KATEGORI = [
   { v: "Sukan" },
   { v: "Kelab" },
   { v: "Uniform" },
+  { v: "Perkhidmatan" },
 ];
 
 type Senarai = Record<string, string[]>;
@@ -41,10 +42,13 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
   const unitBaru = pilihan;
   const opsyen = openJenis ? senarai[openJenis] ?? [] : [];
 
-  // Gabung 3 kategori tetap dengan baris sedia ada
+  // Gabung 4 kategori tetap dengan baris sedia ada
+  const LABEL_JENIS: Record<string, string> = {
+    Sukan: common.sukan, Kelab: common.kelab, Uniform: common.uniform, Perkhidmatan: common.perkhidmatan,
+  };
   const kategori = KATEGORI.map((k) => ({
     ...k,
-    label: k.v === "Sukan" ? common.sukan : k.v === "Kelab" ? common.kelab : common.uniform,
+    label: LABEL_JENIS[k.v] ?? k.v,
     unit: units.find((u) => u.jenisKoko === k.v) ?? null,
   }));
 
@@ -99,17 +103,22 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
         <Link href="/pelajar/tukar-unit" className="text-xs font-semibold text-brand-dark hover:underline">{t.unitHistoryLink}</Link>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {kategori.map((k) => {
           const u = k.unit;
           const berdaftar = !!u?.namaUnitT6;
           return (
             <div key={k.v} className="flex flex-col rounded-lg border border-slate-200 p-3">
-              <p className="text-xs font-semibold uppercase text-brand-dark">{k.label}</p>
+              <p className="text-xs font-semibold uppercase text-brand-dark">
+                {k.label}{k.v === "Perkhidmatan" && <span className="ml-1 font-normal normal-case text-slate-400">({common.pilihan})</span>}
+              </p>
               <p className="mt-1 font-medium text-slate-800">{u?.namaUnitT6 ?? t.unitNotRegistered}</p>
               {berdaftar && <p className="text-xs text-slate-500">{u?.jawatanT6} · {u?.peringkatT6}</p>}
               <div className="mt-2 flex items-center justify-between gap-2">
-                <StatusBadge status={u ? statusPilihanT6(u) : "Belum Pilih"} />
+                {(() => {
+                  const kod = u ? statusPilihanT6(u) : "Belum Pilih";
+                  return <StatusBadge status={kod} label={labelStatusPilihanT6(kod, locale)} />;
+                })()}
                 <button
                   onClick={() => buka(k.v)}
                   className={`rounded-md px-3 py-1 text-xs font-semibold text-white ${berdaftar ? "bg-ink hover:bg-ink-2" : "bg-brand hover:bg-brand-hover"}`}
@@ -122,7 +131,7 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
         })}
       </div>
 
-      <Modal open={openJenis !== null} onClose={() => setOpenJenis(null)} title={modalTitle}>
+      <Modal open={openJenis !== null} onClose={() => setOpenJenis(null)} title={modalTitle} closeLabel={dict.common.modalClose}>
         <form onSubmit={submit} className="space-y-4">
           {msg && (
             <div className={`rounded-md px-3 py-2 text-sm ${msg.ok ? "bg-brand-light text-brand-dark ring-1 ring-brand/30" : "bg-red-50 text-red-700 ring-1 ring-red-200"}`}>

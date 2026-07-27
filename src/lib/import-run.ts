@@ -5,7 +5,7 @@
 import type ExcelJS from "exceljs";
 import { prisma } from "./prisma";
 import { hashPassword } from "./auth";
-import { parsePajskWorksheet, parseGuruWorksheet, type PajskRow } from "./import";
+import { parsePajskWorksheet, parseGuruWorksheet, type PajskRow, type PelajarBaruRow } from "./import";
 import { mapJawatanGuru } from "./jawatan-map";
 import { kiraSkor, markahJawatan, markahPenglibatan, bidangDariJenisKoko, buangKurungan } from "./pajsk";
 import { syncPenasihatKelab, penasihatDariMedanLama } from "./workflow";
@@ -26,7 +26,6 @@ export function jalankanImportPajsk(wb: ExcelJS.Workbook): Promise<HasilImport> 
 /** Tulis baris PAJSK yang telah diparse ke DB. Dikongsi oleh import terus &
  *  pengesahan import berperingkat (§6). */
 export async function applyPajskRows(rows: PajskRow[]): Promise<HasilImport> {
-  const passwordHash = await hashPassword(DEFAULT_PW);
   const ralat: string[] = [];
   const pelajarIds: string[] = [];
   let berjaya = 0;
@@ -53,8 +52,6 @@ export async function applyPajskRows(rows: PajskRow[]): Promise<HasilImport> {
       where: { noIc: r.noIc },
       update: {
         nama: r.nama,
-        markahPajskT5: r.markahPajsk,
-        peratusPajskT5: r.peratusPajsk,
         komitmen: r.komitmen,
         khidmatSumbangan: r.khidmatSumbangan,
         markahKehadiran: r.markahKehadiran,
@@ -67,8 +64,6 @@ export async function applyPajskRows(rows: PajskRow[]): Promise<HasilImport> {
         nama: r.nama,
         noIc: r.noIc,
         kelasT6: "T6 (Sesi 2026)",
-        markahPajskT5: r.markahPajsk,
-        peratusPajskT5: r.peratusPajsk,
         markahPajskT6: skor.jumlahTeras,
         peratusPajskT6: skor.peratus,
         gredPajskT6: skor.gred,
@@ -100,6 +95,8 @@ export async function applyPajskRows(rows: PajskRow[]): Promise<HasilImport> {
       });
     }
 
+    // Akaun login — username = No. IC, kata laluan awal = No. IC (dipaksa tukar).
+    const passwordHash = await hashPassword(r.noIc);
     await prisma.user.upsert({
       where: { username: r.noIc },
       update: { pelajarId: pelajar.id },
@@ -195,9 +192,90 @@ export async function diffPajsk(rows: PajskRow[]): Promise<DiffHasil> {
   };
 }
 
+// ---------------------------------------------------------------------------
+//  Pelajar Baharu (tanpa unit) — pratonton diff + tulis DB.
+// ---------------------------------------------------------------------------
+
+/** Kira ringkasan perbezaan bagi import pelajar baharu (Nama/Kelas/No.IC
+ *  sahaja — tiada unit/markah). Guna semula struktur DiffBaris/DiffHasil. */
+export async function diffPelajarBaru(rows: PelajarBaruRow[]): Promise<DiffHasil> {
+  const ralat: string[] = [];
+  let baharu = 0;
+  let berubah = 0;
+  let sama = 0;
+  let tanpaIc = 0;
+  const baris: DiffBaris[] = [];
+
+  for (const r of rows) {
+    if (r.ralat.length) ralat.push(`${r.nama || "?"}: ${r.ralat.join("; ")}`);
+    if (!/^\d{12}$/.test(r.noIc)) {
+      tanpaIc++;
+      continue;
+    }
+    const sedia = await prisma.pelajar.findUnique({ where: { noIc: r.noIc }, select: { nama: true, kelasT6: true } });
+
+    if (!sedia) {
+      baharu++;
+      baris.push({ noIc: r.noIc, nama: r.nama, status: "baharu", perubahan: r.kelasT6 ? [`Kelas: ${r.kelasT6}`] : [] });
+      continue;
+    }
+
+    const perubahan: string[] = [];
+    if (!samaTeks(sedia.nama, r.nama)) perubahan.push(`Nama: "${sedia.nama}" → "${r.nama}"`);
+    if (!samaTeks(sedia.kelasT6, r.kelasT6)) perubahan.push(`Kelas: "${sedia.kelasT6 ?? "-"}" → "${r.kelasT6 || "-"}"`);
+
+    if (perubahan.length === 0) {
+      sama++;
+    } else {
+      berubah++;
+      baris.push({ noIc: r.noIc, nama: r.nama, status: "berubah", perubahan });
+    }
+  }
+
+  return {
+    jumlah: rows.length,
+    baharu,
+    berubah,
+    sama,
+    tanpaIc,
+    ralat,
+    baris: baris.slice(0, 200),
+  };
+}
+
+/** Tulis baris pelajar baharu ke DB — cipta Pelajar + akaun User SAHAJA,
+ *  TIADA rekod Kokurikulum dicipta. Pelajar log masuk kali pertama dengan
+ *  No. IC sebagai username DAN kata laluan (mustChangePw dipaksa tukar),
+ *  kemudian daftar unit sendiri. */
+export async function applyPelajarBaruRows(rows: PelajarBaruRow[]): Promise<HasilImport> {
+  const ralat: string[] = [];
+  let berjaya = 0;
+
+  for (const r of rows) {
+    if (r.ralat.length) {
+      ralat.push(`${r.nama || "?"}: ${r.ralat.join("; ")}`);
+      continue; // baris bermasalah (nama kosong / IC tidak sah) — langkau, jangan cipta rekod pincang.
+    }
+
+    const pelajar = await prisma.pelajar.upsert({
+      where: { noIc: r.noIc },
+      update: { nama: r.nama, kelasT6: r.kelasT6 || undefined },
+      create: { nama: r.nama, noIc: r.noIc, kelasT6: r.kelasT6 || null },
+    });
+
+    const passwordHash = await hashPassword(r.noIc);
+    await prisma.user.upsert({
+      where: { username: r.noIc },
+      update: { pelajarId: pelajar.id },
+      create: { username: r.noIc, passwordHash, role: "Pelajar", pelajarId: pelajar.id, mustChangePw: true },
+    });
+    berjaya++;
+  }
+  return { jumlah: rows.length, berjaya, ralat };
+}
+
 export async function jalankanImportGuru(wb: ExcelJS.Workbook): Promise<HasilImport> {
   const rows = parseGuruWorksheet(wb.worksheets[0]);
-  const passwordHash = await hashPassword(DEFAULT_PW);
   const ralat: string[] = [];
   let berjaya = 0;
 
@@ -230,11 +308,19 @@ export async function jalankanImportGuru(wb: ExcelJS.Workbook): Promise<HasilImp
       guru.id,
       penasihatDariMedanLama({ kelabDiselia: g.kelab, sukanDiselia: g.sukan, badanDiselia: g.badan })
     );
-    await prisma.user.upsert({
-      where: { username: g.email },
-      update: { guruId: guru.id },
-      create: { username: g.email, email: g.email, passwordHash, role: "Guru", guruId: guru.id, mustChangePw: true },
-    });
+    // Akaun login guru — username & kata laluan awal = No. IC (dipaksa tukar);
+    // jatuh balik ke emel + kata laluan lalai jika No. IC tidak sah.
+    const icSah = /^\d{12}$/.test(guru.noIc);
+    const username = icSah ? guru.noIc : g.email;
+    const passwordHash = await hashPassword(icSah ? guru.noIc : DEFAULT_PW);
+    const akaun = await prisma.user.findFirst({ where: { guruId: guru.id }, select: { id: true } });
+    if (akaun) {
+      await prisma.user.update({ where: { id: akaun.id }, data: { guruId: guru.id } });
+    } else {
+      await prisma.user.create({
+        data: { username, email: g.email, passwordHash, role: "Guru", guruId: guru.id, mustChangePw: true },
+      });
+    }
     berjaya++;
   }
   return { jumlah: rows.length, berjaya, ralat };

@@ -14,7 +14,9 @@ export function LaporanForm({ units, projek, sesiList }: { units: Unit[]; projek
   const dict = getDict(locale);
   const t = dict.laporan;
   const common = dict.common;
-  const unitLabel: Record<string, string> = { Sukan: common.sukan, Kelab: common.kelab, Uniform: common.uniform };
+  const unitLabel: Record<string, string> = {
+    Sukan: common.sukan, Kelab: common.kelab, Uniform: common.uniform, Perkhidmatan: common.perkhidmatan,
+  };
   const [tab, setTab] = useState<"mingguan" | "projek">("mingguan");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);

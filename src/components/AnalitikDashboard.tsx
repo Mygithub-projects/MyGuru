@@ -10,6 +10,9 @@ import {
   kpiSekolah,
   crosstabJantinaKoko,
 } from "@/lib/analitik";
+import { getT } from "@/lib/locale";
+import { labelStatusPilihanT6 } from "@/lib/pajsk";
+import { StatCard } from "./StatCard";
 import { BarChart, DonutChart, LineChart } from "./Charts";
 
 export async function AnalitikDashboard({
@@ -19,6 +22,8 @@ export async function AnalitikDashboard({
   units?: string[]; // undefined = semua (admin)
   demografiPenuh: boolean;
 }) {
+  const { t, locale } = await getT();
+  const ta = t.analitik;
   const [kehadiran, projek, laporan, statusT6, trend, gred, pencapaian, kpi, demografi, crosstab] =
     await Promise.all([
       analitikKehadiran(units),
@@ -37,61 +42,61 @@ export async function AnalitikDashboard({
     <div className="space-y-6">
       {/* Kad ringkasan (KPI) — §7 */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KPI label="Jumlah Pelajar" value={kpi.jumlah} />
-        <KPI label="Purata Markah PAJSK" value={`${kpi.purataMarkah}`} sub="/ 100" tone="brand" />
-        <KPI label="Pelajar Gred A" value={`${kpi.peratusGredA}%`} tone="ok" />
-        <KPI label="Purata Kehadiran" value={`${kpi.purataKehadiran}%`} tone={kpi.purataKehadiran >= 80 ? "ok" : "warn"} />
+        <StatCard label={ta.totalStudents} value={kpi.jumlah} />
+        <StatCard label={ta.avgMark} value={kpi.purataMarkah} sub="/ 100" tone="brand" />
+        <StatCard label={ta.gradeAStudents} value={`${kpi.peratusGredA}%`} tone="ok" />
+        <StatCard label={ta.avgAttendance} value={`${kpi.purataKehadiran}%`} tone={kpi.purataKehadiran >= 80 ? "ok" : "warn"} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="Taburan Gred (A–E)">
-          <DonutChart data={gred} />
+        <Panel title={ta.gradeDist}>
+          <DonutChart data={gred} emptyLabel={ta.noChartData} />
         </Panel>
 
-        <Panel title="Pencapaian Mengikut Peringkat">
-          <DonutChart data={pencapaian} />
+        <Panel title={ta.achievementByLevel}>
+          <DonutChart data={pencapaian} emptyLabel={ta.noChartData} />
         </Panel>
 
-        <Panel title="Kehadiran Mengikut Unit (%)">
-          <BarChart data={kehadiran.map((k) => ({ nama: k.namaUnit, nilai: k.peratus, sufiks: "%" }))} />
+        <Panel title={ta.attendanceByUnit}>
+          <BarChart data={kehadiran.map((k) => ({ nama: k.namaUnit, nilai: k.peratus, sufiks: "%" }))} emptyLabel={ta.noChartData} />
         </Panel>
 
-        <Panel title="Status Laporan Projek">
-          <DonutChart data={projek.map((p) => ({ nama: p.status, bil: p.bil }))} />
+        <Panel title={ta.projectReportStatus}>
+          <DonutChart data={projek.map((p) => ({ nama: p.status, bil: p.bil }))} emptyLabel={ta.noChartData} />
         </Panel>
 
-        <Panel title="Status Pilihan Unit T6">
-          <DonutChart data={statusT6} />
+        <Panel title={ta.unitSelectionStatus}>
+          <DonutChart data={statusT6.map((s) => ({ ...s, nama: labelStatusPilihanT6(s.nama, locale) }))} emptyLabel={ta.noChartData} />
         </Panel>
 
-        <Panel title="Tren Kehadiran Mengikut Perjumpaan">
-          <LineChart data={trend} />
+        <Panel title={ta.attendanceTrend}>
+          <LineChart data={trend} emptyLabel={ta.noChartData} valueInLabel={ta.valueIn} />
         </Panel>
 
-        <Panel title="Pematuhan Laporan Mingguan">
+        <Panel title={ta.weeklyReportCompliance}>
           <div className="grid grid-cols-2 gap-3 text-center">
-            <Metric label="Jumlah" value={laporan.jumlah} />
-            <Metric label="Disahkan" value={laporan.disahkan} tone="ok" />
-            <Metric label="Pending" value={laporan.pending} tone="warn" />
-            <Metric label="Kadar Pematuhan" value={`${laporan.kadarPematuhan}%`} tone="brand" />
+            <Metric label={ta.total} value={laporan.jumlah} />
+            <Metric label={ta.verified} value={laporan.disahkan} tone="ok" />
+            <Metric label={ta.pending} value={laporan.pending} tone="warn" />
+            <Metric label={ta.complianceRate} value={`${laporan.kadarPematuhan}%`} tone="brand" />
           </div>
         </Panel>
 
         {demografiPenuh &&
           demografi.map((d) => (
-            <Panel key={d.label} title={`Demografi: ${d.label}`}>
+            <Panel key={d.label} title={`${ta.demographicsPrefix}${d.label}`}>
               <DonutChart data={d.data} />
             </Panel>
           ))}
       </div>
 
       {demografiPenuh && crosstab && (
-        <Panel title="Jadual Silang: Jantina × Jenis Kokurikulum">
+        <Panel title={ta.crosstabTitle}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-400">
-                  <th className="py-2 pr-3">Jantina</th>
+                  <th className="py-2 pr-3">{ta.gender}</th>
                   {crosstab.jenisList.map((j) => (
                     <th key={j} className="py-2 pr-3">{j}</th>
                   ))}
@@ -121,19 +126,6 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
       <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-600">{title}</h2>
       {children}
     </section>
-  );
-}
-
-function KPI({ label, value, sub, tone }: { label: string; value: string | number; sub?: string; tone?: "ok" | "warn" | "brand" }) {
-  const c = tone === "ok" ? "text-emerald-600" : tone === "warn" ? "text-amber-600" : tone === "brand" ? "text-brand-dark" : "text-slate-800";
-  return (
-    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={`mt-1 text-3xl font-bold ${c}`}>
-        {value}
-        {sub && <span className="ml-1 text-sm font-normal text-slate-400">{sub}</span>}
-      </p>
-    </div>
   );
 }
 

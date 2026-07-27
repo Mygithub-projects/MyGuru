@@ -38,7 +38,7 @@ describe("RBAC §3 — bolehAksesUnit", () => {
     ).toBe(false);
   });
 
-  it("guru seluruh sekolah (Penyelaras/KetuaGP/dsb.) sentiasa boleh akses", () => {
+  it("guru seluruh sekolah (Penyelaras/PemantauKUPP/PenolongSU) sentiasa boleh akses", () => {
     expect(
       bolehAksesUnit({ seluruhSekolah: true, unitSeliaan: [], unitPelajar: ["Kelab apa-apa"] })
     ).toBe(true);

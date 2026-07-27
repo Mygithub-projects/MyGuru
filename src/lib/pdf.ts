@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFImage } from "pdf-lib";
 import { getDict, type Locale } from "./i18n";
+import { labelStatusPilihanT6 } from "./pajsk";
 
 const BRAND = rgb(0.05, 0.43, 0.37);
 const DARK = rgb(0.06, 0.09, 0.16);
@@ -12,7 +13,7 @@ const GREY = rgb(0.4, 0.45, 0.5);
 
 async function muatLogo(doc: PDFDocument): Promise<PDFImage | null> {
   try {
-    const buf = await readFile(path.join(process.cwd(), "public", "logo-ktedm.jpeg"));
+    const buf = await readFile(path.join(process.cwd(), "public", "logo-kpm.jpeg"));
     return await doc.embedJpg(buf);
   } catch {
     return null;
@@ -185,7 +186,7 @@ export async function janaButiranPDF(d: ButiranData): Promise<Uint8Array> {
     page.drawText(`• ${k.jenisKoko}: ${k.namaUnitT6 ?? "-"} — ${k.jawatanT6 ?? "-"} (${k.peringkatT6 ?? "-"})`,
       { x: 48, y, size: 10, font, color: DARK });
     if (k.status) {
-      const label = `[${k.status}]`;
+      const label = `[${labelStatusPilihanT6(k.status, d.locale ?? "ms")}]`;
       const w = font.widthOfTextAtSize(label, 9);
       page.drawText(label, { x: width - 40 - w, y, size: 9, font: bold, color: BRAND });
     }

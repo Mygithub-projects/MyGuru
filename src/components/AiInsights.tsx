@@ -1,4 +1,5 @@
 import { getInsights, type JenisCerapan } from "@/lib/insights";
+import { getT } from "@/lib/locale";
 import { AiNarrative } from "./AiNarrative";
 
 const IKON: Record<JenisCerapan, string> = { positif: "✅", amaran: "⚠️", info: "ℹ️" };
@@ -15,16 +16,17 @@ function ArrowBadge({ arah }: { arah?: "naik" | "turun" | "rata" }) {
 }
 
 export async function AiInsights({ units }: { units?: string[] }) {
-  const { kpi, cerapan } = await getInsights(units);
+  const { locale, t } = await getT();
+  const { kpi, cerapan } = await getInsights(units, locale);
 
   return (
     <section className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
       {/* Header bergaya AI */}
       <div className="flex items-center gap-2 bg-gradient-to-r from-ink to-brand px-5 py-3 text-white">
         <span className="text-lg">✨</span>
-        <h2 className="text-sm font-bold uppercase tracking-wide">Analitik Pintar</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wide">{t.insights.title}</h2>
         <span className="ml-2 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide">
-          AI · DATA-DRIVEN
+          {t.insights.badge}
         </span>
       </div>
 
@@ -43,7 +45,7 @@ export async function AiInsights({ units }: { units?: string[] }) {
 
       {/* Cerapan */}
       <div className="space-y-2 p-5">
-        <AiNarrative />
+        <AiNarrative label={t.insights.aiLabel} loadingText={t.insights.aiLoading} locale={locale} />
         {cerapan.map((c, i) => (
           <div key={i} className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${WARNA[c.jenis]}`}>
             <span>{IKON[c.jenis]}</span>
@@ -51,7 +53,7 @@ export async function AiInsights({ units }: { units?: string[] }) {
           </div>
         ))}
         <p className="pt-1 text-[11px] text-slate-400">
-          Cerapan dijana automatik daripada data semasa (analitik berasaskan peraturan).
+          {t.insights.footerNote}
         </p>
       </div>
     </section>

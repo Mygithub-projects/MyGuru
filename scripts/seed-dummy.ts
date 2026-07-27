@@ -65,8 +65,6 @@ async function main() {
   await padamPelajar();
   const passwordHash = await hashPassword(PW);
 
-  const deltaT5 = [-4, 2, 6, -2, 8, 0, 5, -6, 3, 1];
-
   for (let i = 1; i <= JUMLAH; i++) {
     const noIc = "0701010000" + pad2(i); // 12 digit, unik
     const kaum = KAUM[i % KAUM.length];
@@ -127,15 +125,7 @@ async function main() {
     }
 
     // Kira markah PAJSK T6 dari komponen
-    const skor = await kiraSemulaT6(pelajar.id);
-
-    // Nilai T5 keseluruhan (untuk perbandingan T5 vs T6)
-    const t6 = skor?.jumlahTeras ?? 0;
-    const t5 = Math.max(0, Math.round((t6 - deltaT5[i % deltaT5.length]) * 100) / 100);
-    await prisma.pelajar.update({
-      where: { id: pelajar.id },
-      data: { markahPajskT5: t5, peratusPajskT5: t5 },
-    });
+    await kiraSemulaT6(pelajar.id);
 
     // Akaun login (username = No. IC), boleh terus log masuk
     await prisma.user.create({

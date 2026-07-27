@@ -22,7 +22,10 @@ export async function ahliUnit(namaUnit: string) {
   return koko.map((k) => k.pelajar);
 }
 
-/** Cipta sesi perjumpaan (oleh SU/NSU). Menjana token untuk imbas QR. */
+/** Cipta sesi perjumpaan (oleh SU/NSU). Menjana token untuk imbas QR.
+ *  Menolak jika perjumpaan# itu sudah wujud DAN telah disahkan guru — supaya
+ *  sesi lampau yang telah disahkan tidak tertimpa secara senyap oleh SU yang
+ *  tersilap guna semula nombor perjumpaan lama. */
 export async function ciptaSesi(input: {
   jenisKoko: JenisKoko;
   namaUnit: string;
@@ -30,6 +33,17 @@ export async function ciptaSesi(input: {
   bilPerjumpaan: number;
   dibuatOlehId?: string;
 }) {
+  const sediaAda = await prisma.sesiKehadiran.findUnique({
+    where: { namaUnit_bilPerjumpaan: { namaUnit: input.namaUnit, bilPerjumpaan: input.bilPerjumpaan } },
+  });
+  if (sediaAda?.disahkan) {
+    const tarikhLama = sediaAda.tarikh.toISOString().slice(0, 10);
+    throw new Error(
+      `Perjumpaan #${input.bilPerjumpaan} untuk unit ini sudah disahkan guru (${tarikhLama}). ` +
+        `Guna nombor perjumpaan seterusnya untuk sesi baharu.`
+    );
+  }
+
   const token = randomBytes(9).toString("base64url");
   return prisma.sesiKehadiran.upsert({
     where: { namaUnit_bilPerjumpaan: { namaUnit: input.namaUnit, bilPerjumpaan: input.bilPerjumpaan } },
@@ -43,6 +57,16 @@ export async function ciptaSesi(input: {
       dibuatOlehId: input.dibuatOlehId,
     },
   });
+}
+
+/** Nombor perjumpaan seterusnya (belum wujud) untuk unit ini — cadangan UI
+ *  supaya borang "Buka Sesi" tidak default ke #1 dan tertimpa sesi lampau. */
+export async function bilPerjumpaanSeterusnya(namaUnit: string): Promise<number> {
+  const terbesar = await prisma.sesiKehadiran.aggregate({
+    where: { namaUnit },
+    _max: { bilPerjumpaan: true },
+  });
+  return (terbesar._max.bilPerjumpaan ?? 0) + 1;
 }
 
 /** Tanda kehadiran sekumpulan ahli (senarai). */
@@ -142,12 +166,16 @@ export async function kiraSemulaKehadiran(pelajarId: string) {
   return { hadir, denom, markah };
 }
 
-/** Ringkasan kehadiran keseluruhan pelajar (atas 30 perjumpaan wajib). */
+/** Ringkasan kehadiran keseluruhan pelajar (atas 30 perjumpaan wajib).
+ *  `direkod` dihadkan pada jumlahSetahun — perjumpaan tambahan yang berlaku
+ *  selepas kuota wajib dipenuhi tetap disimpan (tidak dipadam), tetapi tidak
+ *  dipaparkan melebihi jumlah wajib supaya tidak kelihatan bercanggah dengan
+ *  penyebut "/ 30" di sebelahnya. */
 export async function ringkasanKehadiranPelajar(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
   const hadir = recs.filter((r) => r.statusHadir).length;
-  const direkod = recs.length;
   const jumlahSetahun = PERJUMPAAN_STANDARD;
+  const direkod = Math.min(recs.length, jumlahSetahun);
   const markah = markahKehadiran(hadir, jumlahSetahun);
   const peratus = peratusKehadiran(hadir, jumlahSetahun);
   return { hadir, direkod, jumlahSetahun, markah, peratus, markahPenuh: MARKAH_KEHADIRAN_PENUH };

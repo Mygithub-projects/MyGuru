@@ -12,13 +12,6 @@ export interface CadanganRow {
   rujukanLabel: string;
 }
 
-const JENIS_LABEL: Record<string, string> = {
-  UNIT_TRANSFER: "Pertukaran Unit",
-  ACHIEVEMENT: "Pengesahan Pencapaian",
-  RECALC: "Kira Semula Markah",
-  ECERT: "Jana e-Cert",
-};
-
 const JENIS_TONE: Record<string, string> = {
   UNIT_TRANSFER: "bg-blue-100 text-blue-700",
   ACHIEVEMENT: "bg-emerald-100 text-emerald-700",
@@ -26,11 +19,24 @@ const JENIS_TONE: Record<string, string> = {
   ECERT: "bg-violet-100 text-violet-700",
 };
 
-export function CadanganAiPanel({ cadangan }: { cadangan: CadanganRow[] }) {
+interface CadanganAiDict {
+  title: string; pendingCountTpl: string; sortNewest: string; sortOldest: string; sortAriaLabel: string;
+  descPrefix: string; descBold: string; descSuffix: string; emptyState: string; suggestedLabel: string;
+  approveBtn: string; rejectBtn: string; rejectPrompt: string; networkError: string;
+  jenis: { unitTransfer: string; achievement: string; recalc: string; ecert: string };
+}
+
+export function CadanganAiPanel({ cadangan, t }: { cadangan: CadanganRow[]; t: CadanganAiDict }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [arah, setArah] = useState<"baru" | "lama">("baru");
+  const JENIS_LABEL: Record<string, string> = {
+    UNIT_TRANSFER: t.jenis.unitTransfer,
+    ACHIEVEMENT: t.jenis.achievement,
+    RECALC: t.jenis.recalc,
+    ECERT: t.jenis.ecert,
+  };
 
   // §4: susun ikut tarikh cipta — terkini dahulu (default) atau terlama dahulu.
   const senarai = [...cadangan].sort((a, b) =>
@@ -50,7 +56,7 @@ export function CadanganAiPanel({ cadangan }: { cadangan: CadanganRow[] }) {
       setMsg({ text: json.message, ok: json.success });
       if (json.success) router.refresh();
     } catch {
-      setMsg({ text: "Ralat rangkaian", ok: false });
+      setMsg({ text: t.networkError, ok: false });
     } finally {
       setBusy(null);
     }
@@ -61,31 +67,30 @@ export function CadanganAiPanel({ cadangan }: { cadangan: CadanganRow[] }) {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">
-            🤖 Cadangan AI
+            {t.title}
           </h2>
           {cadangan.length > 0 && (
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-              {cadangan.length} menunggu
+              {t.pendingCountTpl.replace("{n}", String(cadangan.length))}
             </span>
           )}
         </div>
         {cadangan.length > 1 && (
-          <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 p-1" role="group" aria-label="Susun ikut tarikh">
+          <div className="inline-flex items-center gap-1 rounded-lg bg-slate-100 p-1" role="group" aria-label={t.sortAriaLabel}>
             <button type="button" onClick={() => setArah("baru")} aria-pressed={arah === "baru"}
               className={`rounded-md px-3 py-1 text-xs font-semibold transition ${arah === "baru" ? "bg-white text-brand-dark shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
-              Terkini dahulu
+              {t.sortNewest}
             </button>
             <button type="button" onClick={() => setArah("lama")} aria-pressed={arah === "lama"}
               className={`rounded-md px-3 py-1 text-xs font-semibold transition ${arah === "lama" ? "bg-white text-brand-dark shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
-              Terlama dahulu
+              {t.sortOldest}
             </button>
           </div>
         )}
       </div>
 
       <p className="mb-3 text-xs text-slate-500">
-        Cadangan dijana oleh MyGuru AI. Tiada markah, kelulusan atau e-Cert berubah sehingga
-        anda <strong>luluskan</strong> di sini.
+        {t.descPrefix} <strong>{t.descBold}</strong> {t.descSuffix}
       </p>
 
       {msg && (
@@ -102,7 +107,7 @@ export function CadanganAiPanel({ cadangan }: { cadangan: CadanganRow[] }) {
 
       {cadangan.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400">
-          Tiada cadangan AI menunggu kelulusan.
+          {t.emptyState}
         </div>
       ) : (
         <div className="space-y-2">
@@ -122,7 +127,7 @@ export function CadanganAiPanel({ cadangan }: { cadangan: CadanganRow[] }) {
                   </span>
                   {c.keputusan && (
                     <span className="text-xs font-semibold text-slate-500">
-                      Cadang: {c.keputusan}
+                      {t.suggestedLabel} {c.keputusan}
                     </span>
                   )}
                 </div>
@@ -138,17 +143,17 @@ export function CadanganAiPanel({ cadangan }: { cadangan: CadanganRow[] }) {
                   disabled={busy !== null}
                   className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {busy === `${c.id}-Approve` ? "..." : "Luluskan"}
+                  {busy === `${c.id}-Approve` ? "..." : t.approveBtn}
                 </button>
                 <button
                   onClick={() => {
-                    const komen = prompt("Sebab penolakan (pilihan):") ?? undefined;
+                    const komen = prompt(t.rejectPrompt) ?? undefined;
                     act(c.id, "Reject", komen);
                   }}
                   disabled={busy !== null}
                   className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {busy === `${c.id}-Reject` ? "..." : "Tolak"}
+                  {busy === `${c.id}-Reject` ? "..." : t.rejectBtn}
                 </button>
               </div>
             </div>

@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AiInsights } from "@/components/AiInsights";
+import { HeroBanner } from "@/components/HeroBanner";
+import { StatCard } from "@/components/StatCard";
 import { getT } from "@/lib/locale";
+import { ReviewPanel } from "@/app/guru/ReviewPanel";
 
 export default async function AdminDashboard() {
   const [bilPelajar, bilGuru, bilUser, bilKoko, bilTetapan] = await Promise.all([
@@ -12,22 +15,46 @@ export default async function AdminDashboard() {
     prisma.tetapanMarkah.count(),
   ]);
 
+  // Permohonan pertukaran/pendaftaran unit (Kelab/Sukan/Uniform/Perkhidmatan)
+  // menunggu kelulusan — admin boleh sahkan terus, sama macam guru penasihat.
+  const pertukaranPending = await prisma.logPertukaran.findMany({
+    where: { status: "Pending" },
+    include: { pelajar: { select: { nama: true, kelasT6: true } } },
+    orderBy: { tarikhMohon: "desc" },
+  });
+
   // Taburan demografi ringkas
   const jantina = await prisma.pelajar.groupBy({ by: ["jantina"], _count: true });
   const { t } = await getT();
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold text-slate-800">{t.admin.dashboardTitle}</h1>
+      <HeroBanner heading={t.admin.dashboardTitle} scopeLabel={t.guru.scopeSchool} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card label={t.admin.students} value={`${bilPelajar}`} />
-        <Card label={t.admin.teachers} value={`${bilGuru}`} />
-        <Card label={t.admin.userAccounts} value={`${bilUser}`} />
-        <Card label={t.admin.kokoRecords} value={`${bilKoko}`} />
+        <StatCard label={t.admin.students} value={bilPelajar} />
+        <StatCard label={t.admin.teachers} value={bilGuru} />
+        <StatCard label={t.admin.userAccounts} value={bilUser} />
+        <StatCard label={t.admin.kokoRecords} value={bilKoko} />
       </div>
 
       <AiInsights />
+
+      {pertukaranPending.length > 0 && (
+        <ReviewPanel
+          pencapaian={[]}
+          aktivitiLuar={[]}
+          pertukaran={pertukaranPending.map((p) => ({
+            id: p.id,
+            jenisKoko: p.jenisKoko,
+            unitLama: p.unitLama,
+            unitBaru: p.unitBaru,
+            sebab: p.sebab,
+            pelajar: p.pelajar,
+          }))}
+          t={t.guru.reviewPanel}
+        />
+      )}
 
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">
@@ -85,15 +112,6 @@ export default async function AdminDashboard() {
           <Link href="/pelajar" className="text-brand-dark underline">{t.admin.studentView}</Link>
         </p>
       </section>
-    </div>
-  );
-}
-
-function Card({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-slate-800">{value}</p>
     </div>
   );
 }

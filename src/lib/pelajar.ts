@@ -38,6 +38,7 @@ export async function getPelajarProfil(pelajarId: string) {
     Kelab: "Kelab/Persatuan",
     Sukan: "Sukan",
     Uniform: "Badan Beruniform",
+    Perkhidmatan: "Unit Perkhidmatan",
   };
 
   // Jawatan tertinggi merentas unit (T6)
@@ -57,7 +58,7 @@ export async function getPelajarProfil(pelajarId: string) {
   ];
 
   // Markah bagi SETIAP penyertaan/unit (spec pelajar §1)
-  const penyertaan: BarisPenyertaan[] = ["Kelab", "Sukan", "Uniform"]
+  const penyertaan: BarisPenyertaan[] = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"]
     .map((jenis) => {
       const k = byJenis(jenis);
       if (!k || !k.namaUnitT6) return null;

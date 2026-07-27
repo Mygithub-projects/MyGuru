@@ -4,6 +4,7 @@
 // ===========================================================================
 import { prisma } from "./prisma";
 import { analitikKehadiran, analitikStatusPilihanT6 } from "./analitik";
+import { getDict, type Locale } from "./i18n";
 
 export type JenisCerapan = "positif" | "amaran" | "info";
 export interface Cerapan {
@@ -23,7 +24,8 @@ function purata(arr: (number | null | undefined)[]): number {
   return Math.round((v.reduce((s, x) => s + x, 0) / v.length) * 10) / 10;
 }
 
-export async function getInsights(units?: string[]): Promise<{ kpi: KPI[]; cerapan: Cerapan[] }> {
+export async function getInsights(units?: string[], locale: Locale = "ms"): Promise<{ kpi: KPI[]; cerapan: Cerapan[] }> {
+  const t = getDict(locale).insights;
   // Pelajar dalam skop
   let pelajarWhere = {};
   if (units) {
@@ -63,39 +65,39 @@ export async function getInsights(units?: string[]): Promise<{ kpi: KPI[]; cerap
   // --- KPI ---
   const kpi: KPI[] = [
     {
-      label: "Purata PAJSK T6",
+      label: t.kpiPajskAvg,
       nilai: `${avgT6}`,
-      delta: "/ 100 markah",
+      delta: t.unitMarksSuffix,
       arah: avgT6 >= 60 ? "naik" : avgT6 >= 40 ? "rata" : "turun",
     },
-    { label: "Pelajar Gred A", nilai: `${peratusGredA}%`, delta: `${gredA}/${n} pelajar`, arah: "naik" },
-    { label: "Purata Kehadiran", nilai: `${avgKehadiran}%`, arah: avgKehadiran >= 80 ? "naik" : "turun" },
-    { label: "Menunggu Tindakan", nilai: `${pending}`, arah: pending > 0 ? "turun" : "rata" },
+    { label: t.kpiGradeA, nilai: `${peratusGredA}%`, delta: `${gredA}/${n} ${t.studentsSuffix}`, arah: "naik" },
+    { label: t.kpiAvgAttendance, nilai: `${avgKehadiran}%`, arah: avgKehadiran >= 80 ? "naik" : "turun" },
+    { label: t.kpiPendingActions, nilai: `${pending}`, arah: pending > 0 ? "turun" : "rata" },
   ];
 
   // --- Cerapan automatik ---
   const cerapan: Cerapan[] = [];
   if (n > 0 && avgT6 >= 60)
-    cerapan.push({ teks: `Purata markah PAJSK kohort ${avgT6}/100 — ${peratusGredA}% pelajar mencapai Gred A.`, jenis: "positif" });
+    cerapan.push({ teks: t.avgHigh(avgT6, peratusGredA), jenis: "positif" });
   else if (n > 0 && avgT6 < 40)
-    cerapan.push({ teks: `Purata markah PAJSK kohort ${avgT6}/100 (di bawah 40) — perlu pemantauan rapi.`, jenis: "amaran" });
+    cerapan.push({ teks: t.avgLow(avgT6), jenis: "amaran" });
 
   if (kehadiran.length > 0) {
     const tertinggi = kehadiran[0];
     const terendah = kehadiran[kehadiran.length - 1];
-    cerapan.push({ teks: `Kehadiran tertinggi: ${tertinggi.namaUnit} (${tertinggi.peratus}%).`, jenis: "info" });
+    cerapan.push({ teks: t.attendanceHighest(tertinggi.namaUnit, tertinggi.peratus), jenis: "info" });
     if (terendah.peratus < 70)
-      cerapan.push({ teks: `Kehadiran terendah: ${terendah.namaUnit} (${terendah.peratus}%) — di bawah 70%, disarankan intervensi.`, jenis: "amaran" });
+      cerapan.push({ teks: t.attendanceLowest(terendah.namaUnit, terendah.peratus), jenis: "amaran" });
   }
 
   if (belumPilih > 0)
-    cerapan.push({ teks: `${belumPilih} rekod unit belum mempunyai pilihan T6 — ingatkan pelajar melengkapkan pendaftaran.`, jenis: "amaran" });
+    cerapan.push({ teks: t.notSelected(belumPilih), jenis: "amaran" });
 
   if (pending > 0)
-    cerapan.push({ teks: `${pending} item menunggu tindakan guru (pertukaran, cadangan jawatan, pencapaian, aktiviti, laporan).`, jenis: "info" });
+    cerapan.push({ teks: t.pendingActionsText(pending), jenis: "info" });
 
   if (cerapan.length === 0)
-    cerapan.push({ teks: "Tiada isu dikesan. Semua metrik dalam keadaan baik.", jenis: "positif" });
+    cerapan.push({ teks: t.noIssues, jenis: "positif" });
 
   return { kpi, cerapan };
 }

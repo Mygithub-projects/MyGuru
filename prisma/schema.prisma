@@ -1,10 +1,8 @@
 // KoKurikulum — Skema Pangkalan Data (Prisma)
 // ---------------------------------------------------------------------------
-// PEMBANGUNAN: SQLite (sifar konfigurasi). PRODUKSI: tukar `provider` ke
-// "postgresql" dan kemas kini DATABASE_URL. Skema ini sengaja mengelak enum
-// & array native supaya mudah-alih antara SQLite dan PostgreSQL. Nilai
-// "enum" disimpan sebagai String dan disahkan di lapisan aplikasi (zod) —
-// lihat src/lib/enums.ts.
+// PostgreSQL (local & produksi). Skema ini sengaja mengelak enum & array
+// native supaya mudah-alih antara pembekal SQL. Nilai "enum" disimpan sebagai
+// String dan disahkan di lapisan aplikasi (zod) — lihat src/lib/enums.ts.
 // ---------------------------------------------------------------------------
 
 generator client {
@@ -12,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite" // PRODUKSI: tukar ke "postgresql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -81,9 +79,7 @@ model Pelajar {
   noIc        String @unique // disimpan sebagai TEKS (elak format saintifik)
   kelasT6     String?
 
-  // Skor PAJSK ringkasan (T5 = sejarah import; T6 = semasa, dikira)
-  markahPajskT5  Float?
-  peratusPajskT5 Float?
+  // Skor PAJSK ringkasan (T6 = semasa, dikira)
   markahPajskT6  Float?
   peratusPajskT6 Float?
 

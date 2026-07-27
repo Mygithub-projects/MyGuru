@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { getDict } from "@/lib/i18n";
 import { useLocale } from "@/components/LocaleProvider";
@@ -28,6 +28,23 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   const unit = units[unitIdx];
+
+  // Cadang nombor perjumpaan seterusnya (bukan default #1) supaya SU tidak
+  // tersilap timpa sesi lampau yang telah disahkan guru.
+  useEffect(() => {
+    if (!unit) return;
+    let dibatal = false;
+    fetch(`/api/kehadiran/sesi?namaUnit=${encodeURIComponent(unit.namaUnit)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (!dibatal && json.success) setBil(json.data.seterusnya);
+      })
+      .catch(() => {});
+    return () => {
+      dibatal = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- namaUnit sudah cukup, elak reset bila unit re-render
+  }, [unit?.namaUnit]);
 
   if (units.length === 0) {
     return (

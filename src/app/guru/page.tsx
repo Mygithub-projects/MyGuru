@@ -4,9 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { getGuruDashboard, getStatusPilihanT6, getLaporanDisahkan } from "@/lib/guru";
 import { getT } from "@/lib/locale";
 import { guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
-import { cadangMarkahPencapaian } from "@/lib/pajsk";
+import { cadangMarkahPencapaian, labelStatusPilihanT6 } from "@/lib/pajsk";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AiInsights } from "@/components/AiInsights";
+import { HeroBanner } from "@/components/HeroBanner";
+import { StatCard } from "@/components/StatCard";
 import { ReviewPanel } from "./ReviewPanel";
 import { LivePending } from "./LivePending";
 import { CadanganAiPanel, type CadanganRow } from "./CadanganAiPanel";
@@ -111,7 +113,7 @@ export default async function GuruDashboard() {
 
   const statusT6 = await getStatusPilihanT6(guruEff);
   const laporanDisahkan = await getLaporanDisahkan(guruEff);
-  const { t } = await getT();
+  const { t, locale } = await getT();
 
   // Dokumen laporan disahkan: kumpulkan ikut kelab (namaUnit), isih ikut tarikh
   // (terbaharu dahulu) dalam setiap kumpulan. Laporan mingguan & projek dicampur.
@@ -160,42 +162,24 @@ export default async function GuruDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">
-          {t.guru.dashboardTitle} — {guruEff.nama}
-        </h1>
-        <p className="text-sm text-slate-500">
-          {t.guru.position}: {guruEff.jawatanKoko}
-          {seluruh ? ` · ${t.guru.scopeSchool}` : ` · ${t.guru.scopeUnit}`}
-        </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <a href="/guru/ahli" className="inline-block rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">
-            {t.guru.linkMembers}
-          </a>
-          <a href="/guru/kehadiran" className="inline-block rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">
-            {t.guru.linkAttendance}
-          </a>
-          <a href="/guru/analitik" className="inline-block rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">
-            {t.guru.linkAnalytics}
-          </a>
-          <a href="/guru/pemilihan" className="inline-block rounded-md bg-blue-100 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-200">
-            {t.guru.linkSelection}
-          </a>
-        </div>
-      </div>
+      <HeroBanner
+        heading={`${t.guru.dashboardTitle} — ${guruEff.nama}`}
+        subheading={`${t.guru.position}: ${guruEff.jawatanKoko}`}
+        scopeLabel={seluruh ? t.guru.scopeSchool : t.guru.scopeUnit}
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card label={t.guru.cardStudents} value={`${bilPelajar}`} />
-        <Card label={t.guru.cardPending} value={`${totalPending}`} highlight={totalPending > 0} />
-        <Card label={t.guru.cardClub} value={guruEff.kelabDiselia ?? "-"} small />
-        <Card label={t.guru.cardSportBb} value={guruEff.sukanDiselia ?? guruEff.badanDiselia ?? "-"} small />
+        <StatCard label={t.guru.cardStudents} value={bilPelajar} />
+        <StatCard label={t.guru.cardPending} value={totalPending} tone={totalPending > 0 ? "warn" : "default"} />
+        <StatCard label={t.guru.cardClub} value={guruEff.kelabDiselia ?? "-"} small />
+        <StatCard label={t.guru.cardSportBb} value={guruEff.sukanDiselia ?? guruEff.badanDiselia ?? "-"} small />
       </div>
 
-      <LivePending />
+      <LivePending t={t.guru.livePending} />
 
       <AiInsights units={seluruh ? undefined : units} />
 
-      <CadanganAiPanel cadangan={cadanganAi} />
+      <CadanganAiPanel cadangan={cadanganAi} t={t.guru.cadanganAiPanel} />
 
       <ReviewPanel
         pencapaian={pencapaian.map((p) => ({
@@ -212,6 +196,7 @@ export default async function GuruDashboard() {
         laporanProjek={laporanProjek.map((l) => ({ id: l.id, tajuk: l.namaProjek, setiausaha: l.setiausaha }))}
         sesiKehadiran={sesiKehadiran.map((s) => ({ id: s.id, namaUnit: s.namaUnit, jenisKoko: s.jenisKoko, bilPerjumpaan: s.bilPerjumpaan }))}
         cadanganJawatan={cadanganJawatan.map((c) => ({ id: c.id, jenisKoko: c.jenisKoko, jawatanBaru: c.jawatanBaru, markahJawatan: c.markahJawatan, pelajar: c.pelajar }))}
+        t={t.guru.reviewPanel}
       />
 
       {/* Status Pilihan Unit T6 */}
@@ -223,7 +208,7 @@ export default async function GuruDashboard() {
           <div className="flex flex-wrap gap-2">
             {Object.entries(statusT6.counts).map(([s, n]) => (
               <span key={s} className="flex items-center gap-2 rounded-lg border border-slate-100 px-3 py-2 text-sm">
-                <StatusBadge status={s} /> <strong className="text-slate-700">{n}</strong>
+                <StatusBadge status={s} label={labelStatusPilihanT6(s, locale)} /> <strong className="text-slate-700">{n}</strong>
               </span>
             ))}
           </div>
@@ -246,7 +231,7 @@ export default async function GuruDashboard() {
                     <td className="py-2 pr-3 font-medium text-slate-700">{r.nama}</td>
                     <td className="py-2 pr-3 text-slate-600">{r.jenisKoko}: {r.namaUnit}</td>
                     <td className="py-2 pr-3 text-slate-600">{r.jawatan}</td>
-                    <td className="py-2"><StatusBadge status={r.status} /></td>
+                    <td className="py-2"><StatusBadge status={r.status} label={labelStatusPilihanT6(r.status, locale)} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -283,29 +268,6 @@ export default async function GuruDashboard() {
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function Card({
-  label,
-  value,
-  small,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  small?: boolean;
-  highlight?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-xl p-4 shadow-sm ring-1 ${
-        highlight ? "bg-amber-50 ring-amber-200" : "bg-white ring-slate-200"
-      }`}
-    >
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={`mt-1 font-bold text-slate-800 ${small ? "text-sm" : "text-2xl"}`}>{value}</p>
     </div>
   );
 }

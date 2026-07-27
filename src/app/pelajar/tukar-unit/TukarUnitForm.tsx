@@ -75,6 +75,7 @@ export function TukarUnitForm({
           <option value="Sukan">{common.sukan}</option>
           <option value="Kelab">{common.kelab}</option>
           <option value="Uniform">{common.uniform}</option>
+          <option value="Perkhidmatan">{common.perkhidmatan}</option>
         </select>
         <p className="mt-1 text-xs text-slate-500">
           {t.transferCurrentUnit} <strong>{pilihan?.namaUnitT6 ?? t.transferUnitNotRegistered}</strong>

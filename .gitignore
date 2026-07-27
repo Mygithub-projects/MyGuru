@@ -47,3 +47,6 @@ prisma/dev.db*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated prisma client (postgres parallel schema)
+/src/generated/

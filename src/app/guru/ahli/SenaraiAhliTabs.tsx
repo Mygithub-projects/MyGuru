@@ -25,10 +25,14 @@ interface Labels {
   setPos: string;
   members: string;
 }
+interface TabsDict {
+  tabsAriaLabel: string; marksComputed: string; marksNotYet: string;
+  jawatanAssign: { placeholder: string; assignTitle: string; networkError: string };
+}
 
 // §5 — senarai pelajar dashboard guru dipaparkan ikut TAB (satu tab per unit)
 // bukan senarai panjang leper. Setiap tab papar kiraan & status ringkas.
-export function SenaraiAhliTabs({ units, labels }: { units: Unit[]; labels: Labels }) {
+export function SenaraiAhliTabs({ units, labels, t }: { units: Unit[]; labels: Labels; t: TabsDict }) {
   const [aktif, setAktif] = useState(0);
   const unit = units[aktif] ?? units[0];
   if (!unit) return null;
@@ -39,7 +43,7 @@ export function SenaraiAhliTabs({ units, labels }: { units: Unit[]; labels: Labe
   return (
     <div className="space-y-4">
       {/* Tab bar — satu tab per unit seliaan */}
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Unit seliaan">
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.tabsAriaLabel}>
         {units.map((u, i) => {
           const on = i === aktif;
           return (
@@ -80,11 +84,11 @@ export function SenaraiAhliTabs({ units, labels }: { units: Unit[]; labels: Labe
           {unit.ahli.length} {labels.members}
         </span>
         <span className="rounded-md bg-emerald-100 px-2 py-1 font-semibold text-emerald-700">
-          ✓ {lengkap} markah dikira
+          ✓ {lengkap} {t.marksComputed}
         </span>
         {belum > 0 && (
           <span className="rounded-md bg-amber-100 px-2 py-1 font-semibold text-amber-700">
-            ⏳ {belum} belum ada markah
+            ⏳ {belum} {t.marksNotYet}
           </span>
         )}
       </div>
@@ -123,7 +127,7 @@ export function SenaraiAhliTabs({ units, labels }: { units: Unit[]; labels: Labe
                   )}
                 </td>
                 <td className="py-2">
-                  <JawatanAssign pelajarId={a.pelajarId} jenisKoko={unit.jenisKoko} current={a.jawatan} />
+                  <JawatanAssign pelajarId={a.pelajarId} jenisKoko={unit.jenisKoko} current={a.jawatan} t={t.jawatanAssign} />
                 </td>
               </tr>
             ))}

@@ -4,7 +4,12 @@ import { guruSeluruhSekolah, unitSeliaan } from "./workflow";
 import { statusPilihanT6 } from "./pajsk";
 import type { Guru } from "@prisma/client";
 
-/** pelajarId dalam skop guru (null = seluruh sekolah / tiada had). */
+/**
+ * pelajarId dalam skop guru (null = seluruh sekolah / tiada had).
+ * Peraturan RBAC: Penyelaras/PemantauKUPP/PenolongSU → seluruh sekolah (null).
+ * Selainnya (KetuaGP/PenolongKetuaGP/GuruPenasihat) → hanya pelajar dalam
+ * UNIT yang ditugaskan secara langsung kepada guru.
+ */
 export async function pelajarIdsDalamSkop(guru: Guru): Promise<string[] | null> {
   if (guruSeluruhSekolah(guru)) return null;
   const units = await unitSeliaan(guru);

@@ -2,11 +2,22 @@
 import { useState } from "react";
 
 interface P { id: string; nama: string; noIc: string; jantina: string | null; kaum: string | null; agama: string | null; }
+interface DemografiDict {
+  colName: string; colGender: string; colRace: string; colReligion: string;
+  male: string; female: string; save: string;
+  kaum: { melayu: string; cina: string; india: string; lainLain: string };
+  agama: { islam: string; buddha: string; hindu: string; kristian: string; lainLain: string };
+}
 
-const KAUM = ["Melayu", "Cina", "India", "Lain-lain"];
-const AGAMA = ["Islam", "Buddha", "Hindu", "Kristian", "Lain-lain"];
-
-export function DemografiClient({ pelajar: initial }: { pelajar: P[] }) {
+export function DemografiClient({ pelajar: initial, t }: { pelajar: P[]; t: DemografiDict }) {
+  const KAUM = [
+    { v: "Melayu", l: t.kaum.melayu }, { v: "Cina", l: t.kaum.cina },
+    { v: "India", l: t.kaum.india }, { v: "Lain-lain", l: t.kaum.lainLain },
+  ];
+  const AGAMA = [
+    { v: "Islam", l: t.agama.islam }, { v: "Buddha", l: t.agama.buddha }, { v: "Hindu", l: t.agama.hindu },
+    { v: "Kristian", l: t.agama.kristian }, { v: "Lain-lain", l: t.agama.lainLain },
+  ];
   const [rows, setRows] = useState(initial);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -37,10 +48,10 @@ export function DemografiClient({ pelajar: initial }: { pelajar: P[] }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-400">
-            <th className="py-2 pr-3">Nama</th>
-            <th className="py-2 pr-3">Jantina</th>
-            <th className="py-2 pr-3">Kaum</th>
-            <th className="py-2 pr-3">Agama</th>
+            <th className="py-2 pr-3">{t.colName}</th>
+            <th className="py-2 pr-3">{t.colGender}</th>
+            <th className="py-2 pr-3">{t.colRace}</th>
+            <th className="py-2 pr-3">{t.colReligion}</th>
             <th className="py-2"></th>
           </tr>
         </thead>
@@ -61,19 +72,19 @@ export function DemografiClient({ pelajar: initial }: { pelajar: P[] }) {
               <td className="py-2 pr-3">
                 <select className={sel} value={p.kaum ?? ""} onChange={(e) => update(p.id, "kaum", e.target.value)}>
                   <option value="">—</option>
-                  {KAUM.map((k) => <option key={k} value={k}>{k}</option>)}
+                  {KAUM.map((k) => <option key={k.v} value={k.v}>{k.l}</option>)}
                 </select>
               </td>
               <td className="py-2 pr-3">
                 <select className={sel} value={p.agama ?? ""} onChange={(e) => update(p.id, "agama", e.target.value)}>
                   <option value="">—</option>
-                  {AGAMA.map((a) => <option key={a} value={a}>{a}</option>)}
+                  {AGAMA.map((a) => <option key={a.v} value={a.v}>{a.l}</option>)}
                 </select>
               </td>
               <td className="py-2">
                 <button onClick={() => simpan(p)} disabled={savingId === p.id}
                   className="rounded-md bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-hover disabled:opacity-50">
-                  {savingId === p.id ? "..." : savedId === p.id ? "✓" : "Simpan"}
+                  {savingId === p.id ? "..." : savedId === p.id ? "✓" : t.save}
                 </button>
               </td>
             </tr>

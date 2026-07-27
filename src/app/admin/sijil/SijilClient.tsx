@@ -8,8 +8,20 @@ interface T {
   jawatanPenandatangan: string;
   teksCop: string;
 }
+interface SijilDict {
+  instName: string; certTitle: string; signerName: string; signerPosition: string; stampText: string;
+  saveTemplate: string; saving: string; previewTitle: string; previewStudent: string; previewActivity: string;
+  previewIc: string; previewLevel: string; previewDate: string; previewSerial: string;
+}
 
-export function SijilClient({ tetapan }: { tetapan: T }) {
+// Warna & susun atur sepadan tepat dengan janaECertPDF (src/lib/pdf.ts) — A4 landskap 842x595.
+// Kedudukan y SVG = 595 - y_pdf supaya koordinat boleh disalin terus daripada pdf.ts.
+const BRAND = "rgb(13,110,94)";
+const DARK = "rgb(15,23,41)";
+const GREY = "rgb(102,115,128)";
+const FONT = "Helvetica, Arial, sans-serif";
+
+export function SijilClient({ tetapan, t }: { tetapan: T; t: SijilDict }) {
   const [form, setForm] = useState<T>(tetapan);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -36,11 +48,11 @@ export function SijilClient({ tetapan }: { tetapan: T }) {
 
   const cls = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm";
   const fields: { k: keyof T; l: string }[] = [
-    { k: "institusi", l: "Nama Institusi" },
-    { k: "tajukSijil", l: "Tajuk Sijil" },
-    { k: "namaPenandatangan", l: "Nama Penandatangan" },
-    { k: "jawatanPenandatangan", l: "Jawatan Penandatangan" },
-    { k: "teksCop", l: "Teks Cop (pilihan)" },
+    { k: "institusi", l: t.instName },
+    { k: "tajukSijil", l: t.certTitle },
+    { k: "namaPenandatangan", l: t.signerName },
+    { k: "jawatanPenandatangan", l: t.signerPosition },
+    { k: "teksCop", l: t.stampText },
   ];
 
   return (
@@ -58,26 +70,64 @@ export function SijilClient({ tetapan }: { tetapan: T }) {
           </label>
         ))}
         <button onClick={simpan} disabled={busy} className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50">
-          {busy ? "Menyimpan..." : "Simpan Templat"}
+          {busy ? t.saving : t.saveTemplate}
         </button>
       </section>
 
-      {/* Pratonton ringkas */}
+      {/* Pratonton — sepadan tepat dengan janaECertPDF (susun atur, saiz fon, warna) */}
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">Pratonton</h2>
-        <div className="rounded-lg border-2 border-brand p-6 text-center">
-          <p className="text-xs font-bold uppercase text-brand-dark">{form.institusi}</p>
-          <p className="mt-2 text-lg font-bold text-slate-800">{form.tajukSijil}</p>
-          <p className="mt-6 text-sm text-slate-400">[ Nama Pelajar ]</p>
-          <p className="text-xs text-slate-400">[ Aktiviti · Peringkat · Markah ]</p>
-          <div className="mt-8 text-right text-xs">
-            <div className="ml-auto w-48 border-t border-slate-300 pt-1">
-              {form.namaPenandatangan && <p className="font-semibold text-slate-700">{form.namaPenandatangan}</p>}
-              <p className="text-slate-500">{form.jawatanPenandatangan}</p>
-              {form.teksCop && <p className="text-slate-400">{form.teksCop}</p>}
-            </div>
-          </div>
-        </div>
+        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.previewTitle}</h2>
+        <svg viewBox="0 0 842 595" className="w-full rounded-lg" style={{ fontFamily: FONT }}>
+          <rect x={0} y={0} width={842} height={595} fill="white" />
+          <rect x={20} y={20} width={802} height={555} fill="none" stroke={BRAND} strokeWidth={3} />
+          <rect x={28} y={28} width={786} height={539} fill="none" stroke={BRAND} strokeWidth={1} />
+
+          <image href="/logo-kpm.jpeg" x={386} y={50} width={70} height={70} />
+
+          <text x={421} y={145} textAnchor="middle" fontSize={16} fontWeight={700} fill={BRAND}>
+            {(form.institusi || "").toUpperCase()}
+          </text>
+          <text x={421} y={175} textAnchor="middle" fontSize={22} fontWeight={700} fill={DARK}>
+            {form.tajukSijil}
+          </text>
+          <text x={421} y={195} textAnchor="middle" fontSize={11} fill={GREY}>
+            e-Cert · Sistem KoKurikulum
+          </text>
+
+          <text x={421} y={240} textAnchor="middle" fontSize={13} fill={GREY}>
+            Dengan ini disahkan bahawa
+          </text>
+          <text x={421} y={275} textAnchor="middle" fontSize={26} fontWeight={700} fill={DARK}>
+            {t.previewStudent}
+          </text>
+          <text x={421} y={298} textAnchor="middle" fontSize={12} fill={GREY}>
+            {t.previewIc}
+          </text>
+
+          <text x={421} y={335} textAnchor="middle" fontSize={13} fill={GREY}>
+            telah menyertai dan menunjukkan pencapaian dalam
+          </text>
+          <text x={421} y={365} textAnchor="middle" fontSize={18} fontWeight={700} fill={BRAND}>
+            {t.previewActivity}
+          </text>
+          <text x={421} y={388} textAnchor="middle" fontSize={13} fill={DARK}>
+            {t.previewLevel}
+          </text>
+
+          <text x={80} y={505} fontSize={11} fill={DARK}>{t.previewDate}</text>
+          <text x={80} y={523} fontSize={10} fill={GREY}>{t.previewSerial}</text>
+
+          <line x1={562} y1={485} x2={762} y2={485} stroke={GREY} strokeWidth={1} />
+          {form.namaPenandatangan && (
+            <text x={567} y={501} fontSize={10} fontWeight={700} fill={DARK}>{form.namaPenandatangan}</text>
+          )}
+          <text x={567} y={515} fontSize={9} fill={GREY}>{form.jawatanPenandatangan}</text>
+          {form.teksCop && <text x={567} y={529} fontSize={8} fill={GREY}>{form.teksCop}</text>}
+
+          <text x={421} y={545} textAnchor="middle" fontSize={8} fill={GREY}>
+            Sahkan keaslian sijil ini melalui No. Siri di portal KoKurikulum.
+          </text>
+        </svg>
       </section>
     </div>
   );

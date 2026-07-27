@@ -15,14 +15,15 @@ export default async function LoginPage() {
         </div>
         <div className="mb-6 flex flex-col items-center text-white">
           <Image
-            src="/logo-ktedm.jpeg"
-            alt="Logo"
-            width={72}
-            height={72}
-            className="mb-3 rounded-full bg-white p-1 shadow-lg ring-2 ring-white/30"
+            src="/logo-kpm.png"
+            alt="Logo KPM"
+            width={80}
+            height={80}
+            className="mb-3 rounded-2xl bg-white p-1.5 shadow-lg ring-2 ring-white/30"
           />
-          <h1 className="text-2xl font-bold tracking-tight text-white">KoKurikulum</h1>
-          <p className="text-sm text-white/85">{t.login.subtitle}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white">MyGuru AI</h1>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gold">Active Hands, Brilliant Minds</p>
+          <p className="mt-1 text-sm text-white/85">{t.login.subtitle}</p>
           <p className="mt-0.5 text-xs text-white/70">{institusi}</p>
         </div>
         <div className="rounded-2xl bg-white p-6 shadow-xl sm:p-8">

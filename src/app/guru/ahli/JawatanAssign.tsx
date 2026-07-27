@@ -3,14 +3,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { JAWATAN_PELAJAR } from "@/lib/enums";
 
+interface JawatanAssignDict { placeholder: string; assignTitle: string; networkError: string }
+
 export function JawatanAssign({
   pelajarId,
   jenisKoko,
   current,
+  t,
 }: {
   pelajarId: string;
   jenisKoko: string;
   current: string | null;
+  t: JawatanAssignDict;
 }) {
   const router = useRouter();
   const [nilai, setNilai] = useState<string>(
@@ -33,7 +37,7 @@ export function JawatanAssign({
       setMsg({ text: json.message, ok: json.success });
       if (json.success) router.refresh();
     } catch {
-      setMsg({ text: "Ralat rangkaian.", ok: false });
+      setMsg({ text: t.networkError, ok: false });
     } finally {
       setBusy(false);
     }
@@ -49,9 +53,9 @@ export function JawatanAssign({
           simpan(e.target.value);
         }}
         className="rounded-md border border-slate-300 px-2 py-1 text-xs outline-none focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:opacity-50"
-        title="Tetapkan jawatan"
+        title={t.assignTitle}
       >
-        <option value="">— Tetapkan —</option>
+        <option value="">{t.placeholder}</option>
         {JAWATAN_PELAJAR.map((j) => (
           <option key={j} value={j}>{j}</option>
         ))}

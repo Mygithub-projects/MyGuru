@@ -1,22 +1,13 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getPelajarProfil } from "@/lib/pelajar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { MarkahChart } from "@/components/MarkahChart";
+import { HeroBanner } from "@/components/HeroBanner";
+import { StatCard } from "@/components/StatCard";
 import { senaraiUnitBerpenasihat } from "@/lib/unit-list";
 import { getT } from "@/lib/locale";
 import { UnitSection } from "./UnitSection";
-
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-slate-800">{value}</p>
-      {sub && <p className="text-xs text-slate-400">{sub}</p>}
-    </div>
-  );
-}
 
 export default async function PelajarDashboard() {
   const session = await getSession();
@@ -27,35 +18,25 @@ export default async function PelajarDashboard() {
   const { pelajar, markah, penyertaan, kehadiran } = data;
   const senarai = await senaraiUnitBerpenasihat();
   const { t } = await getT();
-  const unitLabel: Record<string, string> = { Kelab: t.common.kelab, Sukan: t.common.sukan, Uniform: t.common.uniform };
+  const unitLabel: Record<string, string> = {
+    Kelab: t.common.kelab, Sukan: t.common.sukan, Uniform: t.common.uniform, Perkhidmatan: t.common.perkhidmatan,
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800">{t.pelajar.welcome} {pelajar.nama}</h1>
-          <p className="text-sm text-slate-500">
-            {pelajar.kelasT6} · {t.pelajar.icNo} {pelajar.noIc}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/pelajar/aktiviti" className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">{t.pelajar.linkAktiviti}</Link>
-          {(session.subRole === "SU" || session.subRole === "NSU") && (
-            <>
-              <Link href="/pelajar/kehadiran" className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">{t.pelajar.linkKehadiran}</Link>
-              <Link href="/pelajar/laporan" className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">{t.pelajar.linkLaporan}</Link>
-              <Link href="/pelajar/jawatan" className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">{t.pelajar.linkJawatan}</Link>
-            </>
-          )}
-          <a href={`/api/pelajar/${pelajar.id}/butiran-diri`} target="_blank" className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover">{t.pelajar.linkButiran}</a>
-        </div>
+      <HeroBanner
+        heading={`${t.pelajar.welcome} ${pelajar.nama}`}
+        subheading={`${pelajar.kelasT6} · ${t.pelajar.icNo} ${pelajar.noIc}`}
+      />
+      <div className="flex justify-end">
+        <a href={`/api/pelajar/${pelajar.id}/butiran-diri`} target="_blank" className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover">{t.pelajar.linkButiran}</a>
       </div>
 
       {/* Ringkasan markah (T6) */}
       <div className="grid grid-cols-3 gap-3">
-        <Stat label={t.pelajar.scoreT6} value={`${pelajar.markahPajskT6 ?? "-"}`} sub={t.pelajar.systemComputed} />
-        <Stat label={t.pelajar.pctT6} value={`${pelajar.peratusPajskT6 ?? "-"}%`} sub={t.pelajar.fullMarks100} />
-        <Stat label={t.pelajar.gred} value={`${pelajar.gredPajskT6 ?? "-"}`} sub={t.pelajar.finalGrade} />
+        <StatCard label={t.pelajar.scoreT6} value={pelajar.markahPajskT6 ?? "-"} sub={t.pelajar.systemComputed} />
+        <StatCard label={t.pelajar.pctT6} value={`${pelajar.peratusPajskT6 ?? "-"}%`} sub={t.pelajar.fullMarks100} />
+        <StatCard label={t.pelajar.gred} value={pelajar.gredPajskT6 ?? "-"} sub={t.pelajar.finalGrade} />
       </div>
 
       {/* Markah bagi setiap penyertaan (spec pelajar §1) */}
@@ -98,10 +79,10 @@ export default async function PelajarDashboard() {
           {t.pelajar.attendanceTitle}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label={t.pelajar.present} value={`${kehadiran.hadir} / ${kehadiran.jumlahSetahun}`} sub={`${kehadiran.direkod} ${t.pelajar.sessionsRecorded}`} />
-          <Stat label={t.pelajar.attendancePct} value={`${kehadiran.peratus}%`} sub={t.pelajar.outOf30} />
-          <Stat label={t.pelajar.attendanceMark} value={`${kehadiran.markah}`} sub={t.pelajar.fullMarks40} />
-          <Stat label={t.pelajar.pajskContribution} value={`${kehadiran.markah}`} sub={t.pelajar.countedInT6} />
+          <StatCard label={t.pelajar.present} value={`${kehadiran.hadir} / ${kehadiran.jumlahSetahun}`} sub={`${kehadiran.direkod} ${t.pelajar.sessionsRecorded}`} />
+          <StatCard label={t.pelajar.attendancePct} value={`${kehadiran.peratus}%`} sub={t.pelajar.outOf30} />
+          <StatCard label={t.pelajar.attendanceMark} value={kehadiran.markah} sub={t.pelajar.fullMarks40} />
+          <StatCard label={t.pelajar.pajskContribution} value={kehadiran.markah} sub={t.pelajar.countedInT6} />
         </div>
       </section>
 
