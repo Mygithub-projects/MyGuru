@@ -81,7 +81,7 @@ async function main() {
       let email = slugEmail(r.nama);
       if (usedEmails.has(email)) email = `${email.split("@")[0]}${r.ic.slice(-4)}@gmail.com`;
       usedEmails.add(email);
-      let noIc = /^\d{12}$/.test(r.ic) && !usedIcs.has(r.ic) ? r.ic : `NA-${email}`;
+      const noIc = /^\d{12}$/.test(r.ic) && !usedIcs.has(r.ic) ? r.ic : `NA-${email}`;
       usedIcs.add(noIc);
       const guru = await prisma.guru.create({ data: { ...data, noIc, email } });
       await syncPenasihatKelab(guru.id, penasihatDariMedanLama(data));

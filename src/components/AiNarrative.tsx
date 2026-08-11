@@ -9,6 +9,7 @@ export function AiNarrative({ label, loadingText, locale }: { label: string; loa
 
   useEffect(() => {
     let batal = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset ke "loading" bila locale berubah sebelum fetch baru
     setState("loading");
     fetch("/api/insights/ai")
       .then((r) => r.json())

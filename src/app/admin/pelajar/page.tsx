@@ -38,6 +38,7 @@ export default async function PelajarAdminPage() {
         <div className="mt-1 flex items-center justify-between gap-3">
           <h1 className="text-xl font-bold text-slate-800">{t.admin.pelajarTitle}</h1>
           <div className="flex shrink-0 gap-2">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- eksport fail (download), bukan navigasi ke page */}
             <a href="/api/admin/pelajar/eksport" className="rounded-md bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-200">{t.admin.downloadAll}</a>
             <Link href="/admin/pelajar/tambah" className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover">{t.admin.actAddStudent}</Link>
           </div>

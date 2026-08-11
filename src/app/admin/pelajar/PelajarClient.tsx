@@ -54,7 +54,7 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
   function toggleSort(key: SortKey) {
     setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
   }
-  function SortIcon({ sortKey }: { sortKey: SortKey }) {
+  function sortIcon(sortKey: SortKey) {
     if (sort.key !== sortKey) return <span className="text-slate-300">↕</span>;
     return <span className="text-brand-dark">{sort.dir === "asc" ? "↑" : "↓"}</span>;
   }
@@ -152,28 +152,28 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
             <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3">
                 <button type="button" onClick={() => toggleSort("nama")} className="inline-flex items-center gap-1 hover:text-slate-700">
-                  {t.guru.colName} <SortIcon sortKey="nama" />
+                  {t.guru.colName} {sortIcon("nama")}
                 </button>
               </th>
               <th className="px-4 py-3">
                 <button type="button" onClick={() => toggleSort("noIc")} className="inline-flex items-center gap-1 hover:text-slate-700">
-                  {L("No. IC", "IC No.")} <SortIcon sortKey="noIc" />
+                  {L("No. IC", "IC No.")} {sortIcon("noIc")}
                 </button>
               </th>
               <th className="px-4 py-3">
                 <button type="button" onClick={() => toggleSort("kelasT6")} className="inline-flex items-center gap-1 hover:text-slate-700">
-                  {L("Kelas T6", "Class F6")} <SortIcon sortKey="kelasT6" />
+                  {L("Kelas T6", "Class F6")} {sortIcon("kelasT6")}
                 </button>
               </th>
               <th className="px-4 py-3">{t.admin.colUnits}</th>
               <th className="px-4 py-3">
                 <button type="button" onClick={() => toggleSort("markahPajskT6")} className="inline-flex items-center gap-1 hover:text-slate-700">
-                  {t.admin.colPajsk} <SortIcon sortKey="markahPajskT6" />
+                  {t.admin.colPajsk} {sortIcon("markahPajskT6")}
                 </button>
               </th>
               <th className="px-4 py-3">
                 <button type="button" onClick={() => toggleSort("statusAktif")} className="inline-flex items-center gap-1 hover:text-slate-700">
-                  {t.admin.colStatus} <SortIcon sortKey="statusAktif" />
+                  {t.admin.colStatus} {sortIcon("statusAktif")}
                 </button>
               </th>
               <th className="px-4 py-3 text-right">{t.admin.colActions}</th>
