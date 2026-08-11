@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     # Nilai dummy — build/lint/test tidak menyambung ke DB sebenar.
     env:
-      DATABASE_URL: "file:./ci.db"
-      DIRECT_URL: "file:./ci.db"
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+      DIRECT_URL: "postgresql://ci:ci@localhost:5432/ci"
       JWT_SECRET: "ci_dummy_secret_minimum_48_characters_long_xxxxxxxxxx"
       NEXT_PUBLIC_INSTITUSI: "CI"
     steps:
