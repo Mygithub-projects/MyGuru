@@ -8,11 +8,15 @@ import {
   normalizeIC,
 } from "@/lib/auth";
 import { ok, fail } from "@/lib/api";
-import type { Role, SubRole } from "@/lib/enums";
+import { getT } from "@/lib/locale";
+import { ROLES, type Role, type SubRole } from "@/lib/enums";
 
 const schema = z.object({
   identifier: z.string().min(3, "Masukkan No. IC atau email"),
   password: z.string().min(1, "Masukkan kata laluan"),
+  // Peranan yang dipilih pada halaman log masuk. Opsyenal supaya klien lama
+  // (dan panggilan API terus) terus berfungsi tanpa medan ini.
+  role: z.enum(ROLES).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -43,6 +47,16 @@ export async function POST(request: NextRequest) {
 
   const valid = await verifyPassword(parsed.data.password, user.passwordHash);
   if (!valid) return fail("Kata laluan salah", 401);
+
+  // Semak peranan hanya SELEPAS kata laluan sah — supaya peranan sesuatu akaun
+  // tidak boleh dicungkil tanpa kelayakan yang betul.
+  const dipilih = parsed.data.role;
+  if (dipilih && user.role !== dipilih) {
+    const { t } = await getT();
+    const namaPeranan =
+      dipilih === "Admin" ? t.login.roleAdmin : dipilih === "Guru" ? t.login.roleGuru : t.login.rolePelajar;
+    return fail(t.login.roleMismatch.replace("{role}", namaPeranan), 403);
+  }
 
   const token = await signSession({
     userId: user.id,

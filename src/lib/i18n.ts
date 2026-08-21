@@ -55,6 +55,11 @@ export interface Dict {
     subtitle: string; heading: string; identifier: string; password: string;
     submit: string; submitting: string; loading: string; footer: string;
     failed: string; networkError: string;
+    roleLabel: string; roleAdmin: string; roleGuru: string; rolePelajar: string;
+    identifierAdmin: string; identifierGuru: string; identifierPelajar: string;
+    placeholderAdmin: string; placeholderGuru: string; placeholderPelajar: string;
+    hintAdmin: string; hintGuru: string; hintPelajar: string;
+    roleMismatch: string;
   };
   pelajar: {
     welcome: string; icNo: string;
@@ -326,8 +331,20 @@ const ms: Dict = {
     subtitle: "Sistem Pengurusan Kokurikulum Tingkatan 6", heading: "Log Masuk",
     identifier: "No. Kad Pengenalan", password: "Kata Laluan",
     submit: "Log Masuk", submitting: "Sedang log masuk...", loading: "Memuatkan...",
-    footer: "Log masuk menggunakan No. Kad Pengenalan anda.",
+    footer: "Pilih peranan anda, kemudian log masuk.",
     failed: "Gagal log masuk", networkError: "Ralat rangkaian. Sila cuba lagi.",
+    roleLabel: "Log masuk sebagai",
+    roleAdmin: "Pentadbir", roleGuru: "Guru", rolePelajar: "Pelajar",
+    identifierAdmin: "Nama Pengguna atau Emel",
+    identifierGuru: "No. Kad Pengenalan atau Emel",
+    identifierPelajar: "No. Kad Pengenalan",
+    placeholderAdmin: "cth: admin",
+    placeholderGuru: "cth: 800101015566",
+    placeholderPelajar: "cth: 080917074685",
+    hintAdmin: "Akaun pentadbir sekolah — urus pelajar, guru, import data & tetapan.",
+    hintGuru: "Guru penasihat & penyelaras — sahkan pencapaian, kehadiran & laporan.",
+    hintPelajar: "Guna No. Kad Pengenalan anda (12 digit, tanpa sengkang).",
+    roleMismatch: "Akaun ini bukan akaun {role}. Sila pilih peranan yang betul.",
   },
   pelajar: {
     welcome: "Selamat Datang,", icNo: "No. IC:",
@@ -638,8 +655,20 @@ const en: Dict = {
     subtitle: "Form 6 Co-curriculum Management System", heading: "Log In",
     identifier: "MyKad (IC) Number", password: "Password",
     submit: "Log In", submitting: "Logging in...", loading: "Loading...",
-    footer: "Log in using your MyKad (IC) number.",
+    footer: "Choose your role, then log in.",
     failed: "Login failed", networkError: "Network error. Please try again.",
+    roleLabel: "Log in as",
+    roleAdmin: "Administrator", roleGuru: "Teacher", rolePelajar: "Student",
+    identifierAdmin: "Username or Email",
+    identifierGuru: "MyKad (IC) Number or Email",
+    identifierPelajar: "MyKad (IC) Number",
+    placeholderAdmin: "e.g. admin",
+    placeholderGuru: "e.g. 800101015566",
+    placeholderPelajar: "e.g. 080917074685",
+    hintAdmin: "School administrator account — manage students, teachers, data imports & settings.",
+    hintGuru: "Advisor & coordinator teachers — verify achievements, attendance & reports.",
+    hintPelajar: "Use your MyKad (IC) number (12 digits, no dashes).",
+    roleMismatch: "This is not a {role} account. Please choose the correct role.",
   },
   pelajar: {
     welcome: "Welcome,", icNo: "IC No.:",
