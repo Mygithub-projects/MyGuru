@@ -241,12 +241,24 @@ async function seedGuru() {
   const ws = wb.worksheets[0];
   const rows = parseGuruWorksheet(ws);
   let ok = 0;
+  let tanpaEmail = 0;
   for (const g of rows) {
-    if (!g.email) continue;
+    // Sesetengah GURU DATA.xlsx tiada lajur EMAIL. Email ialah kunci unik
+    // `Guru`, jadi jana alamat tempatan yang stabil dari No. IC supaya baris
+    // tersebut tidak dilangkau. Baris tanpa email DAN tanpa IC sah dilangkau.
+    const emailAsal = g.email;
+    const email = emailAsal || (/^\d{12}$/.test(g.noIc) ? `${g.noIc}@ekoko.local` : "");
+    if (!email) continue;
+    if (!emailAsal) tanpaEmail++;
+    // Kunci upsert ialah No. IC bila ia sah — IC ialah identiti kekal guru,
+    // manakala email boleh bertukar. Berkunci email, pertukaran email akan
+    // cipta baris pendua (atau gagal atas kekangan unik `noIc`).
+    const icSahRow = /^\d{12}$/.test(g.noIc);
     const guru = await prisma.guru.upsert({
-      where: { email: g.email },
+      where: icSahRow ? { noIc: g.noIc } : { email },
       update: {
         nama: g.nama,
+        email,
         jawatanKoko: mapJawatanGuru(g.jawatan),
         kelabDiselia: g.kelab || null,
         sukanDiselia: g.sukan || null,
@@ -254,8 +266,8 @@ async function seedGuru() {
       },
       create: {
         nama: g.nama,
-        noIc: g.noIc || `NA-${g.email}`,
-        email: g.email,
+        noIc: g.noIc || `NA-${email}`,
+        email,
         jawatanKoko: mapJawatanGuru(g.jawatan),
         kelabDiselia: g.kelab || null,
         sukanDiselia: g.sukan || null,
@@ -270,19 +282,22 @@ async function seedGuru() {
     // Jika No. IC tidak sah, guna emel sebagai username & kata laluan lalai.
     // Dikunci ikut guruId supaya akaun sedia ada tidak diduplikasi/dipadam.
     const icSah = /^\d{12}$/.test(guru.noIc);
-    const username = icSah ? guru.noIc : g.email;
+    const username = icSah ? guru.noIc : email;
     const passwordHash = await hashPassword(icSah ? guru.noIc : DEFAULT_PW);
     const akaun = await prisma.user.findFirst({ where: { guruId: guru.id }, select: { id: true } });
     if (akaun) {
-      await prisma.user.update({ where: { id: akaun.id }, data: { guruId: guru.id } });
+      // Segarkan juga email akaun log masuk supaya tidak tertinggal pada
+      // alamat lama bila email dalam spreadsheet berubah.
+      await prisma.user.update({ where: { id: akaun.id }, data: { guruId: guru.id, email } });
     } else {
       await prisma.user.create({
-        data: { username, email: g.email, passwordHash, role: "Guru", guruId: guru.id, mustChangePw: true },
+        data: { username, email, passwordHash, role: "Guru", guruId: guru.id, mustChangePw: true },
       });
     }
     ok++;
   }
   console.log(`  Guru diimport: ${ok}/${rows.length}`);
+  if (tanpaEmail) console.log(`    (${tanpaEmail} email dijana dari No. IC — @ekoko.local)`);
 }
 
 async function main() {
