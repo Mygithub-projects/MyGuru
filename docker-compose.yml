@@ -1,0 +1,65 @@
+# e-KokoT6 — stack tempatan / self-host
+#   1. cp .env.example .env   (isi JWT_SECRET dsb.)
+#   2. docker compose up -d --build
+#   3. docker compose run --rm migrate npx prisma db seed   # sekali sahaja
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ekokot6
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ekokot6"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kerja sekali-jalan: `prisma migrate deploy` sebelum app dinaikkan.
+  # Guna juga untuk seed:  docker compose run --rm migrate npx prisma db seed
+  migrate:
+    build:
+      context: .
+      target: migrator
+    env_file: .env
+    environment:
+      # Sengaja literal: JANGAN interpolasi ${DATABASE_URL} — Compose auto-baca
+      # .env, dan .env projek ini menunjuk ke pangkalan data JAUH.
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/ekokot6?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-KoKurikulum}
+        NEXT_PUBLIC_INSTITUSI: ${NEXT_PUBLIC_INSTITUSI:-KTE (Prauniversiti) Desa Mahkota}
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Literal — lihat nota pada perkhidmatan `migrate`.
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/ekokot6?schema=public
+      # .env projek menetapkan NODE_ENV=development; env_file mengatasi ENV imej.
+      NODE_ENV: production
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      # STORAGE_DRIVER="local" — kekalkan muat naik merentas rebuild.
+      # Tukar ke STORAGE_DRIVER="s3" jika app dijalankan >1 replika.
+      - uploads:/app/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  db-data:
+  uploads:

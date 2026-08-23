@@ -1,0 +1,44 @@
+# Dependency & artifak build (dipasang/dijana semula dalam imej)
+node_modules
+.next
+out
+build
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Rahsia — JANGAN sesekali masuk ke dalam imej
+.env
+.env.*
+!.env.example
+*.pem
+
+# VCS & tooling
+.git
+.github
+.gitignore
+.vscode
+.idea
+.claude
+.vercel
+
+# Dokumentasi & fail tempatan
+*.md
+!README.md
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Pangkalan data tempatan & muat naik pengguna
+*.db
+*.db-journal
+prisma/dev.db*
+uploads
+public/uploads
+
+# Log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store

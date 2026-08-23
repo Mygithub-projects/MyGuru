@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Bina server standalone hanya untuk imej Docker (DOCKER_BUILD=1).
+  // Deploy Vercel kekal seperti sedia ada.
+  ...(process.env.DOCKER_BUILD ? { output: "standalone" as const } : {}),
 };
 
 export default nextConfig;
