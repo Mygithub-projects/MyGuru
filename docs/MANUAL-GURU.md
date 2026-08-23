@@ -19,12 +19,18 @@ Memaparkan item **menunggu tindakan** dalam skop anda:
 
 Setiap tindakan menghantar **notifikasi** kepada pelajar dan mengira semula markah PAJSK T6.
 
-## 4. Analitik
+## 4. Sahkan Butiran Pelajar
+Menu **👥 Senarai Ahli & Jawatan** memaparkan lajur **Butiran Pelajar** bagi setiap ahli:
+- **Hanya Guru Penasihat / Ketua GP** unit itu boleh klik **Sahkan** (Penolong Ketua GP dan peranan skop-sekolah tidak dibenarkan).
+- Pengesahan terhad kepada pelajar yang telah disenaraikan dalam unit seliaan anda sahaja.
+- Status bertukar daripada *Belum Disahkan* kepada *Disahkan* serta-merta selepas klik.
+
+## 5. Analitik
 Menu **📊 Lihat Analitik**:
 - Kehadiran mengikut unit, status laporan projek, kadar pematuhan laporan mingguan.
 - (Skop seluruh sekolah) taburan demografi & jadual silang.
 - **Eksport** ke Excel / PDF.
 
-## 5. Prinsip Penting
+## 6. Prinsip Penting
 - **Data T5** ialah rekod sejarah (tidak boleh diubah). **Data T6** ialah data aktif.
 - Pengiraan markah PAJSK automatik — tiada pengiraan manual diperlukan.

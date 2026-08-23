@@ -122,6 +122,10 @@ export interface Dict {
     membersTitle: string; membersSub: string; unitCount: string; memberCount: string;
     colName: string; colClass: string; colCurrentPos: string; colMark: string; colSetPos: string; setPos: string;
     attendanceTitle: string; attendanceSub: string; noSessions: string; meeting: string; noAttendance: string;
+    butiranPelajar: {
+      colLabel: string; statusPending: string; statusApproved: string;
+      confirmBtn: string; confirming: string; networkError: string; notAllowed: string;
+    };
     livePending: {
       title: string; updatedAt: string; autoOn: string; autoOff: string; loading: string; noItems: string; total: string;
       labels: {
@@ -398,6 +402,11 @@ const ms: Dict = {
     membersTitle: "Senarai Nama Ahli", membersSub: "Tetapkan jawatan ahli menggunakan menu di setiap baris.", unitCount: "unit", memberCount: "ahli",
     colName: "Nama", colClass: "Kelas", colCurrentPos: "Jawatan Semasa", colMark: "Markah", colSetPos: "Tetapkan Jawatan", setPos: "Tetapkan",
     attendanceTitle: "Kehadiran Perjumpaan", attendanceSub: "Senarai kehadiran pelajar bagi setiap perjumpaan unit seliaan anda.", noSessions: "Tiada sesi perjumpaan direkod lagi.", meeting: "Perjumpaan", noAttendance: "Tiada rekod kehadiran untuk sesi ini.",
+    butiranPelajar: {
+      colLabel: "Butiran Pelajar", statusPending: "Belum Disahkan", statusApproved: "Disahkan",
+      confirmBtn: "Sahkan", confirming: "Mengesahkan…", networkError: "Ralat rangkaian.",
+      notAllowed: "Hanya Guru Penasihat/Ketua GP unit ini boleh mengesahkan.",
+    },
     livePending: {
       title: "Menunggu Tindakan (Langsung)", updatedAt: "Dikemas kini:", autoOn: "Auto: ON", autoOff: "Auto: OFF",
       loading: "Memuatkan…", noItems: "✓ Tiada item menunggu tindakan.", total: "jumlah",
@@ -729,6 +738,11 @@ const en: Dict = {
     membersTitle: "Member Name List", membersSub: "Assign member positions using the menu on each row.", unitCount: "unit(s)", memberCount: "member(s)",
     colName: "Name", colClass: "Class", colCurrentPos: "Current Position", colMark: "Mark", colSetPos: "Assign Position", setPos: "Assign",
     attendanceTitle: "Meeting Attendance", attendanceSub: "Student attendance list for each meeting of your supervised units.", noSessions: "No meeting sessions recorded yet.", meeting: "Meeting", noAttendance: "No attendance records for this session.",
+    butiranPelajar: {
+      colLabel: "Student Particulars", statusPending: "Not Confirmed", statusApproved: "Confirmed",
+      confirmBtn: "Confirm", confirming: "Confirming…", networkError: "Network error.",
+      notAllowed: "Only the Advisor Teacher/Head Advisor Teacher of this unit can confirm.",
+    },
     livePending: {
       title: "Pending Actions (Live)", updatedAt: "Updated:", autoOn: "Auto: ON", autoOff: "Auto: OFF",
       loading: "Loading…", noItems: "✓ No items pending action.", total: "total",

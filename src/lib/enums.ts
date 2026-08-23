@@ -68,6 +68,14 @@ export type StatusSemakan = (typeof STATUS_SEMAKAN)[number];
 export const STATUS_PERTUKARAN = ["None", "Pending", "Approved", "Reject"] as const;
 export type StatusPertukaran = (typeof STATUS_PERTUKARAN)[number];
 
+// Status pengesahan butiran pelajar oleh Guru Penasihat/Ketua GP (skop unit).
+export const STATUS_BUTIRAN = ["Pending", "Approved"] as const;
+export type StatusButiran = (typeof STATUS_BUTIRAN)[number];
+
+// Jawatan koko yang dibenarkan mengesahkan butiran pelajar — HANYA guru
+// penasihat unit itu sendiri (bukan Penolong Ketua GP, bukan skop sekolah).
+export const JAWATAN_BOLEH_SAHKAN_BUTIRAN: JawatanGuru[] = ["GuruPenasihat", "KetuaGP"];
+
 // Peringkat penyertaan -> julat markah rujukan (spec 5.3 / 5.5)
 export const PERINGKAT = [
   "Sekolah",

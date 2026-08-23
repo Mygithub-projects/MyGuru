@@ -173,6 +173,7 @@ export interface AhliUnit {
   subRole: string;
   markahPajskT6: number | null;
   gred: string | null;
+  statusButiran: string;
 }
 export interface UnitAhli {
   namaUnit: string;
@@ -195,7 +196,10 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
       : { namaUnitT6: { in: units } },
     include: {
       pelajar: {
-        select: { id: true, nama: true, kelasT6: true, subRole: true, markahPajskT6: true, gredPajskT6: true },
+        select: {
+          id: true, nama: true, kelasT6: true, subRole: true,
+          markahPajskT6: true, gredPajskT6: true, statusButiran: true,
+        },
       },
     },
     orderBy: [{ namaUnitT6: "asc" }],
@@ -215,6 +219,7 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
       subRole: k.pelajar.subRole,
       markahPajskT6: k.pelajar.markahPajskT6,
       gred: k.pelajar.gredPajskT6,
+      statusButiran: k.pelajar.statusButiran,
     });
   }
   for (const u of map.values()) u.ahli.sort((a, b) => a.nama.localeCompare(b.nama));
