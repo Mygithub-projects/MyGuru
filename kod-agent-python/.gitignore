@@ -1,0 +1,58 @@
+# Fail ini melengkapkan ../.gitignore, bukan menggantikannya.
+# This file supplements ../.gitignore, it does not replace it.
+
+# --- Rahsia / Secrets — jangan sesekali commit / never commit -------------
+.env
+.env.local
+.env.*.local
+!.env.example
+*.pem
+
+# --- Persekitaran maya / Virtual environments -----------------------------
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# --- Cache & artifak Python / Python cache & build artifacts --------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Alat ujian & kualiti kod / Test & lint tooling -----------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --- Jupyter / notebook ---------------------------------------------------
+.ipynb_checkpoints/
+
+# --- Data pelajar & guru (PDPA) / Student & teacher data ------------------
+# Roster dan eksport mengandungi nama penuh serta No. IC. Simpan di luar
+#   repo; DATA_DIR dalam .env menunjuk ke lokasinya.
+# Rosters and exports contain full names and IC numbers. Keep them outside
+#   the repo; DATA_DIR in .env points to their location.
+*.xlsx
+*.xls
+*.csv
+*.sql
+*.dump
+/data/
+/output/
+
+# --- Log & lain-lain / Logs & misc ----------------------------------------
+*.log
+.DS_Store
+.idea/
+.vscode/
