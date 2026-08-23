@@ -1,0 +1,31 @@
+# Servis AI Python — MyGuru AI / e-KokoT6
+# Python AI service — MyGuru AI / e-KokoT6
+#
+# Pasang / Install:  pip install -r requirements.txt
+#
+# Perlukan Python 3.10+ (anthropic 1.x menggugurkan sokongan 3.9).
+# Requires Python 3.10+ (anthropic 1.x drops 3.9 support).
+#
+# Versi disemak terhadap PyPI pada 2026-08-23.
+# Versions verified against PyPI on 2026-08-23.
+
+# --- Claude / Anthropic ---------------------------------------------------
+# 1.x menggunakan httpx2 (bukan httpx) dan mengalih keluar Text Completions
+#   serta parameter persampelan lama. Model lalai: claude-opus-5.
+# 1.x uses httpx2 (not httpx) and removes Text Completions and the legacy
+#   sampling parameters. Default model: claude-opus-5.
+anthropic>=1,<2
+
+# --- Validasi skema & konfigurasi / Schema validation & config ------------
+pydantic>=2.13,<3
+python-dotenv>=1.2,<2
+
+# --- Pangkalan data / Database --------------------------------------------
+# Postgres yang sama dengan ekokot6; [binary] elak keperluan kompil libpq.
+# Same Postgres as ekokot6; [binary] avoids needing to compile libpq.
+psycopg[binary]>=3.3,<4
+
+# --- Spreadsheet ----------------------------------------------------------
+# Baca namelist.xlsx / GURU DATA.xlsx / DUMM PAJSK.xlsx.
+# Reads namelist.xlsx / GURU DATA.xlsx / DUMM PAJSK.xlsx.
+openpyxl>=3.1,<4
