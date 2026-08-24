@@ -14,7 +14,7 @@ import {
   markahEkstra,
   bidangDariJenisKoko,
 } from "./pajsk";
-import { JAWATAN_GURU_SELURUH_SEKOLAH, type JenisKoko } from "./enums";
+import { JAWATAN_GURU_SELURUH_SEKOLAH, JAWATAN_BOLEH_SAHKAN_BUTIRAN, type JenisKoko } from "./enums";
 import { notifyPelajar, notifyGuruUntukUnit } from "./notifikasi";
 import type { Guru } from "@prisma/client";
 
@@ -120,6 +120,29 @@ export async function bolehGuruAksesPelajar(
   pelajarId: string
 ): Promise<boolean> {
   if (guruSeluruhSekolah(guru)) return true;
+  const units = await unitSeliaan(guru);
+  if (units.length === 0) return false;
+  const koko = await prisma.kokurikulum.findMany({
+    where: { pelajarId },
+    select: { namaUnitT6: true },
+  });
+  const unitPelajar = koko.map((k) => k.namaUnitT6).filter((u): u is string => !!u);
+  return bolehAksesUnit({ seluruhSekolah: false, unitSeliaan: units, unitPelajar });
+}
+
+/**
+ * Adakah guru boleh mengesahkan BUTIRAN pelajar ini? Berbeza daripada
+ * bolehGuruAksesPelajar() — hanya Guru Penasihat/Ketua GP unit yang
+ * ditugaskan boleh sahkan (bukan Penolong Ketua GP, bukan skop sekolah),
+ * dan hanya untuk pelajar yang telah disenaraikan dalam unit seliaan mereka.
+ */
+export async function bolehGuruSahkanButiran(
+  guru: Pick<Guru, "id" | "jawatanKoko">,
+  pelajarId: string
+): Promise<boolean> {
+  if (!JAWATAN_BOLEH_SAHKAN_BUTIRAN.includes(guru.jawatanKoko as (typeof JAWATAN_BOLEH_SAHKAN_BUTIRAN)[number])) {
+    return false;
+  }
   const units = await unitSeliaan(guru);
   if (units.length === 0) return false;
   const koko = await prisma.kokurikulum.findMany({

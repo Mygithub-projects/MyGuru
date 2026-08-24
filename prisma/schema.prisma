@@ -114,6 +114,11 @@ model Pelajar {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Pengesahan butiran pelajar oleh Guru Penasihat/Ketua GP unit (skop §3).
+  statusButiran  String    @default("Pending") // Pending | Approved
+  disahkanOlehId String? // guruId yang mengesahkan
+  tarikhSahkan   DateTime?
+
   user         User?
   kokurikulum  Kokurikulum[]
   kehadiran    Kehadiran[]
