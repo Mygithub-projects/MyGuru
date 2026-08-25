@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface ItemPelajar {
@@ -77,7 +77,25 @@ export function ReviewPanel({
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
-  async function act(url: string, body: Record<string, unknown>, key: string) {
+  // Senarai disimpan sebagai state tempatan supaya baris boleh dibuang serta-merta
+  // selepas tindakan berjaya, tanpa menunggu router.refresh() selesai.
+  const [pencapaianList, setPencapaianList] = useState(pencapaian);
+  const [aktivitiLuarList, setAktivitiLuarList] = useState(aktivitiLuar);
+  const [pertukaranList, setPertukaranList] = useState(pertukaran);
+  const [laporanMingguanList, setLaporanMingguanList] = useState(laporanMingguan);
+  const [laporanProjekList, setLaporanProjekList] = useState(laporanProjek);
+  const [sesiKehadiranList, setSesiKehadiranList] = useState(sesiKehadiran);
+  const [cadanganJawatanList, setCadanganJawatanList] = useState(cadanganJawatan);
+
+  useEffect(() => setPencapaianList(pencapaian), [pencapaian]);
+  useEffect(() => setAktivitiLuarList(aktivitiLuar), [aktivitiLuar]);
+  useEffect(() => setPertukaranList(pertukaran), [pertukaran]);
+  useEffect(() => setLaporanMingguanList(laporanMingguan), [laporanMingguan]);
+  useEffect(() => setLaporanProjekList(laporanProjek), [laporanProjek]);
+  useEffect(() => setSesiKehadiranList(sesiKehadiran), [sesiKehadiran]);
+  useEffect(() => setCadanganJawatanList(cadanganJawatan), [cadanganJawatan]);
+
+  async function act(url: string, body: Record<string, unknown>, key: string): Promise<boolean> {
     setBusy(key);
     setMsg(null);
     try {
@@ -89,21 +107,23 @@ export function ReviewPanel({
       const json = await res.json();
       setMsg({ text: json.message, ok: json.success });
       if (json.success) router.refresh();
+      return json.success;
     } catch {
       setMsg({ text: t.networkError, ok: false });
+      return false;
     } finally {
       setBusy(null);
     }
   }
 
   const kosong =
-    pencapaian.length === 0 &&
-    aktivitiLuar.length === 0 &&
-    pertukaran.length === 0 &&
-    laporanMingguan.length === 0 &&
-    laporanProjek.length === 0 &&
-    sesiKehadiran.length === 0 &&
-    cadanganJawatan.length === 0;
+    pencapaianList.length === 0 &&
+    aktivitiLuarList.length === 0 &&
+    pertukaranList.length === 0 &&
+    laporanMingguanList.length === 0 &&
+    laporanProjekList.length === 0 &&
+    sesiKehadiranList.length === 0 &&
+    cadanganJawatanList.length === 0;
 
   return (
     <div className="space-y-5">
@@ -124,9 +144,9 @@ export function ReviewPanel({
       )}
 
       {/* Pertukaran Unit */}
-      {pertukaran.length > 0 && (
-        <Section title={`${t.unitTransferTitle} (${pertukaran.length})`}>
-          {pertukaran.map((p) => (
+      {pertukaranList.length > 0 && (
+        <Section title={`${t.unitTransferTitle} (${pertukaranList.length})`}>
+          {pertukaranList.map((p) => (
             <Row
               key={p.id}
               nama={p.pelajar.nama}
@@ -138,15 +158,19 @@ export function ReviewPanel({
                 label={t.approve}
                 tone="ok"
                 loading={busy === `tukar-${p.id}-a`}
-                onClick={() => act(`/api/tukar-unit/${p.id}`, { status: "Approved" }, `tukar-${p.id}-a`)}
+                onClick={async () => {
+                  const success = await act(`/api/tukar-unit/${p.id}`, { status: "Approved" }, `tukar-${p.id}-a`);
+                  if (success) setPertukaranList((prev) => prev.filter((x) => x.id !== p.id));
+                }}
               />
               <Btn
                 label={t.reject}
                 tone="danger"
                 loading={busy === `tukar-${p.id}-r`}
-                onClick={() => {
+                onClick={async () => {
                   const sebab = prompt(t.rejectReasonPrompt) ?? undefined;
-                  act(`/api/tukar-unit/${p.id}`, { status: "Reject", sebab }, `tukar-${p.id}-r`);
+                  const success = await act(`/api/tukar-unit/${p.id}`, { status: "Reject", sebab }, `tukar-${p.id}-r`);
+                  if (success) setPertukaranList((prev) => prev.filter((x) => x.id !== p.id));
                 }}
               />
             </Row>
@@ -155,9 +179,9 @@ export function ReviewPanel({
       )}
 
       {/* Cadangan Jawatan */}
-      {cadanganJawatan.length > 0 && (
-        <Section title={`${t.positionSuggestionTitle} (${cadanganJawatan.length})`}>
-          {cadanganJawatan.map((c) => (
+      {cadanganJawatanList.length > 0 && (
+        <Section title={`${t.positionSuggestionTitle} (${cadanganJawatanList.length})`}>
+          {cadanganJawatanList.map((c) => (
             <Row
               key={c.id}
               nama={c.pelajar.nama}
@@ -165,27 +189,41 @@ export function ReviewPanel({
               tajuk={`${c.jenisKoko}: ${c.jawatanBaru} (${c.markahJawatan} ${t.marksPlaceholder.toLowerCase()})`}
             >
               <Btn label={t.confirm} tone="ok" loading={busy === `jw-${c.id}-a`}
-                onClick={() => act(`/api/jawatan/${c.id}`, { status: "Approved" }, `jw-${c.id}-a`)} />
+                onClick={async () => {
+                  const success = await act(`/api/jawatan/${c.id}`, { status: "Approved" }, `jw-${c.id}-a`);
+                  if (success) setCadanganJawatanList((prev) => prev.filter((x) => x.id !== c.id));
+                }} />
               <Btn label={t.reject} tone="danger" loading={busy === `jw-${c.id}-r`}
-                onClick={() => { const komen = prompt(t.rejectReasonPrompt) ?? undefined; act(`/api/jawatan/${c.id}`, { status: "Reject", komen }, `jw-${c.id}-r`); }} />
+                onClick={async () => {
+                  const komen = prompt(t.rejectReasonPrompt) ?? undefined;
+                  const success = await act(`/api/jawatan/${c.id}`, { status: "Reject", komen }, `jw-${c.id}-r`);
+                  if (success) setCadanganJawatanList((prev) => prev.filter((x) => x.id !== c.id));
+                }} />
             </Row>
           ))}
         </Section>
       )}
 
       {/* Pencapaian */}
-      {pencapaian.length > 0 && (
-        <Section title={`${t.achievementTitle} (${pencapaian.length})`}>
-          {pencapaian.map((p) => (
-            <PencapaianRow key={p.id} item={p} busy={busy} act={act} t={t} />
+      {pencapaianList.length > 0 && (
+        <Section title={`${t.achievementTitle} (${pencapaianList.length})`}>
+          {pencapaianList.map((p) => (
+            <PencapaianRow
+              key={p.id}
+              item={p}
+              busy={busy}
+              act={act}
+              t={t}
+              onDone={() => setPencapaianList((prev) => prev.filter((x) => x.id !== p.id))}
+            />
           ))}
         </Section>
       )}
 
       {/* Aktiviti Luar */}
-      {aktivitiLuar.length > 0 && (
-        <Section title={`${t.externalActivityTitle} (${aktivitiLuar.length})`}>
-          {aktivitiLuar.map((a) => {
+      {aktivitiLuarList.length > 0 && (
+        <Section title={`${t.externalActivityTitle} (${aktivitiLuarList.length})`}>
+          {aktivitiLuarList.map((a) => {
             const lengkap = a.lampiranSurat && a.lampiranSijil;
             return (
               <Row
@@ -200,15 +238,19 @@ export function ReviewPanel({
                   tone="ok"
                   disabled={!lengkap}
                   loading={busy === `akt-${a.id}-a`}
-                  onClick={() => act(`/api/aktiviti-luar/${a.id}/sahkan`, { status: "Approved" }, `akt-${a.id}-a`)}
+                  onClick={async () => {
+                    const success = await act(`/api/aktiviti-luar/${a.id}/sahkan`, { status: "Approved" }, `akt-${a.id}-a`);
+                    if (success) setAktivitiLuarList((prev) => prev.filter((x) => x.id !== a.id));
+                  }}
                 />
                 <Btn
                   label={t.query}
                   tone="warn"
                   loading={busy === `akt-${a.id}-k`}
-                  onClick={() => {
+                  onClick={async () => {
                     const komen = prompt(t.queryCommentPrompt) ?? undefined;
-                    act(`/api/aktiviti-luar/${a.id}/sahkan`, { status: "Kuiri", komen }, `akt-${a.id}-k`);
+                    const success = await act(`/api/aktiviti-luar/${a.id}/sahkan`, { status: "Kuiri", komen }, `akt-${a.id}-k`);
+                    if (success) setAktivitiLuarList((prev) => prev.filter((x) => x.id !== a.id));
                   }}
                 />
               </Row>
@@ -218,40 +260,57 @@ export function ReviewPanel({
       )}
 
       {/* Laporan Mingguan */}
-      {laporanMingguan.length > 0 && (
-        <Section title={`${t.weeklyReportTitle} (${laporanMingguan.length})`}>
-          {laporanMingguan.map((l) => (
+      {laporanMingguanList.length > 0 && (
+        <Section title={`${t.weeklyReportTitle} (${laporanMingguanList.length})`}>
+          {laporanMingguanList.map((l) => (
             <Row key={l.id} nama={l.setiausaha.nama} kelas={l.setiausaha.kelasT6} tajuk={l.tajuk}>
               <Btn label={t.confirm} tone="ok" loading={busy === `lm-${l.id}-a`}
-                onClick={() => act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Approved" }, `lm-${l.id}-a`)} />
+                onClick={async () => {
+                  const success = await act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Approved" }, `lm-${l.id}-a`);
+                  if (success) setLaporanMingguanList((prev) => prev.filter((x) => x.id !== l.id));
+                }} />
               <Btn label={t.query} tone="warn" loading={busy === `lm-${l.id}-k`}
-                onClick={() => { const komen = prompt(t.queryCommentPrompt) ?? undefined; act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Kuiri", komen }, `lm-${l.id}-k`); }} />
+                onClick={async () => {
+                  const komen = prompt(t.queryCommentPrompt) ?? undefined;
+                  const success = await act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Kuiri", komen }, `lm-${l.id}-k`);
+                  if (success) setLaporanMingguanList((prev) => prev.filter((x) => x.id !== l.id));
+                }} />
             </Row>
           ))}
         </Section>
       )}
 
       {/* Laporan Projek */}
-      {laporanProjek.length > 0 && (
-        <Section title={`${t.projectReportTitle} (${laporanProjek.length})`}>
-          {laporanProjek.map((l) => (
+      {laporanProjekList.length > 0 && (
+        <Section title={`${t.projectReportTitle} (${laporanProjekList.length})`}>
+          {laporanProjekList.map((l) => (
             <Row key={l.id} nama={l.setiausaha.nama} kelas={l.setiausaha.kelasT6} tajuk={l.tajuk}>
               <Btn label={t.confirm} tone="ok" loading={busy === `lp-${l.id}-a`}
-                onClick={() => act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Approved" }, `lp-${l.id}-a`)} />
+                onClick={async () => {
+                  const success = await act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Approved" }, `lp-${l.id}-a`);
+                  if (success) setLaporanProjekList((prev) => prev.filter((x) => x.id !== l.id));
+                }} />
               <Btn label={t.query} tone="warn" loading={busy === `lp-${l.id}-k`}
-                onClick={() => { const komen = prompt(t.queryCommentPrompt) ?? undefined; act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Kuiri", komen }, `lp-${l.id}-k`); }} />
+                onClick={async () => {
+                  const komen = prompt(t.queryCommentPrompt) ?? undefined;
+                  const success = await act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Kuiri", komen }, `lp-${l.id}-k`);
+                  if (success) setLaporanProjekList((prev) => prev.filter((x) => x.id !== l.id));
+                }} />
             </Row>
           ))}
         </Section>
       )}
 
       {/* Sesi Kehadiran */}
-      {sesiKehadiran.length > 0 && (
-        <Section title={`${t.attendanceSessionTitle} (${sesiKehadiran.length})`}>
-          {sesiKehadiran.map((s) => (
+      {sesiKehadiranList.length > 0 && (
+        <Section title={`${t.attendanceSessionTitle} (${sesiKehadiranList.length})`}>
+          {sesiKehadiranList.map((s) => (
             <Row key={s.id} nama={s.namaUnit} kelas={null} tajuk={`${s.jenisKoko}: ${s.namaUnit} — Perjumpaan ${s.bilPerjumpaan}`}>
               <Btn label={t.confirm} tone="ok" loading={busy === `sk-${s.id}`}
-                onClick={() => act(`/api/kehadiran/sesi/${s.id}/sahkan`, {}, `sk-${s.id}`)} />
+                onClick={async () => {
+                  const success = await act(`/api/kehadiran/sesi/${s.id}/sahkan`, {}, `sk-${s.id}`);
+                  if (success) setSesiKehadiranList((prev) => prev.filter((x) => x.id !== s.id));
+                }} />
             </Row>
           ))}
         </Section>
@@ -265,11 +324,13 @@ function PencapaianRow({
   busy,
   act,
   t,
+  onDone,
 }: {
   item: Pencapaian;
   busy: string | null;
-  act: (url: string, body: Record<string, unknown>, key: string) => void;
+  act: (url: string, body: Record<string, unknown>, key: string) => Promise<boolean>;
   t: ReviewPanelDict;
+  onDone: () => void;
 }) {
   // Pra-isi dengan markah yang dicadang AI (ikut peringkat). Guru boleh laras.
   const [markah, setMarkah] = useState(item.markahCadangan > 0 ? String(item.markahCadangan) : "");
@@ -300,21 +361,23 @@ function PencapaianRow({
         label={t.confirm}
         tone="ok"
         loading={busy === `pen-${item.id}-a`}
-        onClick={() =>
-          act(
+        onClick={async () => {
+          const success = await act(
             `/api/pencapaian/${item.id}/sahkan`,
             { status: "Approved", markah: markah ? Number(markah) : item.markahCadangan },
             `pen-${item.id}-a`
-          )
-        }
+          );
+          if (success) onDone();
+        }}
       />
       <Btn
         label={t.query}
         tone="warn"
         loading={busy === `pen-${item.id}-k`}
-        onClick={() => {
+        onClick={async () => {
           const komen = prompt(t.queryCommentPrompt) ?? undefined;
-          act(`/api/pencapaian/${item.id}/sahkan`, { status: "Kuiri", komen }, `pen-${item.id}-k`);
+          const success = await act(`/api/pencapaian/${item.id}/sahkan`, { status: "Kuiri", komen }, `pen-${item.id}-k`);
+          if (success) onDone();
         }}
       />
     </Row>
