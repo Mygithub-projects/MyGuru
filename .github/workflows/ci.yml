@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI/CD MyGuru
 
 on:
   push:
@@ -91,15 +91,32 @@ jobs:
             --zone=asia-southeast1-b \
             --tunnel-through-iap \
             --command="
-              docker pull asia-southeast1-docker.pkg.dev/prestij-latifah-myguruai/myguru/myguru:${{ github.sha }};
-              docker stop myguru || true;
-              docker rm myguru || true;
+              set -e
+
+              echo 'Configuring Docker authentication...'
+              gcloud auth configure-docker \
+                asia-southeast1-docker.pkg.dev \
+                --quiet
+
+              echo 'Pulling new MyGuru image...'
+              docker pull \
+                asia-southeast1-docker.pkg.dev/prestij-latifah-myguruai/myguru/myguru:${{ github.sha }}
+
+              echo 'Stopping old container...'
+              docker stop myguru || true
+
+              echo 'Removing old container...'
+              docker rm myguru || true
+
+              echo 'Starting new MyGuru container...'
               docker run -d \
                 --name myguru \
                 --restart unless-stopped \
                 -p 3000:3000 \
                 --env-file /opt/myguru/.env \
                 asia-southeast1-docker.pkg.dev/prestij-latifah-myguruai/myguru/myguru:${{ github.sha }}
+
+              echo 'Deployment completed.'
             "
 
       - name: Verify deployment
@@ -108,6 +125,9 @@ jobs:
             --zone=asia-southeast1-b \
             --tunnel-through-iap \
             --command="
-              docker ps --filter name=myguru;
-              docker logs --tail 20 myguru
+              echo 'Container status:'
+              docker ps --filter name=myguru
+
+              echo 'Container logs:'
+              docker logs --tail 30 myguru
             "
