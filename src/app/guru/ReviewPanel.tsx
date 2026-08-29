@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";;
 import { useRouter } from "next/navigation";
 
 interface ItemPelajar {
@@ -87,13 +87,13 @@ export function ReviewPanel({
   const [sesiKehadiranList, setSesiKehadiranList] = useState(sesiKehadiran);
   const [cadanganJawatanList, setCadanganJawatanList] = useState(cadanganJawatan);
 
-  useEffect(() => setPencapaianList(pencapaian), [pencapaian]);
-  useEffect(() => setAktivitiLuarList(aktivitiLuar), [aktivitiLuar]);
-  useEffect(() => setPertukaranList(pertukaran), [pertukaran]);
-  useEffect(() => setLaporanMingguanList(laporanMingguan), [laporanMingguan]);
-  useEffect(() => setLaporanProjekList(laporanProjek), [laporanProjek]);
-  useEffect(() => setSesiKehadiranList(sesiKehadiran), [sesiKehadiran]);
-  useEffect(() => setCadanganJawatanList(cadanganJawatan), [cadanganJawatan]);
+  const [pencapaianList, setPencapaianList] = useState(pencapaian);
+const [aktivitiLuarList, setAktivitiLuarList] = useState(aktivitiLuar);
+const [pertukaranList, setPertukaranList] = useState(pertukaran);
+const [laporanMingguanList, setLaporanMingguanList] = useState(laporanMingguan);
+const [laporanProjekList, setLaporanProjekList] = useState(laporanProjek);
+const [sesiKehadiranList, setSesiKehadiranList] = useState(sesiKehadiran);
+const [cadanganJawatanList, setCadanganJawatanList] = useState(cadanganJawatan);
 
   async function act(url: string, body: Record<string, unknown>, key: string): Promise<boolean> {
     setBusy(key);
