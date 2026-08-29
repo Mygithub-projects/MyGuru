@@ -87,13 +87,7 @@ export function ReviewPanel({
   const [sesiKehadiranList, setSesiKehadiranList] = useState(sesiKehadiran);
   const [cadanganJawatanList, setCadanganJawatanList] = useState(cadanganJawatan);
 
-  const [pencapaianList, setPencapaianList] = useState(pencapaian);
-const [aktivitiLuarList, setAktivitiLuarList] = useState(aktivitiLuar);
-const [pertukaranList, setPertukaranList] = useState(pertukaran);
-const [laporanMingguanList, setLaporanMingguanList] = useState(laporanMingguan);
-const [laporanProjekList, setLaporanProjekList] = useState(laporanProjek);
-const [sesiKehadiranList, setSesiKehadiranList] = useState(sesiKehadiran);
-const [cadanganJawatanList, setCadanganJawatanList] = useState(cadanganJawatan);
+
 
   async function act(url: string, body: Record<string, unknown>, key: string): Promise<boolean> {
     setBusy(key);
