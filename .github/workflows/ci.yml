@@ -1,24 +1,30 @@
-name: CI
+name: CI/CD
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
-    # Nilai dummy — build/lint/test tidak menyambung ke DB sebenar.
+
     env:
       DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
       DIRECT_URL: "postgresql://ci:ci@localhost:5432/ci"
       JWT_SECRET: "ci_dummy_secret_minimum_48_characters_long_xxxxxxxxxx"
       NEXT_PUBLIC_INSTITUSI: "CI"
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
@@ -32,8 +38,76 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Unit tests (Vitest)
+      - name: Unit tests
         run: npm test
 
       - name: Build
         run: npm run build
+
+  deploy:
+    name: Deploy MyGuru
+    needs: build-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: prestij-latifah-myguruai
+          workload_identity_provider: projects/940471889043/locations/global/workloadIdentityPools/github-actions-myguru/providers/github
+          service_account: github-actions-myguru@prestij-latifah-myguruai.iam.gserviceaccount.com
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Authenticate Docker to Artifact Registry
+        run: |
+          gcloud auth configure-docker \
+            asia-southeast1-docker.pkg.dev \
+            --quiet
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t asia-southeast1-docker.pkg.dev/prestij-latifah-myguruai/myguru/myguru:${{ github.sha }} \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push \
+            asia-southeast1-docker.pkg.dev/prestij-latifah-myguruai/myguru/myguru:${{ github.sha }}
+
+      - name: Deploy to myguru-docker-vm
+        run: |
+          gcloud compute ssh jothikannan2009@myguru-docker-vm \
+            --zone=asia-southeast1-b \
+            --tunnel-through-iap \
+            --command="
+              docker pull asia-southeast1-docker.pkg.dev/prestij-latifah-myguruai/myguru/myguru:${{ github.sha }};
+              docker stop myguru || true;
+              docker rm myguru || true;
+              docker run -d \
+                --name myguru \
+                --restart unless-stopped \
+                -p 3000:3000 \
+                --env-file /opt/myguru/.env \
+                asia-southeast1-docker.pkg.dev/prestij-latifah-myguruai/myguru/myguru:${{ github.sha }}
+            "
+
+      - name: Verify deployment
+        run: |
+          gcloud compute ssh jothikannan2009@myguru-docker-vm \
+            --zone=asia-southeast1-b \
+            --tunnel-through-iap \
+            --command="
+              docker ps --filter name=myguru;
+              docker logs --tail 20 myguru
+            "
