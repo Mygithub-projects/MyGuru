@@ -38,48 +38,57 @@ export async function POST(request: NextRequest) {
   const candidates = [raw, raw.toLowerCase()];
   if (/^\d{12}$/.test(asIC)) candidates.push(asIC);
 
-  const user = await prisma.user.findFirst({
-    where: { username: { in: candidates }, statusAktif: true },
-    include: { pelajar: true, guru: true },
-  });
+  try {
+    const user = await prisma.user.findFirst({
+      where: { username: { in: candidates }, statusAktif: true },
+      include: { pelajar: true, guru: true },
+    });
 
-  if (!user) return fail("Akaun tidak dijumpai atau tidak aktif", 401);
+    if (!user) return fail("Akaun tidak dijumpai atau tidak aktif", 401);
 
-  const valid = await verifyPassword(parsed.data.password, user.passwordHash);
-  if (!valid) return fail("Kata laluan salah", 401);
+    const valid = await verifyPassword(parsed.data.password, user.passwordHash);
+    if (!valid) return fail("Kata laluan salah", 401);
 
-  // Semak peranan hanya SELEPAS kata laluan sah — supaya peranan sesuatu akaun
-  // tidak boleh dicungkil tanpa kelayakan yang betul.
-  const dipilih = parsed.data.role;
-  if (dipilih && user.role !== dipilih) {
-    const { t } = await getT();
-    const namaPeranan =
-      dipilih === "Admin" ? t.login.roleAdmin : dipilih === "Guru" ? t.login.roleGuru : t.login.rolePelajar;
-    return fail(t.login.roleMismatch.replace("{role}", namaPeranan), 403);
-  }
+    // Semak peranan hanya SELEPAS kata laluan sah — supaya peranan sesuatu akaun
+    // tidak boleh dicungkil tanpa kelayakan yang betul.
+    const dipilih = parsed.data.role;
+    if (dipilih && user.role !== dipilih) {
+      const { t } = await getT();
+      const namaPeranan =
+        dipilih === "Admin" ? t.login.roleAdmin : dipilih === "Guru" ? t.login.roleGuru : t.login.rolePelajar;
+      return fail(t.login.roleMismatch.replace("{role}", namaPeranan), 403);
+    }
 
-  const token = await signSession({
-    userId: user.id,
-    role: user.role as Role,
-    subRole: (user.pelajar?.subRole as SubRole) ?? undefined,
-    nama: user.pelajar?.nama ?? user.guru?.nama ?? "Admin",
-    pelajarId: user.pelajarId,
-    guruId: user.guruId,
-    jawatanGuru: user.guru?.jawatanKoko ?? null,
-    mustChangePw: user.mustChangePw,
-  });
-  await setSessionCookie(token);
-
-  const redirect =
-    user.role === "Admin" ? "/admin" : user.role === "Guru" ? "/guru" : "/pelajar";
-
-  return ok(
-    {
-      role: user.role,
+    const token = await signSession({
+      userId: user.id,
+      role: user.role as Role,
+      subRole: (user.pelajar?.subRole as SubRole) ?? undefined,
       nama: user.pelajar?.nama ?? user.guru?.nama ?? "Admin",
+      pelajarId: user.pelajarId,
+      guruId: user.guruId,
+      jawatanGuru: user.guru?.jawatanKoko ?? null,
       mustChangePw: user.mustChangePw,
-      redirect,
-    },
-    "Berjaya log masuk"
-  );
+    });
+    await setSessionCookie(token);
+
+    const redirect =
+      user.role === "Admin" ? "/admin" : user.role === "Guru" ? "/guru" : "/pelajar";
+
+    return ok(
+      {
+        role: user.role,
+        nama: user.pelajar?.nama ?? user.guru?.nama ?? "Admin",
+        mustChangePw: user.mustChangePw,
+        redirect,
+      },
+      "Berjaya log masuk"
+    );
+  } catch (err) {
+    // Tanpa ini, ralat tak dijangka (DB putus, JWT_SECRET tiada, dll.) bocor
+    // sebagai 500 HTML kosong — klien tafsirnya sebagai "ralat rangkaian" dan
+    // punca sebenar hilang. Log penuh di sini supaya `docker compose logs`
+    // dapat tunjukkan puncanya.
+    console.error("[api/auth/login] ralat tidak dijangka:", err);
+    return fail("Ralat pelayan. Sila cuba lagi atau hubungi admin.", 500);
+  }
 }
