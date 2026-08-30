@@ -122,6 +122,7 @@ export function LoginForm({ locale = "ms" }: { locale?: Locale }) {
       >
         {loading ? t.submitting : t.submit}
       </button>
+      <p className="text-center text-xs text-slate-500">{t.forgotPassword}</p>
     </form>
   );
 }

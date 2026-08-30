@@ -349,6 +349,7 @@ const ms: Dict = {
     hintGuru: "Guru penasihat & penyelaras — sahkan pencapaian, kehadiran & laporan.",
     hintPelajar: "Guna No. Kad Pengenalan anda (12 digit, tanpa sengkang).",
     roleMismatch: "Akaun ini bukan akaun {role}. Sila pilih peranan yang betul.",
+    forgotPassword: "Lupa kata laluan? Sila hubungi pentadbir sekolah untuk ditetapkan semula.",
   },
   pelajar: {
     welcome: "Selamat Datang,", icNo: "No. IC:",
@@ -678,6 +679,7 @@ const en: Dict = {
     hintGuru: "Advisor & coordinator teachers — verify achievements, attendance & reports.",
     hintPelajar: "Use your MyKad (IC) number (12 digits, no dashes).",
     roleMismatch: "This is not a {role} account. Please choose the correct role.",
+    forgotPassword: "Forgot your password? Please contact your school administrator to reset it.",
   },
   pelajar: {
     welcome: "Welcome,", icNo: "IC No.:",
