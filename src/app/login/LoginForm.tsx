@@ -7,6 +7,7 @@ import { type Role } from "@/lib/enums";
 // Susunan tab seperti diminta: Pentadbir → Guru → Pelajar.
 const ROLE_TABS: readonly Role[] = ["Admin", "Guru", "Pelajar"];
 
+
 export function LoginForm({ locale = "ms" }: { locale?: Locale }) {
   const t = getDict(locale).login;
   const router = useRouter();
