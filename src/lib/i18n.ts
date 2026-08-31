@@ -60,6 +60,7 @@ export interface Dict {
     placeholderAdmin: string; placeholderGuru: string; placeholderPelajar: string;
     hintAdmin: string; hintGuru: string; hintPelajar: string;
     roleMismatch: string;
+    forgotPassword: string;
   };
   pelajar: {
     welcome: string; icNo: string;
