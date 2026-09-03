@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
 import { notifyPelajar } from "@/lib/notifikasi";
-import { guruSeluruhSekolah, unitSeliaan, bolehGuruAksesPelajar } from "@/lib/workflow";
+import { guruSeluruhSekolah, unitSeliaan, bolehGuruAksesPelajar, kiraSemulaT6 } from "@/lib/workflow";
 
 const schema = z.object({
   status: z.enum(["Approved", "Kuiri"]),
@@ -40,6 +40,7 @@ export async function PATCH(
     where: { id },
     data: { statusPengesahan: parsed.data.status, komenGuru: parsed.data.komen },
   });
+  await kiraSemulaT6(rec.setiausahaId);
   await notifyPelajar(rec.setiausahaId, {
     tajuk: parsed.data.status === "Approved" ? "Laporan projek disahkan" : "Projek dikuiri",
     mesej:

@@ -29,7 +29,7 @@ export interface Dict {
       penolongSU: string; pemantauKUPP: string; penyelaras: string;
     };
     subRolePelajar: { pelajar: string; su: string; nsu: string };
-    perananUnit: { penasihat: string; ketuaPenasihat: string };
+    perananUnit: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string };
     sortToggle: { newest: string; oldest: string; ariaLabel: string };
     modalClose: string;
   };
@@ -82,6 +82,7 @@ export interface Dict {
       evidenceLabel: string; letterLabel: string; certificateLabel: string; uploadEvidence: string;
       submit: string; submitToReview: string; reportPlaceholder: string; networkError: string; fileTooLarge: string;
       uploadSizeLimit: string; fetchError: string; noToken: string; cancel: string; loading: string;
+      unitPlaceholder: string;
     };
     attendancePageTitle: string; attendanceSubtitle: string; attendanceRestricted: string;
     attendancePanel: {
@@ -246,6 +247,7 @@ export interface Dict {
   laporan: {
     title: string; sub: string; weekly: string; project: string; noRecords: string; downloadVerified: string; comment: string;
     tabWeekly: string; tabProject: string; selectSessionOptional: string; newProjectOption: string; projectNamePlaceholder: string;
+    projectPositionPlaceholder: string; projectLevelPlaceholder: string; projectUnitPlaceholder: string;
     workPlanLabel: string; impactReportLabel: string; financialSummaryPlaceholder: string; strengthPlaceholder: string; weaknessPlaceholder: string;
     submitForReview: string; networkError: string; loading: string; attachmentWorkPlan: string; attachmentImpactReport: string;
     reportTimePlaceholder: string; reportActivityPlaceholder: string; reportProjectOptionPrefix: string; reportUploadPrompt: string;
@@ -303,7 +305,7 @@ const ms: Dict = {
       penolongSU: "Penolong SU Kokurikulum", pemantauKUPP: "Pemantau (KUPP)", penyelaras: "Penyelaras Kokurikulum",
     },
     subRolePelajar: { pelajar: "Pelajar biasa", su: "Setiausaha (SU)", nsu: "Naib Setiausaha (NSU)" },
-    perananUnit: { penasihat: "Penasihat", ketuaPenasihat: "Ketua Penasihat" },
+    perananUnit: { penasihat: "Penasihat", ketuaPenasihat: "Ketua Penasihat", penolongKetuaGP: "Penolong Ketua GP" },
     sortToggle: { newest: "Terkini dahulu", oldest: "Terlama dahulu", ariaLabel: "Susun ikut tarikh" },
     modalClose: "Tutup",
   },
@@ -341,10 +343,10 @@ const ms: Dict = {
     roleLabel: "Log masuk sebagai",
     roleAdmin: "Pentadbir", roleGuru: "Guru", rolePelajar: "Pelajar",
     identifierAdmin: "Nama Pengguna atau Emel",
-    identifierGuru: "No. Kad Pengenalan atau Emel",
+    identifierGuru: "Emel",
     identifierPelajar: "No. Kad Pengenalan",
     placeholderAdmin: "cth: admin",
-    placeholderGuru: "cth: 800101015566",
+    placeholderGuru: "cth: cikgu@sekolah.edu.my",
     placeholderPelajar: "cth: 080917074685",
     hintAdmin: "Akaun pentadbir sekolah — urus pelajar, guru, import data & tetapan.",
     hintGuru: "Guru penasihat & penyelaras — sahkan pencapaian, kehadiran & laporan.",
@@ -374,6 +376,7 @@ const ms: Dict = {
       evidenceLabel: "Bukti (sijil/surat)", letterLabel: "Surat", certificateLabel: "Sijil", uploadEvidence: "⬆ Muat naik bukti (surat & sijil)",
       submit: "Hantar", submitToReview: "Hantar untuk Semakan", reportPlaceholder: "Aktiviti / laporan ringkas", networkError: "Ralat rangkaian", fileTooLarge: "Fail terlalu besar. Had muat naik 4MB — sila mampatkan atau kecilkan saiz.",
       uploadSizeLimit: "Fail terlalu besar untuk pelayan (had 4.5MB). Sila kecilkan fail.", fetchError: "Ralat pelayan. Sila cuba lagi atau hubungi guru anda.", noToken: "Tiada token. Sila imbas QR sah.", cancel: "Batal", loading: "Memuatkan...",
+      unitPlaceholder: "— Unit berkaitan —",
     },
     attendancePageTitle: "Kehadiran Ahli", attendanceSubtitle: "Buka sesi perjumpaan, tanda kehadiran ahli melalui senarai, atau paparkan QR untuk imbas sendiri.", attendanceRestricted: "Modul kehadiran hanya untuk Setiausaha (SU) / Naib Setiausaha (NSU). Sila hubungi guru penasihat anda jika anda sepatutnya mempunyai akses.",
     attendancePanel: {
@@ -549,6 +552,7 @@ const ms: Dict = {
   laporan: {
     title: "Laporan SU/NSU", sub: "Laporan mingguan & laporan projek, dipaut terus ke sesi kehadiran berkaitan.", weekly: "Laporan Mingguan", project: "Laporan Projek", noRecords: "Tiada rekod lagi.", downloadVerified: "⬇ Muat turun dokumen disahkan", comment: "Komen",
     tabWeekly: "Laporan Mingguan", tabProject: "Laporan Projek", selectSessionOptional: "— Paut sesi kehadiran (pilihan) —", newProjectOption: "— Projek baharu (pra-program) —", projectNamePlaceholder: "Nama projek (untuk projek baharu)",
+    projectPositionPlaceholder: "— Jawatan anda dalam projek —", projectLevelPlaceholder: "— Peringkat pelaksanaan projek —", projectUnitPlaceholder: "— Unit berkaitan projek —",
     workPlanLabel: "Kertas Kerja (pra)", impactReportLabel: "Laporan Impak (pasca)", financialSummaryPlaceholder: "Ringkasan kewangan (RM)", strengthPlaceholder: "Kekuatan", weaknessPlaceholder: "Kelemahan / penambahbaikan",
     submitForReview: "Hantar untuk Semakan", networkError: "Ralat rangkaian", loading: "Sedang memuat...", attachmentWorkPlan: "📋 kertas kerja", attachmentImpactReport: "📊 laporan impak",
     reportTimePlaceholder: "Masa (cth 2.30-4.30 ptg)", reportActivityPlaceholder: "Aktiviti / laporan ringkas", reportProjectOptionPrefix: "Pasca: ", reportUploadPrompt: "Pra-program: muat naik Kertas Kerja. Pasca-program: pilih projek di atas + muat naik Laporan Impak & isi maklumat.",
@@ -633,7 +637,7 @@ const en: Dict = {
       penolongSU: "Deputy Co-curriculum Secretary", pemantauKUPP: "Monitor (KUPP)", penyelaras: "Co-curriculum Coordinator",
     },
     subRolePelajar: { pelajar: "Regular student", su: "Secretary (SU)", nsu: "Deputy Secretary (NSU)" },
-    perananUnit: { penasihat: "Adviser", ketuaPenasihat: "Head Adviser" },
+    perananUnit: { penasihat: "Adviser", ketuaPenasihat: "Head Adviser", penolongKetuaGP: "Deputy Head Adviser" },
     sortToggle: { newest: "Newest first", oldest: "Oldest first", ariaLabel: "Sort by date" },
     modalClose: "Close",
   },
@@ -671,10 +675,10 @@ const en: Dict = {
     roleLabel: "Log in as",
     roleAdmin: "Administrator", roleGuru: "Teacher", rolePelajar: "Student",
     identifierAdmin: "Username or Email",
-    identifierGuru: "MyKad (IC) Number or Email",
+    identifierGuru: "Email",
     identifierPelajar: "MyKad (IC) Number",
     placeholderAdmin: "e.g. admin",
-    placeholderGuru: "e.g. 800101015566",
+    placeholderGuru: "e.g. teacher@school.edu.my",
     placeholderPelajar: "e.g. 080917074685",
     hintAdmin: "School administrator account — manage students, teachers, data imports & settings.",
     hintGuru: "Advisor & coordinator teachers — verify achievements, attendance & reports.",
@@ -706,6 +710,7 @@ const en: Dict = {
       networkError: "Network error", fileTooLarge: "File too large. Upload limit is 4MB — please compress or reduce file size.",
       uploadSizeLimit: "File too large for server (limit 4.5MB). Please shrink the file.", fetchError: "Server error. Please try again or contact your teacher.", noToken: "No token. Please scan a valid QR code.", cancel: "Cancel",
       loading: "Loading...",
+      unitPlaceholder: "— Related unit —",
     },
     attendancePageTitle: "Member Attendance", attendanceSubtitle: "Open a meeting session, mark member attendance by list, or show a QR code for self check-in.",
     attendanceRestricted: "Attendance module is only for Secretary (SU) / Deputy Secretary (NSU). Contact your advisor if you should have access.",
@@ -886,6 +891,7 @@ const en: Dict = {
   laporan: {
     title: "SU/NSU Reports", sub: "Weekly & project reports, linked directly to related attendance sessions.", weekly: "Weekly Reports", project: "Project Reports", noRecords: "No records yet.", downloadVerified: "⬇ Download verified document", comment: "Comment",
     tabWeekly: "Weekly Reports", tabProject: "Project Reports", selectSessionOptional: "— Link attendance session (optional) —", newProjectOption: "— New project (pre-program) —", projectNamePlaceholder: "Project name (for a new project)",
+    projectPositionPlaceholder: "— Your position in the project —", projectLevelPlaceholder: "— Project implementation level —", projectUnitPlaceholder: "— Related unit —",
     workPlanLabel: "Work Plan (pre)", impactReportLabel: "Impact Report (post)", financialSummaryPlaceholder: "Financial summary (RM)", strengthPlaceholder: "Strengths", weaknessPlaceholder: "Weaknesses / improvements",
     submitForReview: "Submit for Review", networkError: "Network error", loading: "Loading...", attachmentWorkPlan: "📋 work plan", attachmentImpactReport: "📊 impact report",
     reportTimePlaceholder: "Time (e.g. 2.30-4.30 PM)", reportActivityPlaceholder: "Activity / short report", reportProjectOptionPrefix: "Post: ", reportUploadPrompt: "Pre-program: upload a Work Plan. Post-program: choose a project above + upload Impact Report & fill in details.",

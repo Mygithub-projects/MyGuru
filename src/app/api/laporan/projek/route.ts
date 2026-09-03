@@ -17,11 +17,24 @@ export async function POST(request: NextRequest) {
   const form = await request.formData();
   const projekId = String(form.get("projekId") ?? "");
   const namaProjek = String(form.get("namaProjek") ?? "").trim();
+  const namaUnit = String(form.get("namaUnit") ?? "") || null;
+  const jawatanProjek = String(form.get("jawatanProjek") ?? "") || null;
+  const peringkatProjek = String(form.get("peringkatProjek") ?? "") || null;
   const kewangan = String(form.get("kewangan") ?? "");
   const kekuatan = String(form.get("kekuatan") ?? "");
   const kelemahan = String(form.get("kelemahan") ?? "");
   const sesiId = String(form.get("sesiId") ?? "") || null;
   const hantar = form.get("hantar") === "true";
+
+  // Sahkan namaUnit terus dari Kokurikulum pelajar (jangan percaya jenisKoko klien).
+  let jenisKoko: string | null = null;
+  if (namaUnit) {
+    const k = await prisma.kokurikulum.findFirst({
+      where: { pelajarId: session.pelajarId, namaUnitT6: namaUnit },
+      select: { jenisKoko: true },
+    });
+    jenisKoko = k?.jenisKoko ?? null;
+  }
 
   try {
     const kertasKerja = await simpanFailDariForm(form, "kertasKerja", "kertas");
@@ -33,6 +46,10 @@ export async function POST(request: NextRequest) {
         where: { id: projekId },
         data: {
           failLaporanImpak: laporanImpak ?? undefined,
+          namaUnit: namaUnit ?? undefined,
+          jenisKoko: jenisKoko ?? undefined,
+          jawatanProjek: jawatanProjek ?? undefined,
+          peringkatProjek: peringkatProjek ?? undefined,
           kewangan: kewangan || undefined,
           kekuatan: kekuatan || undefined,
           kelemahan: kelemahan || undefined,
@@ -43,11 +60,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (!namaProjek) return fail("Nama projek diperlukan", 422);
+    if (!namaUnit) return fail("Unit berkaitan projek diperlukan", 422);
     const rec = await prisma.laporanProjek.create({
       data: {
         namaProjek,
+        namaUnit,
+        jenisKoko,
         setiausahaId: session.pelajarId,
         failKertasKerja: kertasKerja,
+        jawatanProjek,
+        peringkatProjek,
         kewangan: kewangan || null,
         sesiId,
         statusPengesahan: hantar ? "Pending" : "Draft",

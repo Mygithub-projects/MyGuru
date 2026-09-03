@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
-import { sahkanAktivitiLuar, bolehGuruAksesPelajar } from "@/lib/workflow";
+import { sahkanAktivitiLuar, bolehGuruAksesPelajar, guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
 
 const schema = z.object({
   status: z.enum(["Approved", "Kuiri"]),
@@ -29,8 +29,15 @@ export async function PATCH(
 
   const rec = await prisma.aktivitiLuar.findUnique({ where: { id } });
   if (!rec) return fail("Aktiviti luar tidak dijumpai", 404);
-  if (guru && !(await bolehGuruAksesPelajar(guru, rec.pelajarId))) {
-    return fail("Pelajar ini di luar unit seliaan anda", 403);
+
+  // Hanya guru penasihat UNIT berkenaan boleh sahkan (rekod lama tanpa
+  // namaUnit kekal guna skop pelajar sebagai jatuhan — lihat §3).
+  if (guru && !guruSeluruhSekolah(guru)) {
+    const units = await unitSeliaan(guru);
+    const okUnit = rec.namaUnit
+      ? units.includes(rec.namaUnit)
+      : await bolehGuruAksesPelajar(guru, rec.pelajarId);
+    if (!okUnit) return fail("Aktiviti luar ini di luar unit seliaan anda", 403);
   }
 
   try {

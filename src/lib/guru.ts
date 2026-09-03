@@ -26,11 +26,15 @@ export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const ids = guru ? await pelajarIdsDalamSkop(guru) : null;
   const wherePelajar = ids === null ? {} : { pelajarId: { in: ids } };
   const units = guru ? await unitSeliaan(guru) : [];
-  const whereUnit = ids === null ? {} : { setiausahaId: { in: ids } };
+  // Skop TEPAT ikut unit rekod (namaUnit) — bukan "mana-mana pelajar dalam
+  // skop guru", supaya guru unit lain tidak nampak rekod unit lain. Rekod
+  // lama tanpa namaUnit (pra-fasa ini) kekal guna skop pelajar sebagai jatuhan.
+  const wherePelajarUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, pelajarId: { in: ids } }] };
+  const whereUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, setiausahaId: { in: ids } }] };
   const whereSesi = ids === null ? {} : { namaUnit: { in: units } };
   const [a, b, c, d, e, f, g] = await Promise.all([
-    prisma.pencapaian.count({ where: { statusSemakan: "Pending", ...wherePelajar } }),
-    prisma.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...wherePelajar } }),
+    prisma.pencapaian.count({ where: { statusSemakan: "Pending", ...wherePelajarUnit } }),
+    prisma.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...wherePelajarUnit } }),
     prisma.logPertukaran.count({ where: { status: "Pending", ...wherePelajar } }),
     prisma.laporanMingguan.count({ where: { statusSemakan: "Pending", ...whereUnit } }),
     prisma.laporanProjek.count({ where: { statusPengesahan: "Pending", ...whereUnit } }),
@@ -44,18 +48,19 @@ export async function getGuruDashboard(guru: Guru) {
   const ids = await pelajarIdsDalamSkop(guru);
   const wherePelajar = ids === null ? {} : { pelajarId: { in: ids } };
   const units = await unitSeliaan(guru);
-  const whereUnit = ids === null ? {} : { setiausahaId: { in: ids } };
+  const wherePelajarUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, pelajarId: { in: ids } }] };
+  const whereUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, setiausahaId: { in: ids } }] };
   const whereSesi = ids === null ? {} : { namaUnit: { in: units } };
 
   const [pencapaian, aktivitiLuar, pertukaran, laporanMingguan, laporanProjek, sesiKehadiran, cadanganJawatan] =
     await Promise.all([
       prisma.pencapaian.findMany({
-        where: { statusSemakan: "Pending", ...wherePelajar },
+        where: { statusSemakan: "Pending", ...wherePelajarUnit },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),
       prisma.aktivitiLuar.findMany({
-        where: { statusPengesahan: "Pending", ...wherePelajar },
+        where: { statusPengesahan: "Pending", ...wherePelajarUnit },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),

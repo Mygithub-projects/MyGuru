@@ -13,10 +13,12 @@ export default async function AktivitiPage() {
   const pid = session.pelajarId;
   const { t } = await getT();
 
-  const [pencapaian, aktivitiLuar] = await Promise.all([
+  const [pencapaian, aktivitiLuar, koko] = await Promise.all([
     prisma.pencapaian.findMany({ where: { pelajarId: pid }, orderBy: { createdAt: "desc" } }),
     prisma.aktivitiLuar.findMany({ where: { pelajarId: pid }, orderBy: { createdAt: "desc" } }),
+    prisma.kokurikulum.findMany({ where: { pelajarId: pid } }),
   ]);
+  const units = koko.filter((k) => k.namaUnitT6).map((k) => ({ jenisKoko: k.jenisKoko, namaUnit: k.namaUnitT6! }));
 
   return (
     <div className="space-y-6">
@@ -26,7 +28,7 @@ export default async function AktivitiPage() {
         <p className="text-sm text-slate-500">{t.pelajar.activitySubtitle}</p>
       </div>
 
-      <AktivitiForm pelajarId={pid} />
+      <AktivitiForm pelajarId={pid} units={units} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
@@ -40,7 +42,7 @@ export default async function AktivitiPage() {
                     <StatusBadge status={p.statusSemakan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {p.peringkat ?? ""} {p.statusSemakan === "Approved" ? `· ${p.markah} ${t.pelajar.commentLabel}` : ""}
+                    {p.namaUnit ? `${p.namaUnit} · ` : ""}{p.peringkat ?? ""} {p.statusSemakan === "Approved" ? `· ${p.markah} ${t.pelajar.commentLabel}` : ""}
                   </p>
                   {p.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.pelajar.commentLabel}: {p.komenGuru}</p>}
                 </div>
@@ -60,7 +62,7 @@ export default async function AktivitiPage() {
                     <StatusBadge status={a.statusPengesahan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {a.peringkat}
+                    {a.namaUnit ? `${a.namaUnit} · ` : ""}{a.peringkat}
                     {a.statusPengesahan === "Approved" ? ` · ${a.markahLuar} ${t.pelajar.commentLabel} · ${a.noSiriECert}` : ""}
                   </p>
                   {a.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.pelajar.commentLabel}: {a.komenGuru}</p>}

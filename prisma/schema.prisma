@@ -393,6 +393,7 @@ model Pencapaian {
   pelajarId      String
   namaPencapaian String
   kategori       String? // biasa | ekstra (Perkhidmatan/Anugerah/NILAM/TIMSS...)
+  namaUnit       String? // unit pelajar berkaitan (padan Kokurikulum.namaUnitT6) — skop pengesahan guru
   peringkat      String?
   kedudukan      String? // Johan | Naib Johan | Ketiga (§1.5 — untuk markah pencapaian)
   lampiranEviden String?
@@ -411,6 +412,7 @@ model AktivitiLuar {
   pelajar         Pelajar  @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
   pelajarId       String
   namaAktiviti    String
+  namaUnit        String? // unit pelajar berkaitan (padan Kokurikulum.namaUnitT6) — skop pengesahan guru
   peringkat       String // Sekolah | Daerah | Zon/Daerah | Negeri | Kebangsaan | Antarabangsa
   tarikh          DateTime?
   lampiranSurat   String?

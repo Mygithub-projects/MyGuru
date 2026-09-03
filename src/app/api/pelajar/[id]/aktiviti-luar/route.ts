@@ -19,11 +19,19 @@ export async function POST(
   const form = await request.formData();
   const namaAktiviti = String(form.get("namaAktiviti") ?? "").trim();
   const peringkat = String(form.get("peringkat") ?? "");
+  const namaUnit = String(form.get("namaUnit") ?? "");
   const tarikh = String(form.get("tarikh") ?? "");
   if (!namaAktiviti) return fail("Nama aktiviti diperlukan", 422);
   if (!PERINGKAT.includes(peringkat as (typeof PERINGKAT)[number])) {
     return fail("Peringkat tidak sah", 422);
   }
+
+  // Sahkan namaUnit terus dari Kokurikulum pelajar (skop pengesahan guru bergantung pada ini).
+  const unitSah = await prisma.kokurikulum.findFirst({
+    where: { pelajarId: id, namaUnitT6: namaUnit },
+    select: { namaUnitT6: true },
+  });
+  if (!unitSah) return fail("Unit berkaitan diperlukan/tidak sah", 422);
 
   try {
     const surat = await simpanFailDariForm(form, "surat", "surat");
@@ -32,6 +40,7 @@ export async function POST(
       data: {
         pelajarId: id,
         namaAktiviti,
+        namaUnit,
         peringkat,
         tarikh: tarikh ? new Date(tarikh) : null,
         lampiranSurat: surat,

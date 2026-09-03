@@ -8,7 +8,6 @@ import {
   markahAktivitiLuar,
   markahJawatan,
   markahPenglibatan,
-  markahPencapaian,
   markahProjekJawatan,
   markahProjekPeringkat,
   markahEkstra,
@@ -197,12 +196,13 @@ export async function kiraSemulaT6(pelajarId: string) {
     ...luarLulus.map((a) => markahPenglibatan(a.peringkat)),
   ]);
 
-  // --- PENCAPAIAN (§1.5): peringkat × kedudukan, tertinggi (kecuali item ekstra).
+  // --- PENCAPAIAN (§1.5): guna markah yang telah disahkan guru (tertinggi,
+  // kecuali item ekstra). markahPencapaian(peringkat, kedudukan) TIDAK dipakai
+  // di sini kerana `kedudukan` tidak pernah diisi oleh borang pelajar/guru —
+  // markah sudah dikira & disimpan semasa pengesahan (lihat sahkanPencapaian).
   const markahPcp = maks([
-    ...luarLulus.map((a) => markahPencapaian(a.peringkat, a.namaAktiviti)),
-    ...pencapaianLulus
-      .filter((p) => p.kategori !== "ekstra")
-      .map((p) => markahPencapaian(p.peringkat, p.kedudukan)),
+    ...luarLulus.map((a) => a.markahLuar),
+    ...pencapaianLulus.filter((p) => p.kategori !== "ekstra").map((p) => p.markah),
   ]);
 
   // --- PROJEK (§1.6 & §1.7): tertinggi merentas laporan projek yang diluluskan.

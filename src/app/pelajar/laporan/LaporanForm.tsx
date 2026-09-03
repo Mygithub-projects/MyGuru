@@ -8,6 +8,13 @@ interface Unit { jenisKoko: string; namaUnit: string; }
 interface Projek { id: string; namaProjek: string; status: string; }
 interface Sesi { id: string; namaUnit: string; bilPerjumpaan: number; }
 
+// Nilai mesti sepadan dengan MARKAH_PROJEK_JAWATAN / markahProjekPeringkat (src/lib/pajsk.ts).
+const JAWATAN_PROJEK = [
+  "Pengurus Projek", "Pengerusi", "Timbalan Pengerusi", "Naib Pengerusi", "Setiausaha",
+  "Bendahari", "Penolong Setiausaha", "Penolong Bendahari", "Ahli Jawatankuasa", "Ahli",
+];
+const PERINGKAT_PROJEK = ["Sekolah", "Daerah", "Zon/Daerah", "Negeri", "Kebangsaan", "Antarabangsa"];
+
 export function LaporanForm({ units, projek, sesiList }: { units: Unit[]; projek: Projek[]; sesiList: Sesi[] }) {
   const router = useRouter();
   const locale = useLocale();
@@ -59,7 +66,7 @@ export function LaporanForm({ units, projek, sesiList }: { units: Unit[]; projek
       )}
 
       {tab === "mingguan" ? (
-        <form onSubmit={(e) => submit(e, "/api/laporan/mingguan", true)} className="grid gap-3 sm:grid-cols-2">
+        <form key="mingguan" onSubmit={(e) => submit(e, "/api/laporan/mingguan", true)} className="grid gap-3 sm:grid-cols-2">
           <select name="namaUnit" className={inputCls} required>
             {units.map((u, i) => <option key={i} value={u.namaUnit}>{unitLabel[u.jenisKoko] ?? u.jenisKoko}: {u.namaUnit}</option>)}
           </select>
@@ -79,12 +86,24 @@ export function LaporanForm({ units, projek, sesiList }: { units: Unit[]; projek
           </div>
         </form>
       ) : (
-        <form onSubmit={(e) => submit(e, "/api/laporan/projek", true)} className="grid gap-3 sm:grid-cols-2">
+        <form key="projek" onSubmit={(e) => submit(e, "/api/laporan/projek", true)} className="grid gap-3 sm:grid-cols-2">
           <select name="projekId" className={inputCls} defaultValue="">
             <option value="">{t.newProjectOption}</option>
             {projek.map((p) => <option key={p.id} value={p.id}>{t.reportProjectOptionPrefix}{p.namaProjek}</option>)}
           </select>
+          <select name="namaUnit" className={inputCls} required defaultValue="">
+            <option value="" disabled>{t.projectUnitPlaceholder}</option>
+            {units.map((u, i) => <option key={i} value={u.namaUnit}>{unitLabel[u.jenisKoko] ?? u.jenisKoko}: {u.namaUnit}</option>)}
+          </select>
           <input name="namaProjek" placeholder={t.projectNamePlaceholder} className={inputCls} />
+          <select name="jawatanProjek" className={inputCls} defaultValue="">
+            <option value="">{t.projectPositionPlaceholder}</option>
+            {JAWATAN_PROJEK.map((j) => <option key={j} value={j}>{j}</option>)}
+          </select>
+          <select name="peringkatProjek" className={inputCls} defaultValue="">
+            <option value="">{t.projectLevelPlaceholder}</option>
+            {PERINGKAT_PROJEK.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
           <div className="text-xs text-slate-500 sm:col-span-2">{t.reportUploadPrompt}</div>
           <label className="text-sm">{t.workPlanLabel}
             <input name="kertasKerja" type="file" className={`${inputCls} mt-1`} />

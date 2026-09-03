@@ -11,10 +11,17 @@ const PERINGKAT = ["Sekolah", "Daerah", "Zon/Daerah", "Negeri", "Kebangsaan", "A
 // dengan mesej jelas, bukan ditolak senyap oleh platform (413 → "Ralat rangkaian").
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
-export function AktivitiForm({ pelajarId }: { pelajarId: string }) {
+interface Unit { jenisKoko: string; namaUnit: string; }
+
+export function AktivitiForm({ pelajarId, units }: { pelajarId: string; units: Unit[] }) {
   const router = useRouter();
   const locale = useLocale();
-  const t = getDict(locale).pelajar;
+  const dict = getDict(locale);
+  const t = dict.pelajar;
+  const common = dict.common;
+  const unitLabel: Record<string, string> = {
+    Sukan: common.sukan, Kelab: common.kelab, Uniform: common.uniform, Perkhidmatan: common.perkhidmatan,
+  };
   const [tab, setTab] = useState<"pencapaian" | "luar">("pencapaian");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -82,6 +89,10 @@ export function AktivitiForm({ pelajarId }: { pelajarId: string }) {
             <option value="">{t.activityForm.levelPlaceholder}</option>
             {PERINGKAT.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
+          <select name="namaUnit" className={inputCls} required defaultValue="">
+            <option value="" disabled>{t.activityForm.unitPlaceholder}</option>
+            {units.map((u, i) => <option key={i} value={u.namaUnit}>{unitLabel[u.jenisKoko] ?? u.jenisKoko}: {u.namaUnit}</option>)}
+          </select>
           <label className="text-sm sm:col-span-2">{t.activityForm.evidenceLabel}
             <input name="eviden" type="file" className={`${inputCls} mt-1`} />
           </label>
@@ -95,6 +106,10 @@ export function AktivitiForm({ pelajarId }: { pelajarId: string }) {
           <select name="peringkat" className={inputCls} required defaultValue="">
             <option value="" disabled>{t.activityForm.levelPlaceholder}</option>
             {PERINGKAT.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <select name="namaUnit" className={inputCls} required defaultValue="">
+            <option value="" disabled>{t.activityForm.unitPlaceholder}</option>
+            {units.map((u, i) => <option key={i} value={u.namaUnit}>{unitLabel[u.jenisKoko] ?? u.jenisKoko}: {u.namaUnit}</option>)}
           </select>
           <input type="date" name="tarikh" className={inputCls} aria-label={t.activityForm.dateLabel} />
           <div />
