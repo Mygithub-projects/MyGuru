@@ -107,6 +107,16 @@ body {
 }
 .dark .app-shell ::placeholder { color: var(--d-muted); }
 
+/* Butang "Choose File" (input type=file) — tidak diwarisi oleh peraturan .bg-slate-100 di atas */
+.dark .app-shell input[type="file"]::file-selector-button {
+  background-color: var(--d-surface);
+  color: var(--d-text-strong);
+}
+.dark .app-shell input[type="file"]::-webkit-file-upload-button {
+  background-color: var(--d-surface);
+  color: var(--d-text-strong);
+}
+
 /* Carta SVG */
 .dark .app-shell .fill-slate-700 { fill: var(--d-text-strong); }
 .dark .app-shell .fill-slate-500,

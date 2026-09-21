@@ -6,9 +6,9 @@ import { DemografiClient } from "./DemografiClient";
 export default async function DemografiPage() {
   const pelajar = await prisma.pelajar.findMany({
     orderBy: { nama: "asc" },
-    select: { id: true, nama: true, noIc: true, jantina: true, kaum: true, agama: true },
+    select: { id: true, nama: true, noIc: true, kelasT6: true, jantina: true, kaum: true, agama: true },
   });
-  const { t } = await getT();
+  const { t, locale } = await getT();
   return (
     <div className="space-y-6">
       <div>
@@ -20,6 +20,7 @@ export default async function DemografiPage() {
       </div>
       <DemografiClient
         pelajar={pelajar}
+        locale={locale}
         t={{
           colName: t.guru.colName, colGender: t.admin.demografiPage.colGender,
           colRace: t.admin.demografiPage.colRace, colReligion: t.admin.demografiPage.colReligion,
