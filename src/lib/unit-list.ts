@@ -1,6 +1,6 @@
 // ===========================================================================
-//  Senarai unit kokurikulum — senarai asas rasmi digabung dengan unit sedia
-//  ada dalam sistem (distinct dari rekod pelajar). Untuk dropdown borang.
+//  Senarai unit kokurikulum — senarai rasmi TETAP (BASELINE sahaja, tiada
+//  gabungan dengan nama lapuk dari rekod pelajar). Untuk dropdown borang.
 // ===========================================================================
 import { prisma } from "./prisma";
 import { buangKurungan } from "./pajsk";
@@ -9,15 +9,17 @@ import { buangKurungan } from "./pajsk";
 // kategori ke-4 berasingan (lihat JENIS_KOKO dalam ./enums.ts).
 const BASELINE: Record<string, string[]> = {
   Sukan: [
-    "Ping Pong", "Badminton", "Bola Jaring", "Futsal", "Bola Keranjang",
-    "Bola Tampar", "Seni Mempertahankan Diri", "Catur",
+    "Bola Tampar", "Bola Keranjang", "Badminton", "Catur",
+    "Bola Jaring", "Futsal", "Ping Pong", "Seni Mempertahankan Diri",
   ],
   Kelab: [
-    "STEM", "Bahasa", "Kebudayaan", "KPJ", "Bimbingan & Kerjaya",
-    "Alam Sekitar", "Komputer", "Kewangan", "Pelancongan", "Fotografi",
-    "Rukunegara", "Falak", "Muzik", "Informasi", "Koperasi",
+    "Persatuan Sains dan Matematik", "Persatuan Bahasa", "Kelab Kebudayaan dan Kesenian",
+    "Kelab Pencegahan Jenayah", "Kelab Bimbingan dan Kerjaya", "Kelab Alam Sekitar dan Keceriaan",
+    "Kelab Komputer", "Kelab Kewangan dan Pengguna", "Kelab Pelancongan dan Rekreasi",
+    "Kelab Fotografi", "Kelab Rukun Negara", "Kelab Falak", "Kelab Muzik",
+    "Kelab Informasi", "Kelab Koperasi",
   ],
-  Uniform: ["PISPA", "PENGAKAP", "St JOHN", "BOMBA"],
+  Uniform: ["Pengakap Kelana", "St. John Ambulans Malaysia", "Briged Bomba", "PISPA"],
   Perkhidmatan: [
     "Unit Perwakilan Pelajar", "Sidang Redaksi", "Unit Koko & QM",
     "Unit Lembaga Pusat Sumber", "Unit Koperator Koperasi", "Unit PRS",
@@ -28,28 +30,10 @@ const BASELINE: Record<string, string[]> = {
 export type SenaraiUnit = Record<"Sukan" | "Kelab" | "Uniform" | "Perkhidmatan", string[]>;
 
 export async function senaraiUnit(): Promise<SenaraiUnit> {
-  const koko = await prisma.kokurikulum.findMany({
-    select: { jenisKoko: true, namaUnitT5: true, namaUnitT6: true },
-  });
-  const set: Record<string, Set<string>> = {
-    Sukan: new Set(BASELINE.Sukan),
-    Kelab: new Set(BASELINE.Kelab),
-    Uniform: new Set(BASELINE.Uniform),
-    Perkhidmatan: new Set(BASELINE.Perkhidmatan),
-  };
-  for (const k of koko) {
-    const tambah = (n: string | null) => {
-      if (!n) return;
-      const bersih = buangKurungan(n) || n;
-      if (set[k.jenisKoko]) set[k.jenisKoko].add(bersih);
-    };
-    tambah(k.namaUnitT5);
-    tambah(k.namaUnitT6);
-  }
-  const susun = (s: Set<string>) => [...s].sort((a, b) => a.localeCompare(b, "ms"));
+  const susun = (arr: string[]) => [...arr].sort((a, b) => a.localeCompare(b, "ms"));
   return {
-    Sukan: susun(set.Sukan), Kelab: susun(set.Kelab),
-    Uniform: susun(set.Uniform), Perkhidmatan: susun(set.Perkhidmatan),
+    Sukan: susun(BASELINE.Sukan), Kelab: susun(BASELINE.Kelab),
+    Uniform: susun(BASELINE.Uniform), Perkhidmatan: susun(BASELINE.Perkhidmatan),
   };
 }
 

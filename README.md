@@ -84,6 +84,21 @@ Lihat **[`DEPLOY.md`](./DEPLOY.md)** — panduan lengkap Vercel + PostgreSQL (Ne
 storan objek (S3/R2) + pengurusan secrets, termasuk migrasi automatik (`vercel-build`)
 dan bootstrap admin (`npm run db:bootstrap`).
 
+### Pelayan produksi semasa (self-host GCP)
+
+Deployment sebenar yang berjalan sekarang **bukan** Vercel — ia self-host di GCP
+mengikut `DOCKER.md` (projek `prestij-latifah-myguruai`, region `asia-southeast1-b`):
+
+- **URL langsung:** https://34-87-135-99.nip.io
+- **IP (static, direservasi):** `34.87.135.99` (VM `myguru-nginx-vm`)
+- **SSL:** Let's Encrypt (auto-renew, dikendalikan oleh Certbot pada `myguru-nginx-vm`)
+- **App:** Next.js berjalan dalam Docker pada `myguru-docker-vm` (IP dalaman
+  `10.30.0.2:3000`), diproksi oleh Nginx pada `myguru-nginx-vm`
+
+> IP luaran sebelum ini (`136.85.50.231`, bersama domain `136-85-50-231.nip.io`)
+> telah bertukar kerana ia tidak direservasi sebagai IP statik — isu ini telah
+> dibetulkan (2026-09-16).
+
 ## Status Pembangunan
 
 **Siap:**

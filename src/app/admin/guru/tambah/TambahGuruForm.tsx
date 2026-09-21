@@ -12,7 +12,7 @@ const KOSONG = { nama: "", email: "", noIc: "", jawatanKoko: "GuruPenasihat" };
 interface TambahGuruDict {
   jawatanKoko: { guruPenasihat: string; penolongKetuaGP: string; ketuaGP: string; penolongSU: string; pemantauKUPP: string; penyelaras: string };
   kategori: { kelab: string; sukan: string; uniform: string; perkhidmatan: string };
-  peranan: { penasihat: string; ketuaPenasihat: string };
+  peranan: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string };
   fullName: string; fullNamePlaceholder: string; email: string; emailPlaceholder: string;
   icOptional: string; icPlaceholder: string; position: string; unitHint: string;
   credentialNote: string; credentialReveal: string; usernameLabel: string; passwordLabel: string;
@@ -35,7 +35,11 @@ export function TambahGuruForm({ t }: { t: TambahGuruDict }) {
     { v: "Kelab", l: t.kategori.kelab }, { v: "Sukan", l: t.kategori.sukan }, { v: "Uniform", l: t.kategori.uniform },
     { v: "Perkhidmatan", l: t.kategori.perkhidmatan },
   ];
-  const PERANAN = [{ v: "Penasihat", l: t.peranan.penasihat }, { v: "KetuaPenasihat", l: t.peranan.ketuaPenasihat }];
+  const PERANAN = [
+    { v: "Penasihat", l: t.peranan.penasihat },
+    { v: "KetuaPenasihat", l: t.peranan.ketuaPenasihat },
+    { v: "PenolongKetuaGP", l: t.peranan.penolongKetuaGP },
+  ];
   const [f, setF] = useState({ ...KOSONG });
   const [units, setUnits] = useState<Penugasan[]>([]);
   const [hantar, setHantar] = useState(false);

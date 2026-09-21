@@ -33,7 +33,7 @@ export type JenisKoko = (typeof JENIS_KOKO)[number];
 
 // Peranan guru dalam sesuatu unit (jadual GuruPenasihatKelab §3).
 // Buat masa ini kedua-dua peranan mempunyai kuasa sama (lihat & sahkan).
-export const PERANAN_PENASIHAT = ["Penasihat", "KetuaPenasihat"] as const;
+export const PERANAN_PENASIHAT = ["Penasihat", "KetuaPenasihat", "PenolongKetuaGP"] as const;
 export type PerananPenasihat = (typeof PERANAN_PENASIHAT)[number];
 
 // Pilihan jawatan (label dikenali oleh parser markahJawatan di pajsk.ts)

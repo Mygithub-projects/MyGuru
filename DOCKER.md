@@ -3,6 +3,11 @@
 Deploy rasmi projek ini ialah **Vercel** (lihat `DEPLOY.md`). Setup Docker di sini
 untuk **self-host** atau **dev tempatan** — ia tidak menggantikan Vercel.
 
+> **Produksi semasa berjalan dengan setup ini** (bukan Vercel): self-host di GCP
+> (`myguru-docker-vm` + `myguru-nginx-vm`, projek `prestij-latifah-myguruai`),
+> diakses di **https://34-87-135-99.nip.io** (IP statik `34.87.135.99`, SSL
+> Let's Encrypt via Certbot).
+
 ## Mula pantas
 
 ```bash

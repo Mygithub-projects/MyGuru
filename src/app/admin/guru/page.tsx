@@ -1,20 +1,24 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getT } from "@/lib/locale";
+import { senaraiUnit } from "@/lib/unit-list";
 import { GuruClient } from "./GuruClient";
 
 export default async function GuruAdminPage() {
-  const { t } = await getT();
-  const guruRaw = await prisma.guru.findMany({
-    orderBy: { nama: "asc" },
-    select: {
-      id: true, nama: true, email: true, jawatanKoko: true, statusAktif: true,
-      penasihatKelab: {
-        select: { namaUnit: true, jenisKoko: true, peranan: true },
-        orderBy: { namaUnit: "asc" },
+  const [{ t }, guruRaw, unitOptions] = await Promise.all([
+    getT(),
+    prisma.guru.findMany({
+      orderBy: { nama: "asc" },
+      select: {
+        id: true, nama: true, email: true, jawatanKoko: true, statusAktif: true,
+        penasihatKelab: {
+          select: { namaUnit: true, jenisKoko: true, peranan: true },
+          orderBy: { namaUnit: "asc" },
+        },
       },
-    },
-  });
+    }),
+    senaraiUnit(),
+  ]);
   const guru = guruRaw.map((g) => ({
     id: g.id,
     nama: g.nama,
@@ -37,6 +41,7 @@ export default async function GuruAdminPage() {
       </div>
       <GuruClient
         guru={guru}
+        unitOptions={unitOptions}
         t={{
           jawatanKoko: t.common.jawatanKoko,
           kategori: { kelab: t.common.kelab, sukan: t.common.sukan, uniform: t.common.uniform, perkhidmatan: t.common.perkhidmatan },

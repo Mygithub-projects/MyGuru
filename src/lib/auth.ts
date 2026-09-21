@@ -17,11 +17,30 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
 }
 
 // --- Helper cookie (Next 16: cookies() adalah async) ---
+
+/**
+ * Patutkah cookie sesi ditanda `Secure`?
+ *
+ * Lalai: ya dalam produksi. Tetapi pelayar MEMBUANG cookie `Secure` yang
+ * datang dari origin bukan-HTTPS (secara senyap, tiada ralat) — jadi bina
+ * produksi yang dilayan atas `http://` biasa, mis. self-host pada IP tanpa
+ * TLS, akan sentiasa terpelanting balik ke /login walaupun kata laluan betul.
+ *
+ * Set `COOKIE_SECURE="false"` pada pemasangan sedemikian. Ambil perhatian ini
+ * bermakna token sesi bergerak sebagai teks jelas — hanya sesuai untuk LAN
+ * tertutup atau ujian, bukan produksi yang terdedah ke Internet.
+ */
+function cookieSecure(): boolean {
+  const flag = process.env.COOKIE_SECURE;
+  if (flag !== undefined) return flag === "true";
+  return process.env.NODE_ENV === "production";
+}
+
 export async function setSessionCookie(token: string): Promise<void> {
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 8,
