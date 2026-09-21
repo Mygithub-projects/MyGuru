@@ -117,11 +117,12 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
               <div className="mt-2 flex items-center justify-between gap-2">
                 {(() => {
                   const kod = u ? statusPilihanT6(u) : "Belum Pilih";
+                  if (kod === "Kekal") return null;
                   return <StatusBadge status={kod} label={labelStatusPilihanT6(kod, locale)} />;
                 })()}
                 <button
                   onClick={() => buka(k.v)}
-                  className={`rounded-md px-3 py-1 text-xs font-semibold text-white ${berdaftar ? "bg-ink hover:bg-ink-2" : "bg-brand hover:bg-brand-hover"}`}
+                  className={`ml-auto rounded-md px-3 py-1 text-xs font-semibold text-white ${berdaftar ? "bg-ink hover:bg-ink-2" : "bg-brand hover:bg-brand-hover"}`}
                 >
                   {berdaftar ? t.unitChange : t.unitRegister}
                 </button>

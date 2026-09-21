@@ -55,6 +55,14 @@ export function LivePending({ t: lp, intervalMs = 15000 }: { t: LivePendingDict;
 
   const entries = data ? Object.entries(data.ringkasan).filter(([, n]) => n > 0) : [];
 
+  function papar(id: string) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    el.classList.add("ring-2", "ring-brand");
+    setTimeout(() => el.classList.remove("ring-2", "ring-brand"), 1500);
+  }
+
   return (
     <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -90,13 +98,22 @@ export function LivePending({ t: lp, intervalMs = 15000 }: { t: LivePendingDict;
         <p className="text-sm text-emerald-600">{lp.noItems}</p>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700 ring-1 ring-amber-200">
+          <button
+            type="button"
+            onClick={() => papar("review-panel")}
+            className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700 ring-1 ring-amber-200 transition hover:bg-amber-100"
+          >
             {data.jumlah} {lp.total}
-          </span>
+          </button>
           {entries.map(([k, n]) => (
-            <span key={k} className="rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-600">
+            <button
+              key={k}
+              type="button"
+              onClick={() => papar(`review-${k}`)}
+              className="rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-600 transition hover:border-brand/30 hover:bg-brand-light"
+            >
               {LABEL[k] ?? k}: <strong className="text-slate-800">{n}</strong>
-            </span>
+            </button>
           ))}
         </div>
       )}

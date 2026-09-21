@@ -185,7 +185,7 @@ export async function janaButiranPDF(d: ButiranData): Promise<Uint8Array> {
   for (const k of d.kokurikulum) {
     page.drawText(`• ${k.jenisKoko}: ${k.namaUnitT6 ?? "-"} — ${k.jawatanT6 ?? "-"} (${k.peringkatT6 ?? "-"})`,
       { x: 48, y, size: 10, font, color: DARK });
-    if (k.status) {
+    if (k.status && k.status !== "Kekal") {
       const label = `[${labelStatusPilihanT6(k.status, d.locale ?? "ms")}]`;
       const w = font.widthOfTextAtSize(label, 9);
       page.drawText(label, { x: width - 40 - w, y, size: 9, font: bold, color: BRAND });

@@ -66,7 +66,10 @@ export async function AnalitikDashboard({
         </Panel>
 
         <Panel title={ta.unitSelectionStatus}>
-          <DonutChart data={statusT6.map((s) => ({ ...s, nama: labelStatusPilihanT6(s.nama, locale) }))} emptyLabel={ta.noChartData} />
+          <DonutChart
+            data={statusT6.filter((s) => s.nama !== "Kekal").map((s) => ({ ...s, nama: labelStatusPilihanT6(s.nama, locale) }))}
+            emptyLabel={ta.noChartData}
+          />
         </Panel>
 
         <Panel title={ta.attendanceTrend}>

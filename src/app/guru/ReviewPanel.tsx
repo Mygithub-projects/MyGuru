@@ -120,7 +120,7 @@ export function ReviewPanel({
     cadanganJawatanList.length === 0;
 
   return (
-    <div className="space-y-5">
+    <div id="review-panel" className="space-y-5 scroll-mt-4">
       {msg && (
         <div
           className={`rounded-md px-3 py-2 text-sm ${
@@ -139,7 +139,7 @@ export function ReviewPanel({
 
       {/* Pertukaran Unit */}
       {pertukaranList.length > 0 && (
-        <Section title={`${t.unitTransferTitle} (${pertukaranList.length})`}>
+        <Section id="review-pertukaran" title={`${t.unitTransferTitle} (${pertukaranList.length})`}>
           {pertukaranList.map((p) => (
             <Row
               key={p.id}
@@ -174,7 +174,7 @@ export function ReviewPanel({
 
       {/* Cadangan Jawatan */}
       {cadanganJawatanList.length > 0 && (
-        <Section title={`${t.positionSuggestionTitle} (${cadanganJawatanList.length})`}>
+        <Section id="review-cadanganJawatan" title={`${t.positionSuggestionTitle} (${cadanganJawatanList.length})`}>
           {cadanganJawatanList.map((c) => (
             <Row
               key={c.id}
@@ -200,7 +200,7 @@ export function ReviewPanel({
 
       {/* Pencapaian */}
       {pencapaianList.length > 0 && (
-        <Section title={`${t.achievementTitle} (${pencapaianList.length})`}>
+        <Section id="review-pencapaian" title={`${t.achievementTitle} (${pencapaianList.length})`}>
           {pencapaianList.map((p) => (
             <PencapaianRow
               key={p.id}
@@ -216,7 +216,7 @@ export function ReviewPanel({
 
       {/* Aktiviti Luar */}
       {aktivitiLuarList.length > 0 && (
-        <Section title={`${t.externalActivityTitle} (${aktivitiLuarList.length})`}>
+        <Section id="review-aktivitiLuar" title={`${t.externalActivityTitle} (${aktivitiLuarList.length})`}>
           {aktivitiLuarList.map((a) => {
             const lengkap = a.lampiranSurat && a.lampiranSijil;
             return (
@@ -255,7 +255,7 @@ export function ReviewPanel({
 
       {/* Laporan Mingguan */}
       {laporanMingguanList.length > 0 && (
-        <Section title={`${t.weeklyReportTitle} (${laporanMingguanList.length})`}>
+        <Section id="review-laporanMingguan" title={`${t.weeklyReportTitle} (${laporanMingguanList.length})`}>
           {laporanMingguanList.map((l) => (
             <Row key={l.id} nama={l.setiausaha.nama} kelas={l.setiausaha.kelasT6} tajuk={l.tajuk}>
               <Btn label={t.confirm} tone="ok" loading={busy === `lm-${l.id}-a`}
@@ -276,7 +276,7 @@ export function ReviewPanel({
 
       {/* Laporan Projek */}
       {laporanProjekList.length > 0 && (
-        <Section title={`${t.projectReportTitle} (${laporanProjekList.length})`}>
+        <Section id="review-laporanProjek" title={`${t.projectReportTitle} (${laporanProjekList.length})`}>
           {laporanProjekList.map((l) => (
             <Row key={l.id} nama={l.setiausaha.nama} kelas={l.setiausaha.kelasT6} tajuk={l.tajuk}>
               <Btn label={t.confirm} tone="ok" loading={busy === `lp-${l.id}-a`}
@@ -297,7 +297,7 @@ export function ReviewPanel({
 
       {/* Sesi Kehadiran */}
       {sesiKehadiranList.length > 0 && (
-        <Section title={`${t.attendanceSessionTitle} (${sesiKehadiranList.length})`}>
+        <Section id="review-sesiKehadiran" title={`${t.attendanceSessionTitle} (${sesiKehadiranList.length})`}>
           {sesiKehadiranList.map((s) => (
             <Row key={s.id} nama={s.namaUnit} kelas={null} tajuk={`${s.jenisKoko}: ${s.namaUnit} — Perjumpaan ${s.bilPerjumpaan}`}>
               <Btn label={t.confirm} tone="ok" loading={busy === `sk-${s.id}`}
@@ -378,9 +378,9 @@ function PencapaianRow({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+    <section id={id} className="scroll-mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{title}</h2>
       <div className="space-y-2">{children}</div>
     </section>

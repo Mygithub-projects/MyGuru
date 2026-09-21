@@ -11,6 +11,7 @@ import { HeroBanner } from "@/components/HeroBanner";
 import { StatCard } from "@/components/StatCard";
 import { ReviewPanel } from "./ReviewPanel";
 import { LivePending } from "./LivePending";
+import { StatusPilihanTable } from "./StatusPilihanTable";
 import { CadanganAiPanel, type CadanganRow } from "./CadanganAiPanel";
 import type { CadanganAgent } from "@prisma/client";
 
@@ -206,37 +207,23 @@ export default async function GuruDashboard() {
         </h2>
         {statusT6.mode === "ringkasan" ? (
           <div className="flex flex-wrap gap-2">
-            {Object.entries(statusT6.counts).map(([s, n]) => (
-              <span key={s} className="flex items-center gap-2 rounded-lg border border-slate-100 px-3 py-2 text-sm">
-                <StatusBadge status={s} label={labelStatusPilihanT6(s, locale)} /> <strong className="text-slate-700">{n}</strong>
-              </span>
-            ))}
+            {Object.entries(statusT6.counts)
+              .filter(([s]) => s !== "Kekal")
+              .map(([s, n]) => (
+                <span key={s} className="flex items-center gap-2 rounded-lg border border-slate-100 px-3 py-2 text-sm">
+                  <StatusBadge status={s} label={labelStatusPilihanT6(s, locale)} /> <strong className="text-slate-700">{n}</strong>
+                </span>
+              ))}
           </div>
         ) : statusT6.rows.length === 0 ? (
           <p className="text-sm text-slate-400">{t.guru.noMembers}</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-400">
-                  <th className="py-2 pr-3">{t.header.roleStudent}</th>
-                  <th className="py-2 pr-3">Unit</th>
-                  <th className="py-2 pr-3">{t.common.jawatan}</th>
-                  <th className="py-2">{t.common.status}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {statusT6.rows.map((r, i) => (
-                  <tr key={i} className="border-b border-slate-100 last:border-0">
-                    <td className="py-2 pr-3 font-medium text-slate-700">{r.nama}</td>
-                    <td className="py-2 pr-3 text-slate-600">{r.jenisKoko}: {r.namaUnit}</td>
-                    <td className="py-2 pr-3 text-slate-600">{r.jawatan}</td>
-                    <td className="py-2"><StatusBadge status={r.status} label={labelStatusPilihanT6(r.status, locale)} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <StatusPilihanTable
+            rows={statusT6.rows}
+            t={{ colUnit: t.guru.colUnit, expandAll: t.guru.expandAll, collapseAll: t.guru.collapseAll }}
+            header={{ roleStudent: t.header.roleStudent }}
+            common={{ jawatan: t.common.jawatan }}
+          />
         )}
       </section>
 
