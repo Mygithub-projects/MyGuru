@@ -8,7 +8,7 @@ const back = "group inline-flex items-center gap-1.5 rounded-lg bg-brand-light p
 export default async function AdminKehadiranPage({
   searchParams,
 }: {
-  searchParams: Promise<{ unit?: string; jenis?: string }>;
+  searchParams: Promise<{ unit?: string; jenis?: string; belumSah?: string }>;
 }) {
   const { t } = await getT();
   const d = t.admin.kehadiranPage;
@@ -19,6 +19,7 @@ export default async function AdminKehadiranPage({
   const sp = await searchParams;
   const fUnit = sp.unit?.trim() || "";
   const fJenis = sp.jenis?.trim() || "";
+  const fBelumSah = sp.belumSah === "1";
 
   const semuaUnit = await prisma.sesiKehadiran.findMany({ select: { namaUnit: true }, distinct: ["namaUnit"], orderBy: { namaUnit: "asc" } });
 
@@ -38,11 +39,17 @@ export default async function AdminKehadiranPage({
     };
   });
   const purata = rows.length ? Math.round((rows.reduce((a, r) => a + r.peratus, 0) / rows.length) * 10) / 10 : 0;
+  const belumSahCount = rows.filter((r) => !r.disahkan).length;
+  const rowsDipaparkan = fBelumSah ? rows.filter((r) => !r.disahkan) : rows;
 
   const q = new URLSearchParams();
   if (fUnit) q.set("unit", fUnit);
   if (fJenis) q.set("jenis", fJenis);
   const qs = q.toString() ? `&${q.toString()}` : "";
+
+  const qBelumSah = new URLSearchParams(q);
+  qBelumSah.set("belumSah", "1");
+  const qTanpaBelumSah = new URLSearchParams(q);
 
   const inp = "rounded-lg border border-slate-300 px-2 py-1.5 text-sm";
 
@@ -57,7 +64,13 @@ export default async function AdminKehadiranPage({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Kad label={d.totalMeetings} nilai={`${rows.length}`} />
         <Kad label={d.avgAttendance} nilai={`${purata}%`} />
-        <Kad label={d.notVerified} nilai={`${rows.filter((r) => !r.disahkan).length}`} />
+        <Kad
+          label={d.notVerified}
+          nilai={`${belumSahCount}`}
+          href={belumSahCount > 0 ? `/admin/kehadiran?${(fBelumSah ? qTanpaBelumSah : qBelumSah).toString()}` : undefined}
+          active={fBelumSah}
+          hint={belumSahCount > 0 ? d.clickToFilter : undefined}
+        />
       </div>
 
       {/* Penapis + Eksport */}
@@ -75,8 +88,9 @@ export default async function AdminKehadiranPage({
               {JENIS.map((j) => <option key={j.v} value={j.v}>{j.l}</option>)}
             </select>
           </label>
+          {fBelumSah && <input type="hidden" name="belumSah" value="1" />}
           <button type="submit" className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover">{d.filterBtn}</button>
-          {(fUnit || fJenis) && <Link href="/admin/kehadiran" className="px-2 py-2 text-sm text-slate-500 hover:underline">{d.resetBtn}</Link>}
+          {(fUnit || fJenis) && <Link href={`/admin/kehadiran${fBelumSah ? "?belumSah=1" : ""}`} className="px-2 py-2 text-sm text-slate-500 hover:underline">{d.resetBtn}</Link>}
         </form>
         <div className="flex gap-2">
           <a href={`/api/admin/kehadiran/eksport?format=excel${qs}`} className="rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white hover:bg-ink-2">⬇ Excel</a>
@@ -85,22 +99,43 @@ export default async function AdminKehadiranPage({
       </div>
 
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{d.listTitle}</h2>
-        {rows.length === 0 ? (
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{d.listTitle}</h2>
+          {fBelumSah && (
+            <Link href={`/admin/kehadiran?${qTanpaBelumSah.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
+              {d.showAllBtn}
+            </Link>
+          )}
+        </div>
+        {rowsDipaparkan.length === 0 ? (
           <p className="text-sm text-slate-400">{d.noSessions}</p>
         ) : (
-          <KehadiranTable rows={rows} t={{ ...t.admin.kehadiranTable, closeLabel: t.common.modalClose }} />
+          <KehadiranTable
+            key={fBelumSah ? "belum-sah" : "semua"}
+            rows={rowsDipaparkan}
+            t={{ ...t.admin.kehadiranTable, closeLabel: t.common.modalClose }}
+            expandAll={fBelumSah}
+          />
         )}
       </section>
     </div>
   );
 }
 
-function Kad({ label, nilai }: { label: string; nilai: string }) {
-  return (
-    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+function Kad({
+  label, nilai, href, active, hint,
+}: { label: string; nilai: string; href?: string; active?: boolean; hint?: string }) {
+  const kelas = `block rounded-xl bg-white p-4 shadow-sm ring-1 transition ${
+    active ? "ring-2 ring-brand" : "ring-slate-200"
+  } ${href ? "hover:ring-brand/50" : ""}`;
+  const isi = (
+    <>
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-slate-800">{nilai}</p>
-    </div>
+    </>
   );
+  if (href) {
+    return <Link href={href} title={hint} className={kelas}>{isi}</Link>;
+  }
+  return <div className={kelas}>{isi}</div>;
 }

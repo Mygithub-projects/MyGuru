@@ -119,7 +119,7 @@ export interface Dict {
     dashboardTitle: string; position: string; scopeSchool: string; scopeUnit: string;
     linkMembers: string; linkAttendance: string; linkAnalytics: string; linkSelection: string;
     cardStudents: string; cardPending: string; cardClub: string; cardSportBb: string;
-    statusPilihan: string; noMembers: string;
+    statusPilihan: string; noMembers: string; expandAll: string; collapseAll: string; colUnit: string;
     verifiedDocs: string; noVerifiedDocs: string; weekly: string; project: string;
     membersTitle: string; membersSub: string; unitCount: string; memberCount: string;
     colName: string; colClass: string; colCurrentPos: string; colMark: string; colSetPos: string; setPos: string;
@@ -215,7 +215,7 @@ export interface Dict {
     kehadiranPage: {
       title: string; subtitle: string; totalMeetings: string; avgAttendance: string; notVerified: string;
       unitLabel: string; allUnits: string; typeLabel: string; allTypes: string; filterBtn: string;
-      resetBtn: string; listTitle: string; noSessions: string;
+      resetBtn: string; listTitle: string; noSessions: string; clickToFilter: string; showAllBtn: string;
     };
     kehadiranTable: {
       colUnit: string; colType: string; colMeeting: string; colDate: string; colPresent: string;
@@ -403,6 +403,7 @@ const ms: Dict = {
     linkMembers: "👥 Senarai Ahli & Jawatan", linkAttendance: "🗓️ Kehadiran Perjumpaan", linkAnalytics: "📊 Lihat Analitik", linkSelection: "🏆 Pilih Pelajar untuk Pertandingan",
     cardStudents: "Pelajar Diselia", cardPending: "Menunggu Tindakan", cardClub: "Kelab/Persatuan", cardSportBb: "Sukan / BB",
     statusPilihan: "Status Pilihan Unit T6", noMembers: "Tiada ahli dalam unit seliaan.",
+    expandAll: "Buka Semua", collapseAll: "Tutup Semua", colUnit: "Unit",
     verifiedDocs: "Dokumen Laporan Disahkan", noVerifiedDocs: "Tiada laporan disahkan lagi.", weekly: "Mingguan", project: "Projek",
     membersTitle: "Senarai Nama Ahli", membersSub: "Tetapkan jawatan ahli menggunakan menu di setiap baris.", unitCount: "unit", memberCount: "ahli",
     colName: "Nama", colClass: "Kelas", colCurrentPos: "Jawatan Semasa", colMark: "Markah", colSetPos: "Tetapkan Jawatan", setPos: "Tetapkan",
@@ -518,6 +519,7 @@ const ms: Dict = {
       totalMeetings: "Jumlah Perjumpaan", avgAttendance: "Purata Kehadiran", notVerified: "Belum Disahkan",
       unitLabel: "Unit", allUnits: "Semua unit", typeLabel: "Jenis", allTypes: "Semua", filterBtn: "Tapis",
       resetBtn: "Reset", listTitle: "Senarai Perjumpaan", noSessions: "Tiada sesi kehadiran untuk tapisan ini.",
+      clickToFilter: "Klik untuk papar sesi belum disahkan sahaja", showAllBtn: "← Papar Semua",
     },
     kehadiranTable: {
       colUnit: "Unit", colType: "Jenis", colMeeting: "Perjumpaan", colDate: "Tarikh", colPresent: "Hadir",
@@ -742,6 +744,7 @@ const en: Dict = {
     linkMembers: "👥 Member List & Positions", linkAttendance: "🗓️ Meeting Attendance", linkAnalytics: "📊 View Analytics", linkSelection: "🏆 Select Students for Competition",
     cardStudents: "Students Supervised", cardPending: "Pending Actions", cardClub: "Club/Society", cardSportBb: "Sports / UB",
     statusPilihan: "F6 Unit Selection Status", noMembers: "No members in supervised units.",
+    expandAll: "Expand All", collapseAll: "Collapse All", colUnit: "Unit",
     verifiedDocs: "Verified Report Documents", noVerifiedDocs: "No verified reports yet.", weekly: "Weekly", project: "Project",
     membersTitle: "Member Name List", membersSub: "Assign member positions using the menu on each row.", unitCount: "unit(s)", memberCount: "member(s)",
     colName: "Name", colClass: "Class", colCurrentPos: "Current Position", colMark: "Mark", colSetPos: "Assign Position", setPos: "Assign",
@@ -857,6 +860,7 @@ const en: Dict = {
       totalMeetings: "Total Meetings", avgAttendance: "Avg. Attendance", notVerified: "Not Verified",
       unitLabel: "Unit", allUnits: "All units", typeLabel: "Type", allTypes: "All", filterBtn: "Filter",
       resetBtn: "Reset", listTitle: "Meeting List", noSessions: "No attendance sessions for this filter.",
+      clickToFilter: "Click to show only unverified sessions", showAllBtn: "← Show All",
     },
     kehadiranTable: {
       colUnit: "Unit", colType: "Type", colMeeting: "Meeting", colDate: "Date", colPresent: "Present",

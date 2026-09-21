@@ -42,23 +42,48 @@ async function dataKehadiran(filter: FilterKehadiran) {
   });
 }
 
+// Nama tab Excel: maks 31 aksara, tiada \ / ? * [ ] : , dan mesti unik.
+function namaTabUnik(nama: string, digunakan: Set<string>): string {
+  const bersih = nama.replace(/[\\/?*[\]:]/g, " ").trim().slice(0, 31) || "Unit";
+  let hasil = bersih;
+  let i = 2;
+  while (digunakan.has(hasil.toLowerCase())) {
+    const sufiks = ` (${i})`;
+    hasil = bersih.slice(0, 31 - sufiks.length) + sufiks;
+    i++;
+  }
+  digunakan.add(hasil.toLowerCase());
+  return hasil;
+}
+
 export async function eksportKehadiranExcel(filter: FilterKehadiran): Promise<Buffer> {
   const rows = await dataKehadiran(filter);
   const wb = new ExcelJS.Workbook();
   wb.creator = "KoKurikulum";
-  const ws = wb.addWorksheet("Kehadiran Perjumpaan");
-  ws.columns = [
-    { header: "Unit", key: "namaUnit", width: 36 },
-    { header: "Jenis", key: "jenisKoko", width: 12 },
-    { header: "Perjumpaan", key: "bil", width: 12 },
-    { header: "Tarikh", key: "tarikh", width: 14 },
-    { header: "Hadir", key: "hadir", width: 8 },
-    { header: "Jumlah", key: "total", width: 8 },
-    { header: "Peratus (%)", key: "peratus", width: 12 },
-    { header: "Status", key: "status", width: 16 },
-  ];
-  rows.forEach((r) => ws.addRow(r));
-  ws.getRow(1).font = { bold: true };
+
+  const kumpulan = new Map<string, typeof rows>();
+  for (const r of rows) {
+    if (!kumpulan.has(r.namaUnit)) kumpulan.set(r.namaUnit, []);
+    kumpulan.get(r.namaUnit)!.push(r);
+  }
+
+  const namaDigunakan = new Set<string>();
+  for (const [namaUnit, rowsUnit] of kumpulan) {
+    const ws = wb.addWorksheet(namaTabUnik(namaUnit, namaDigunakan));
+    ws.columns = [
+      { header: "Jenis", key: "jenisKoko", width: 12 },
+      { header: "Perjumpaan", key: "bil", width: 12 },
+      { header: "Tarikh", key: "tarikh", width: 14 },
+      { header: "Hadir", key: "hadir", width: 8 },
+      { header: "Jumlah", key: "total", width: 8 },
+      { header: "Peratus (%)", key: "peratus", width: 12 },
+      { header: "Status", key: "status", width: 16 },
+    ];
+    rowsUnit.forEach((r) => ws.addRow(r));
+    ws.getRow(1).font = { bold: true };
+  }
+  if (kumpulan.size === 0) wb.addWorksheet("Kehadiran Perjumpaan");
+
   return Buffer.from(await wb.xlsx.writeBuffer());
 }
 
