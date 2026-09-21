@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { requireSession, ok, fail } from "@/lib/api";
 import { ciptaSesi, bilPerjumpaanSeterusnya } from "@/lib/kehadiran";
+import { unitSeliaanSU } from "@/lib/pelajar";
 import { JENIS_KOKO } from "@/lib/enums";
 
 const schema = z.object({
@@ -43,12 +43,10 @@ export async function POST(request: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Input tidak sah", 422);
 
-  // SU/NSU hanya untuk unit sendiri
+  // SU/NSU hanya untuk unit di mana dia sendiri memegang jawatan SU/NSU
   if (session.role === "Pelajar" && session.pelajarId) {
-    const ahli = await prisma.kokurikulum.findFirst({
-      where: { pelajarId: session.pelajarId, namaUnitT6: parsed.data.namaUnit },
-    });
-    if (!ahli) return fail("Anda hanya boleh membuka sesi untuk unit sendiri", 403);
+    const namaUnits = await unitSeliaanSU(session.pelajarId, session.subRole);
+    if (!namaUnits.includes(parsed.data.namaUnit)) return fail("Anda hanya boleh membuka sesi untuk unit seliaan anda", 403);
   }
 
   try {

@@ -22,6 +22,30 @@ export interface BarisMarkah {
   maks: number;
 }
 
+/**
+ * Unit-unit T6 di mana pelajar memegang jawatan Setiausaha (SU) / Penolong
+ * Setiausaha (NSU) — BUKAN semua unit yang disertainya. Sub-peranan SU/NSU
+ * ditetapkan pada akaun pelajar (lihat workflow.ts: tetapkanJawatanOlehGuru)
+ * berdasarkan jawatan di SATU unit sahaja; unit lain yang disertai pelajar
+ * (cth. sebagai Ahli Aktif) berada di luar skop seliaannya.
+ */
+export async function unitSeliaanSU(pelajarId: string, subRole: string | null | undefined): Promise<string[]> {
+  const koko = await prisma.kokurikulum.findMany({
+    where: { pelajarId },
+    select: { namaUnitT6: true, jawatanT6: true },
+  });
+  // Padanan tak-peka-huruf-besar/kecil (data sedia ada bercampur kes, cth. "SETIAUSAHA" vs "Setiausaha").
+  return koko
+    .filter((k) => {
+      if (!k.namaUnitT6 || !k.jawatanT6) return false;
+      const j = k.jawatanT6.toUpperCase();
+      const nsu = j.includes("PENOLONG SETIAUSAHA") || j.includes("NAIB SETIAUSAHA");
+      const su = j.includes("SETIAUSAHA") && !nsu;
+      return subRole === "NSU" ? nsu : su;
+    })
+    .map((k) => k.namaUnitT6 as string);
+}
+
 export async function getPelajarProfil(pelajarId: string) {
   const pelajar = await prisma.pelajar.findUnique({
     where: { id: pelajarId },

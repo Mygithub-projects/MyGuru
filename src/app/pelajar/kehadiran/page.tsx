@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ahliUnit } from "@/lib/kehadiran";
+import { unitSeliaanSU } from "@/lib/pelajar";
 import { KehadiranPanel } from "./KehadiranPanel";
 import { getT } from "@/lib/locale";
 
@@ -23,8 +24,9 @@ export default async function KehadiranPage() {
     );
   }
 
-  // Unit yang dimiliki SU ini
-  const koko = await prisma.kokurikulum.findMany({ where: { pelajarId: session.pelajarId } });
+  // Unit seliaan = unit T6 di mana pelajar memegang jawatan Setiausaha/Penolong Setiausaha sahaja
+  const namaUnitSeliaan = await unitSeliaanSU(session.pelajarId, session.subRole);
+  const koko = await prisma.kokurikulum.findMany({ where: { pelajarId: session.pelajarId, namaUnitT6: { in: namaUnitSeliaan } } });
   const units = await Promise.all(
     koko
       .filter((k) => k.namaUnitT6)

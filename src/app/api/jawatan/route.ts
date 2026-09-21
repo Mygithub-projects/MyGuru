@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSession, ok, fail } from "@/lib/api";
 import { cadangJawatan } from "@/lib/workflow";
+import { unitSeliaanSU } from "@/lib/pelajar";
 import { JENIS_KOKO, JAWATAN_PILIHAN } from "@/lib/enums";
 
 const schema = z.object({
@@ -26,13 +27,9 @@ export async function POST(request: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Input tidak sah", 422);
 
-  // SU hanya untuk ahli dalam unit sendiri
+  // SU/NSU hanya untuk ahli dalam unit di mana dia sendiri memegang jawatan SU/NSU
   if (session.role === "Pelajar" && session.pelajarId) {
-    const suUnits = await prisma.kokurikulum.findMany({
-      where: { pelajarId: session.pelajarId },
-      select: { namaUnitT6: true },
-    });
-    const namaUnits = suUnits.map((u) => u.namaUnitT6).filter(Boolean) as string[];
+    const namaUnits = await unitSeliaanSU(session.pelajarId, session.subRole);
     const ahli = await prisma.kokurikulum.findFirst({
       where: { pelajarId: parsed.data.pelajarId, jenisKoko: parsed.data.jenisKoko, namaUnitT6: { in: namaUnits } },
     });

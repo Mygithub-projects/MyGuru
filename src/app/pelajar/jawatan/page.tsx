@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getT } from "@/lib/locale";
+import { unitSeliaanSU } from "@/lib/pelajar";
 import { JawatanPanel } from "./JawatanPanel";
 
 export default async function JawatanPage() {
@@ -22,9 +23,8 @@ export default async function JawatanPage() {
     );
   }
 
-  // Unit seliaan SU = unit T6 sendiri
-  const suKoko = await prisma.kokurikulum.findMany({ where: { pelajarId: session.pelajarId } });
-  const units = suKoko.map((k) => k.namaUnitT6).filter(Boolean) as string[];
+  // Unit seliaan = unit T6 di mana pelajar memegang jawatan Setiausaha/Penolong Setiausaha sahaja
+  const units = await unitSeliaanSU(session.pelajarId, session.subRole);
 
   const ahli = await prisma.kokurikulum.findMany({
     where: { namaUnitT6: { in: units } },
