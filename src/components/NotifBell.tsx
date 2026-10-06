@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { OPEN_NOTIF_EVENT } from "./shell/Sidebar";
 import type { Dict } from "@/lib/i18n";
 
@@ -9,6 +9,7 @@ export function NotifBell({ onLight, t }: { onLight?: boolean; t: Pick<Dict["chr
   const [open, setOpen] = useState(false);
   const [senarai, setSenarai] = useState<Notif[]>([]);
   const [belum, setBelum] = useState(0);
+  const kotakRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onOpen = () => buka();
@@ -16,6 +17,15 @@ export function NotifBell({ onLight, t }: { onLight?: boolean; t: Pick<Dict["chr
     return () => window.removeEventListener(OPEN_NOTIF_EVENT, onOpen);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, belum]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickLuar = (e: MouseEvent) => {
+      if (kotakRef.current && !kotakRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClickLuar);
+    return () => document.removeEventListener("mousedown", onClickLuar);
+  }, [open]);
 
   useEffect(() => {
     // setState berlaku dalam callback .then (async) — bukan segerak dalam effect.
@@ -43,7 +53,7 @@ export function NotifBell({ onLight, t }: { onLight?: boolean; t: Pick<Dict["chr
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={kotakRef}>
       <button
         onClick={buka}
         className={
