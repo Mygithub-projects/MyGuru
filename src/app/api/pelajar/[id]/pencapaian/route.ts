@@ -34,6 +34,7 @@ export async function POST(
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Ralat muat naik", 400);
   }
+  if (!eviden) return fail("Eviden diperlukan untuk pengesahan guru", 422);
 
   const rec = await prisma.pencapaian.create({
     data: {

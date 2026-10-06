@@ -94,7 +94,7 @@ export function AktivitiForm({ pelajarId, units }: { pelajarId: string; units: U
             {units.map((u, i) => <option key={i} value={u.namaUnit}>{unitLabel[u.jenisKoko] ?? u.jenisKoko}: {u.namaUnit}</option>)}
           </select>
           <label className="text-sm sm:col-span-2">{t.activityForm.evidenceLabel}
-            <input name="eviden" type="file" className={`${inputCls} mt-1`} />
+            <input name="eviden" type="file" className={`${inputCls} mt-1`} required />
           </label>
           <button disabled={busy} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50 sm:w-auto">
             {busy ? "..." : t.activityForm.submit}

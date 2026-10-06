@@ -189,13 +189,14 @@ export default async function GuruDashboard() {
           kategori: p.kategori,
           peringkat: p.peringkat,
           markahCadangan: cadangMarkahPencapaian(p.peringkat),
+          lampiranEviden: p.lampiranEviden,
           pelajar: p.pelajar,
         }))}
         aktivitiLuar={aktivitiLuar}
         pertukaran={pertukaran}
         laporanMingguan={laporanMingguan.map((l) => ({ id: l.id, tajuk: l.aktiviti, setiausaha: l.setiausaha }))}
         laporanProjek={laporanProjek.map((l) => ({ id: l.id, tajuk: l.namaProjek, setiausaha: l.setiausaha }))}
-        sesiKehadiran={sesiKehadiran.map((s) => ({ id: s.id, namaUnit: s.namaUnit, jenisKoko: s.jenisKoko, bilPerjumpaan: s.bilPerjumpaan }))}
+        sesiKehadiran={sesiKehadiran.map((s) => ({ id: s.id, namaUnit: s.namaUnit, jenisKoko: s.jenisKoko, bilPerjumpaan: s.bilPerjumpaan, kehadiran: s.kehadiran }))}
         cadanganJawatan={cadanganJawatan.map((c) => ({ id: c.id, jenisKoko: c.jenisKoko, jawatanBaru: c.jawatanBaru, markahJawatan: c.markahJawatan, pelajar: c.pelajar }))}
         t={t.guru.reviewPanel}
       />

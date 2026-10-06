@@ -367,6 +367,15 @@ export async function sahkanPencapaian(input: {
   markah?: number;
   komen?: string;
 }) {
+  if (input.status === "Approved") {
+    const rec = await prisma.pencapaian.findUnique({
+      where: { id: input.pencapaianId },
+      select: { lampiranEviden: true },
+    });
+    if (!rec?.lampiranEviden) {
+      throw new Error("Tiada eviden: pencapaian tidak boleh disahkan tanpa lampiran eviden.");
+    }
+  }
   const p = await prisma.pencapaian.update({
     where: { id: input.pencapaianId },
     data: {

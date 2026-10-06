@@ -144,6 +144,9 @@ export interface Dict {
       rejectReasonPrompt: string; queryCommentPrompt: string;
       evidenceComplete: string; evidenceIncomplete: string; marksPlaceholder: string;
       aiSuggestTitle: string;
+      viewEvidence: string; viewLetter: string; viewCert: string; noEvidence: string;
+      viewAttendance: string; hideAttendance: string; present: string; absent: string; meeting: string;
+      reviewFirst: string;
     };
     cadanganAiPanel: {
       title: string; pendingCountTpl: string; sortNewest: string; sortOldest: string; sortAriaLabel: string;
@@ -432,6 +435,9 @@ const ms: Dict = {
       rejectReasonPrompt: "Sebab penolakan (pilihan):", queryCommentPrompt: "Komen kuiri:",
       evidenceComplete: "Eviden lengkap (surat + sijil)", evidenceIncomplete: "⚠ Eviden tidak lengkap",
       marksPlaceholder: "Markah", aiSuggestTitle: "Markah dicadang AI mengikut peringkat (rubrik §5.5). Boleh laras sebelum sahkan.",
+      viewEvidence: "📎 Lihat eviden", viewLetter: "📎 Surat", viewCert: "📎 Sijil", noEvidence: "Tiada eviden — sila kuiri pelajar",
+      viewAttendance: "Semak kehadiran", hideAttendance: "Tutup senarai", present: "hadir", absent: "Tidak hadir", meeting: "Perjumpaan",
+      reviewFirst: "Semak eviden dahulu sebelum mengesahkan",
     },
     cadanganAiPanel: {
       title: "🤖 Cadangan AI", pendingCountTpl: "{n} menunggu", sortNewest: "Terkini dahulu", sortOldest: "Terlama dahulu",
@@ -773,6 +779,9 @@ const en: Dict = {
       rejectReasonPrompt: "Reason for rejection (optional):", queryCommentPrompt: "Query comment:",
       evidenceComplete: "Evidence complete (letter + certificate)", evidenceIncomplete: "⚠ Evidence incomplete",
       marksPlaceholder: "Marks", aiSuggestTitle: "Mark suggested by AI based on level (rubric §5.5). Adjustable before confirming.",
+      viewEvidence: "📎 View evidence", viewLetter: "📎 Letter", viewCert: "📎 Certificate", noEvidence: "No evidence — please query the student",
+      viewAttendance: "Review attendance", hideAttendance: "Hide list", present: "present", absent: "Absent", meeting: "Meeting",
+      reviewFirst: "Review the evidence before confirming",
     },
     cadanganAiPanel: {
       title: "🤖 AI Suggestions", pendingCountTpl: "{n} pending", sortNewest: "Newest first", sortOldest: "Oldest first",

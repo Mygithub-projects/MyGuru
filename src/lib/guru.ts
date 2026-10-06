@@ -81,6 +81,12 @@ export async function getGuruDashboard(guru: Guru) {
       }),
       prisma.sesiKehadiran.findMany({
         where: { disahkan: false, ...whereSesi },
+        include: {
+          kehadiran: {
+            select: { statusHadir: true, pelajar: { select: { nama: true, kelasT6: true } } },
+            orderBy: { pelajar: { nama: "asc" } },
+          },
+        },
         orderBy: { createdAt: "desc" },
       }),
       prisma.cadanganJawatan.findMany({

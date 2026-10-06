@@ -106,7 +106,7 @@ export function SenaraiAhliTabs({
   t: TabsDict;
   jawatanKoko: string;
   locale: Locale;
-  unitLabel: Record<string, string>;
+  unitLabel?: Record<string, string>;
 }) {
   const [aktif, setAktif] = useState(0);
   const unit = units[aktif] ?? units[0];
@@ -139,7 +139,7 @@ export function SenaraiAhliTabs({
                   on ? "bg-white/20 text-white" : "bg-brand-light text-brand-dark"
                 }`}
               >
-                {locale === "ms" ? u.jenisKoko : unitLabel[u.jenisKoko] ?? u.jenisKoko}
+                {locale === "ms" ? u.jenisKoko : unitLabel?.[u.jenisKoko] ?? u.jenisKoko}
               </span>
               <span className="max-w-[14rem] truncate">{u.namaUnit}</span>
               <span
