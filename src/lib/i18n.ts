@@ -239,6 +239,19 @@ export interface Dict {
       submitAdd: string; submitting: string;
     };
     sijilPage: { title: string; subtitle: string };
+    sijilTabs: { template: string; program: string };
+    ecertProgram: {
+      subtitle: string; noSaveMode: string; startNumber: string; generatePdf: string; signerName: string; signerPosition: string;
+      programName: string; date: string; level: string; levels: string[]; venue: string; serialYear: string;
+      students: string; studentHint: string; searching: string; minChars: string; noResults: string; resultsCapped: string;
+      alreadyIn: string; noneChosen: string; remove: string; role: string; roles: string[];
+      saveGenerate: string; saving: string; previewTitle: string; previewStudent: string; previewIc: string;
+      previewProgram: string; previewOf: string;
+      savedPrograms: string; noPrograms: string; participants: string; viewParticipants: string; hideParticipants: string;
+      addStudents: string; adding: string; colName: string; colIc: string; colSchool: string; colRole: string; colSerial: string;
+      noParticipants: string; removeSelected: string; confirmRemove: string; generateAll: string; generateOne: string;
+      deleteProgram: string; confirmDeleteProgram: string;
+    };
     sijilClient: {
       instName: string; certTitle: string; signerName: string; signerPosition: string; stampText: string;
       saveTemplate: string; saving: string; previewTitle: string; previewStudent: string; previewActivity: string;
@@ -549,6 +562,29 @@ const ms: Dict = {
       submitAdd: "Tambah Pelajar", submitting: "Menyimpan…",
     },
     sijilPage: { title: "Templat e-Cert", subtitle: "Suai institusi, tajuk sijil, nama & jawatan penandatangan, serta teks cop." },
+    sijilTabs: { template: "Templat e-Cert", program: "e-Cert Program" },
+    ecertProgram: {
+      subtitle: "Jana e-Cert untuk pelajar Tingkatan 6 (dari mana-mana sekolah) yang menyertai program anjuran kolej.",
+      noSaveMode: "Mod tanpa simpan: e-Cert dijana terus sebagai PDF dan tiada rekod disimpan. Tetapkan No. Siri bermula sendiri (sistem tidak menyemak nombor yang pernah digunakan). Simpanan & nombor automatik aktif selepas pentadbir DB menjalankan scripts/manual-migration-ecert-program.sql.",
+      startNumber: "No. Siri bermula", generatePdf: "Jana e-Cert (PDF)",
+      signerName: "Nama Penandatangan", signerPosition: "Jawatan Penandatangan",
+      programName: "Nama Program", date: "Tarikh Program", level: "Peringkat Program", levels: ["Zon", "Negeri", "Kebangsaan"],
+      venue: "Tempat (pilihan)", serialYear: "Tahun No. Siri",
+      students: "Pelajar (Nama / No. KP)", studentHint: "Taip sekurang-kurangnya 3 aksara, kemudian klik nama untuk memilih",
+      searching: "Mencari...", minChars: "Masukkan sekurang-kurangnya 3 aksara.", noResults: "Tiada murid T6 dijumpai.",
+      resultsCapped: "Menunjukkan 20 hasil pertama — perhalusi carian.", alreadyIn: "dipilih", noneChosen: "Belum ada pelajar dipilih.",
+      remove: "Buang", role: "Peranan", roles: ["Peserta", "AJK", "Fasilitator", "Urus Setia"],
+      saveGenerate: "Simpan & Jana e-Cert", saving: "Menyimpan...",
+      previewTitle: "Pratonton", previewStudent: "[ Nama Pelajar ]", previewIc: "[ No. KP ]",
+      previewProgram: "[ Nama Program ]", previewOf: "Pratonton pelajar",
+      savedPrograms: "Program Tersimpan", noPrograms: "Belum ada program.", participants: "peserta",
+      viewParticipants: "Lihat peserta", hideParticipants: "Tutup", addStudents: "Tambah pelajar", adding: "Menambah...",
+      colName: "Nama", colIc: "No. KP", colSchool: "Sekolah", colRole: "Peranan", colSerial: "No. Siri",
+      noParticipants: "Belum ada peserta.", removeSelected: "Buang dipilih",
+      confirmRemove: "Buang peserta dipilih? No. Siri e-Cert mereka akan dibatalkan.",
+      generateAll: "📄 PDF semua", generateOne: "PDF", deleteProgram: "Padam",
+      confirmDeleteProgram: "Padam program ini beserta semua peserta & No. Siri e-Cert? Tindakan ini tidak boleh dibatalkan.",
+    },
     sijilClient: {
       instName: "Nama Institusi", certTitle: "Tajuk Sijil", signerName: "Nama Penandatangan", signerPosition: "Jawatan Penandatangan", stampText: "Teks Cop (pilihan)",
       saveTemplate: "Simpan Templat", saving: "Menyimpan...", previewTitle: "Pratonton", previewStudent: "[ Nama Pelajar ]", previewActivity: "[ Nama Aktiviti ]",
@@ -893,6 +929,29 @@ const en: Dict = {
       submitAdd: "Add Student", submitting: "Saving…",
     },
     sijilPage: { title: "e-Cert Template", subtitle: "Customize institution, certificate title, signer name & position, and stamp text." },
+    sijilTabs: { template: "e-Cert Template", program: "Program e-Cert" },
+    ecertProgram: {
+      subtitle: "Generate e-Certs for Form 6 students (from any school) who took part in a programme organised by the college.",
+      noSaveMode: "No-save mode: e-Certs are generated directly as a PDF and no record is kept. Set the starting serial number yourself (the system does not check numbers already used). Saving & automatic numbering activate once the DB administrator runs scripts/manual-migration-ecert-program.sql.",
+      startNumber: "Starting serial no.", generatePdf: "Generate e-Certs (PDF)",
+      signerName: "Signer Name", signerPosition: "Signer Position",
+      programName: "Programme Name", date: "Programme Date", level: "Programme Level", levels: ["Zon", "Negeri", "Kebangsaan"],
+      venue: "Venue (optional)", serialYear: "Serial No. Year",
+      students: "Students (Name / IC No.)", studentHint: "Type at least 3 characters, then click a name to select",
+      searching: "Searching...", minChars: "Enter at least 3 characters.", noResults: "No Form 6 students found.",
+      resultsCapped: "Showing the first 20 results — refine your search.", alreadyIn: "selected", noneChosen: "No students selected yet.",
+      remove: "Remove", role: "Role", roles: ["Peserta", "AJK", "Fasilitator", "Urus Setia"],
+      saveGenerate: "Save & Generate e-Certs", saving: "Saving...",
+      previewTitle: "Preview", previewStudent: "[ Student Name ]", previewIc: "[ IC No. ]",
+      previewProgram: "[ Programme Name ]", previewOf: "Preview student",
+      savedPrograms: "Saved Programmes", noPrograms: "No programmes yet.", participants: "participants",
+      viewParticipants: "View participants", hideParticipants: "Close", addStudents: "Add students", adding: "Adding...",
+      colName: "Name", colIc: "IC No.", colSchool: "School", colRole: "Role", colSerial: "Serial No.",
+      noParticipants: "No participants yet.", removeSelected: "Remove selected",
+      confirmRemove: "Remove selected participants? Their e-Cert serial numbers will be voided.",
+      generateAll: "📄 PDF (all)", generateOne: "PDF", deleteProgram: "Delete",
+      confirmDeleteProgram: "Delete this programme with all participants & e-Cert serial numbers? This cannot be undone.",
+    },
     sijilClient: {
       instName: "Institution Name", certTitle: "Certificate Title", signerName: "Signer Name", signerPosition: "Signer Position", stampText: "Stamp Text (optional)",
       saveTemplate: "Save Template", saving: "Saving...", previewTitle: "Preview", previewStudent: "[ Student Name ]", previewActivity: "[ Activity Name ]",

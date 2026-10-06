@@ -3,7 +3,7 @@
 // ===========================================================================
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { PDFDocument, StandardFonts, rgb, type PDFImage } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage } from "pdf-lib";
 import { getDict, type Locale } from "./i18n";
 import { labelStatusPilihanT6 } from "./pajsk";
 
@@ -41,16 +41,89 @@ export interface ECertData {
 
 export async function janaECertPDF(d: ECertData): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
+  const aset = await asetECert(doc);
+  lukisECert(doc, aset, {
+    ...d,
+    barisIdentiti: `No. KP: ${d.noIc}  ·  ${d.kelas}`,
+    ayat: "telah menyertai dan menunjukkan pencapaian dalam",
+    barisPeringkat: `Peringkat ${d.peringkat}  ·  Markah PAJSK: ${d.markah}`,
+  });
+  return doc.save();
+}
+
+/** e-Cert Program: satu halaman bagi setiap peserta dalam satu PDF. */
+export interface ECertProgramData {
+  namaProgram: string;
+  peringkat: string;
+  tarikh: string;
+  tempat?: string | null;
+  peserta: { nama: string; noKp: string; namaSekolah?: string | null; peranan: string; noSiri: string }[];
+  institusi?: string;
+  tajukSijil?: string;
+  namaPenandatangan?: string;
+  jawatanPenandatangan?: string;
+  teksCop?: string;
+}
+
+export async function janaECertProgramPDF(d: ECertProgramData): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  const aset = await asetECert(doc);
+  const peringkat = `Peringkat ${d.peringkat}${d.tempat ? `  ·  ${d.tempat}` : ""}`;
+  for (const p of d.peserta) {
+    lukisECert(doc, aset, {
+      nama: p.nama,
+      barisIdentiti: `No. KP: ${p.noKp}`,
+      ayat: p.peranan && p.peranan !== "Peserta"
+        ? `telah berkhidmat sebagai ${p.peranan} dalam`
+        : "telah menyertai",
+      namaAktiviti: d.namaProgram,
+      barisPeringkat: peringkat,
+      tarikh: d.tarikh,
+      noSiri: p.noSiri,
+      institusi: d.institusi,
+      tajukSijil: d.tajukSijil,
+      namaPenandatangan: d.namaPenandatangan,
+      jawatanPenandatangan: d.jawatanPenandatangan,
+      teksCop: d.teksCop,
+    });
+  }
+  return doc.save();
+}
+
+type AsetECert = { font: PDFFont; bold: PDFFont; logo: PDFImage | null };
+
+async function asetECert(doc: PDFDocument): Promise<AsetECert> {
+  return {
+    font: await doc.embedFont(StandardFonts.Helvetica),
+    bold: await doc.embedFont(StandardFonts.HelveticaBold),
+    logo: await muatLogo(doc),
+  };
+}
+
+interface HalamanECert {
+  nama: string;
+  barisIdentiti: string;
+  ayat: string;
+  namaAktiviti: string;
+  barisPeringkat: string;
+  tarikh: string;
+  noSiri: string;
+  institusi?: string;
+  tajukSijil?: string;
+  namaPenandatangan?: string;
+  jawatanPenandatangan?: string;
+  teksCop?: string;
+}
+
+/** Lukis satu halaman e-Cert (A4 landskap). Susun atur sepadan pratonton SijilClient. */
+function lukisECert(doc: PDFDocument, { font, bold, logo }: AsetECert, d: HalamanECert) {
   const page = doc.addPage([842, 595]); // A4 landskap
   const { width, height } = page.getSize();
-  const font = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
 
   // Bingkai
   page.drawRectangle({ x: 20, y: 20, width: width - 40, height: height - 40, borderColor: BRAND, borderWidth: 3 });
   page.drawRectangle({ x: 28, y: 28, width: width - 56, height: height - 56, borderColor: BRAND, borderWidth: 1 });
 
-  const logo = await muatLogo(doc);
   if (logo) {
     const dims = logo.scale(70 / logo.height);
     page.drawImage(logo, { x: width / 2 - dims.width / 2, y: height - 120, width: dims.width, height: dims.height });
@@ -66,12 +139,12 @@ export async function janaECertPDF(d: ECertData): Promise<Uint8Array> {
   center("e-Cert · Sistem KoKurikulum", height - 195, 11, font, GREY);
 
   center("Dengan ini disahkan bahawa", height - 240, 13, font, GREY);
-  center(d.nama.toUpperCase(), height - 275, 26, bold, DARK);
-  center(`No. KP: ${d.noIc}  ·  ${d.kelas}`, height - 298, 12, font, GREY);
+  center(muat(d.nama.toUpperCase(), 26, bold), height - 275, 26, bold, DARK);
+  center(muat(d.barisIdentiti, 12, font), height - 298, 12, font, GREY);
 
-  center("telah menyertai dan menunjukkan pencapaian dalam", height - 335, 13, font, GREY);
-  center(d.namaAktiviti, height - 365, 18, bold, BRAND);
-  center(`Peringkat ${d.peringkat}  ·  Markah PAJSK: ${d.markah}`, height - 388, 13, font, DARK);
+  center(d.ayat, height - 335, 13, font, GREY);
+  center(muat(d.namaAktiviti, 18, bold), height - 365, 18, bold, BRAND);
+  center(muat(d.barisPeringkat, 13, font), height - 388, 13, font, DARK);
 
   // Footer: tarikh, no siri, tandatangan
   page.drawText(`Tarikh: ${d.tarikh}`, { x: 80, y: 90, size: 11, font, color: DARK });
@@ -86,7 +159,14 @@ export async function janaECertPDF(d: ECertData): Promise<Uint8Array> {
 
   center("Sahkan keaslian sijil ini melalui No. Siri di portal KoKurikulum.", 50, 8, font, GREY);
 
-  return doc.save();
+  // Pendekkan teks panjang (cth. nama sekolah) supaya tidak melimpah bingkai.
+  function muat(teks: string, size: number, f: PDFFont): string {
+    const maks = width - 120;
+    if (f.widthOfTextAtSize(teks, size) <= maks) return teks;
+    let t = teks;
+    while (t.length > 1 && f.widthOfTextAtSize(`${t}…`, size) > maks) t = t.slice(0, -1);
+    return `${t.trimEnd()}…`;
+  }
 }
 
 export interface ButiranData {

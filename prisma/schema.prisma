@@ -295,6 +295,43 @@ model TetapanSijil {
   updatedAt            DateTime @updatedAt
 }
 
+// === e-Cert Program (program anjuran kolej; peserta dari vw_murid MOE) ======
+
+model ProgramECert {
+  id          String   @id @default(cuid())
+  namaProgram String
+  tarikh      DateTime
+  peringkat   String // Zon | Negeri | Kebangsaan
+  tempat      String?
+  tahunSiri   Int // tahun dalam No. Siri (KTEDM/<tahunSiri>/<nombor>) — dipilih admin
+  // Penandatangan khusus program (kosong = guna Templat e-Cert)
+  namaPenandatangan    String?
+  jawatanPenandatangan String?
+  dibuatOleh  String? // userId Admin
+  createdAt   DateTime @default(now())
+
+  peserta PesertaProgram[]
+}
+
+model PesertaProgram {
+  id          String       @id @default(cuid())
+  program     ProgramECert @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programId   String
+  // Salinan butiran dari private.vw_murid pada masa ditambah (sijil kekal walaupun data MOE berubah)
+  nama        String
+  noKp        String
+  idMoeis     String?
+  kodSekolah  String?
+  namaSekolah String?
+  namaKelas   String?
+  peranan     String       @default("Peserta") // Peserta | AJK | Fasilitator | ...
+  noSiri      String       @unique
+  createdAt   DateTime     @default(now())
+
+  @@unique([programId, noKp])
+  @@index([noKp])
+}
+
 // === Log/Versi Import (audit trail — §6) ==================================
 // Setiap muat naik DUMM PAJSK dicatat: siapa, bila, versi mana, ringkasan
 // perbezaan (diff), dan data yang diparse. Status Preview → Applied/Batal.
