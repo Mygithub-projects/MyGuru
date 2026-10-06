@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { JAWATAN_PELAJAR } from "@/lib/enums";
+import { labelJawatan, type Locale } from "@/lib/i18n";
 
 interface JawatanAssignDict { placeholder: string; assignTitle: string; networkError: string }
 
@@ -10,11 +11,13 @@ export function JawatanAssign({
   jenisKoko,
   current,
   t,
+  locale,
 }: {
   pelajarId: string;
   jenisKoko: string;
   current: string | null;
   t: JawatanAssignDict;
+  locale: Locale;
 }) {
   const router = useRouter();
   const [nilai, setNilai] = useState<string>(
@@ -57,7 +60,7 @@ export function JawatanAssign({
       >
         <option value="">{t.placeholder}</option>
         {JAWATAN_PELAJAR.map((j) => (
-          <option key={j} value={j}>{j}</option>
+          <option key={j} value={j}>{labelJawatan(j, locale)}</option>
         ))}
       </select>
       {msg && (

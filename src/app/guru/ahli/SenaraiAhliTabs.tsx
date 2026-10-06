@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { JawatanAssign } from "./JawatanAssign";
+import { labelJawatan, type Locale } from "@/lib/i18n";
 
 interface Ahli {
   pelajarId: string;
@@ -97,11 +98,15 @@ export function SenaraiAhliTabs({
   labels,
   t,
   jawatanKoko,
+  locale,
+  unitLabel,
 }: {
   units: Unit[];
   labels: Labels;
   t: TabsDict;
   jawatanKoko: string;
+  locale: Locale;
+  unitLabel: Record<string, string>;
 }) {
   const [aktif, setAktif] = useState(0);
   const unit = units[aktif] ?? units[0];
@@ -134,7 +139,7 @@ export function SenaraiAhliTabs({
                   on ? "bg-white/20 text-white" : "bg-brand-light text-brand-dark"
                 }`}
               >
-                {u.jenisKoko}
+                {locale === "ms" ? u.jenisKoko : unitLabel[u.jenisKoko] ?? u.jenisKoko}
               </span>
               <span className="max-w-[14rem] truncate">{u.namaUnit}</span>
               <span
@@ -189,7 +194,7 @@ export function SenaraiAhliTabs({
                   )}
                 </td>
                 <td className="py-2 pr-3 text-slate-600">{a.kelas ?? "-"}</td>
-                <td className="py-2 pr-3 text-slate-600">{a.jawatan ?? "-"}</td>
+                <td className="py-2 pr-3 text-slate-600">{a.jawatan ? labelJawatan(a.jawatan, locale) : "-"}</td>
                 <td className="py-2 pr-3 text-slate-600">
                   {a.markahJawatan}
                   {a.markahPajskT6 != null && (
@@ -207,7 +212,7 @@ export function SenaraiAhliTabs({
                   />
                 </td>
                 <td className="py-2">
-                  <JawatanAssign pelajarId={a.pelajarId} jenisKoko={unit.jenisKoko} current={a.jawatan} t={t.jawatanAssign} />
+                  <JawatanAssign pelajarId={a.pelajarId} jenisKoko={unit.jenisKoko} current={a.jawatan} t={t.jawatanAssign} locale={locale} />
                 </td>
               </tr>
             ))}

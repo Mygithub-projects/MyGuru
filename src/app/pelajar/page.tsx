@@ -7,6 +7,7 @@ import { HeroBanner } from "@/components/HeroBanner";
 import { StatCard } from "@/components/StatCard";
 import { senaraiUnitBerpenasihat } from "@/lib/unit-list";
 import { getT } from "@/lib/locale";
+import { labelJawatan, labelPeringkat } from "@/lib/i18n";
 import { UnitSection } from "./UnitSection";
 
 export default async function PelajarDashboard() {
@@ -17,7 +18,7 @@ export default async function PelajarDashboard() {
   if (!data) redirect("/login");
   const { pelajar, markah, penyertaan, kehadiran } = data;
   const senarai = await senaraiUnitBerpenasihat();
-  const { t } = await getT();
+  const { t, locale } = await getT();
   const unitLabel: Record<string, string> = {
     Kelab: t.common.kelab, Sukan: t.common.sukan, Uniform: t.common.uniform, Perkhidmatan: t.common.perkhidmatan,
   };
@@ -54,11 +55,11 @@ export default async function PelajarDashboard() {
                 <p className="mt-1 font-medium text-slate-800">{p.namaUnit}</p>
                 <dl className="mt-2 space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">{t.common.jawatan} {p.jawatan ? `(${p.jawatan})` : ""}</dt>
+                    <dt className="text-slate-500">{t.common.jawatan} {p.jawatan ? `(${labelJawatan(p.jawatan, locale)})` : ""}</dt>
                     <dd className="font-semibold text-slate-700">{p.markahJawatan}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-slate-500">{t.common.peringkat} {p.peringkat ? `(${p.peringkat})` : ""}</dt>
+                    <dt className="text-slate-500">{t.common.peringkat} {p.peringkat ? `(${labelPeringkat(p.peringkat, locale)})` : ""}</dt>
                     <dd className="font-semibold text-slate-700">{p.markahPeringkat}</dd>
                   </div>
                   <div className="flex justify-between border-t border-slate-100 pt-1">

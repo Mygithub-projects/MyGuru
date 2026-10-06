@@ -967,6 +967,78 @@ export function getDict(locale: Locale): Dict {
   return messages[locale] ?? ms;
 }
 
+// Nilai jawatan/peringkat disimpan dalam DB sebagai teks BM bebas (kes bercampur,
+// cth. "AHLI AKTIF", "Kebangsaan", "DAERAH"). Terjemah untuk paparan EN sahaja;
+// frasa yang tiada dalam senarai kekal seperti asal.
+const JAWATAN_EN: [RegExp, string][] = [
+  [/PENOLONG KETUA PATROL/g, "Assistant Patrol Leader"],
+  [/PENOLONG KETUA KELAS/g, "Assistant Class Monitor"],
+  [/PENOLONG KETUA MURID/g, "Assistant Head Prefect"],
+  [/PENOLONG KETUA ASRAMA/g, "Assistant Hostel Head"],
+  [/PENOLONG SETIAUSAHA/g, "Assistant Secretary"],
+  [/PENOLONG BENDAHARI/g, "Assistant Treasurer"],
+  [/PENOLONG TRUP/g, "Assistant Troop Leader"],
+  [/NAIB SETIAUSAHA/g, "Deputy Secretary"],
+  [/(TIMBALAN|NAIB) PENGERUSI/g, "Vice Chairperson"],
+  [/NAIB PRESIDEN/g, "Vice President"],
+  [/NAIB KAPTEN/g, "Vice Captain"],
+  [/NAIB KETUA/g, "Vice Head"],
+  [/PENGURUS PROJEK/g, "Project Manager"],
+  [/AHLI JAWATANKUASA|\bAJK\b/g, "Committee Member"],
+  [/AHLI AKTIF/g, "Active Member"],
+  [/AHLI BIASA/g, "Ordinary Member"],
+  [/KETUA PASUKAN/g, "Team Captain"],
+  [/KETUA PATROL/g, "Patrol Leader"],
+  [/KETUA PLATUN/g, "Platoon Leader"],
+  [/KETUA TRUP/g, "Troop Leader"],
+  [/KETUA RUMAH/g, "House Captain"],
+  [/KETUA MURID/g, "Head Prefect"],
+  [/KETUA ASRAMA/g, "Hostel Head"],
+  [/KETUA KELAS/g, "Class Monitor"],
+  [/KETUA TINGKATAN/g, "Form Monitor"],
+  [/KETUA BIRO/g, "Bureau Head"],
+  [/PEGAWAI WARAN/g, "Warrant Officer"],
+  [/SARJAN MEJAR/g, "Sergeant Major"],
+  [/STAF SARJAN/g, "Staff Sergeant"],
+  [/LANS KOPERAL/g, "Lance Corporal"],
+  [/BINTARA KANAN/g, "Senior NCO"],
+  [/BINTARA MUDA/g, "Junior NCO"],
+  [/LASKAR KANAN/g, "Senior Private"],
+  [/PENGAWAS KOPERASI/g, "Cooperative Prefect"],
+  [/PENGAWAS PUSAT SUMBER/g, "Resource Centre Prefect"],
+  [/PENGAWAS/g, "Prefect"],
+  [/SETIAUSAHA/g, "Secretary"],
+  [/BENDAHARI/g, "Treasurer"],
+  [/PENGERUSI/g, "Chairperson"],
+  [/PRESIDEN/g, "President"],
+  [/KAPTEN/g, "Captain"],
+  [/KOPERAL/g, "Corporal"],
+  [/SARJAN/g, "Sergeant"],
+  [/KETUA/g, "Head"],
+  [/AHLI/g, "Member"],
+];
+
+const PERINGKAT_EN: Record<string, string> = {
+  SEKOLAH: "School", DAERAH: "District", "ZON/DAERAH": "Zone/District", ZON: "Zone",
+  BAHAGIAN: "Division", NEGERI: "State", KEBANGSAAN: "National",
+  ANTARABANGSA: "International", "LAIN-LAIN": "Others",
+};
+
+export function labelJawatan(raw: string | null | undefined, locale: Locale): string {
+  if (!raw) return "";
+  if (locale === "ms") return raw;
+  let s = raw.trim().toUpperCase();
+  for (const [re, en] of JAWATAN_EN) s = s.replace(re, en);
+  // Jika tiada padanan langsung, kekalkan teks asal (kes asal).
+  return s === raw.trim().toUpperCase() ? raw : s;
+}
+
+export function labelPeringkat(raw: string | null | undefined, locale: Locale): string {
+  if (!raw) return "";
+  if (locale === "ms") return raw;
+  return PERINGKAT_EN[raw.trim().toUpperCase()] ?? raw;
+}
+
 export function getLocaleFromCookie(): Locale {
   if (typeof document === "undefined") return DEFAULT_LOCALE;
   const match = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE}=([^;]+)`));

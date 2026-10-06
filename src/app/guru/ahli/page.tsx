@@ -28,7 +28,7 @@ export default async function SenaraiAhliPage() {
 
   const senarai = await getSenaraiAhli(guruEff);
   const jumlahAhli = senarai.reduce((s, u) => s + u.ahli.length, 0);
-  const { t } = await getT();
+  const { t, locale } = await getT();
 
   return (
     <div className="space-y-6">
@@ -61,6 +61,8 @@ export default async function SenaraiAhliPage() {
           }}
           t={{ ...t.guru.senaraiAhliTabs, jawatanAssign: t.guru.jawatanAssign, butiranPelajar: t.guru.butiranPelajar }}
           jawatanKoko={guruEff.jawatanKoko}
+          locale={locale}
+          unitLabel={{ Kelab: t.common.kelab, Sukan: t.common.sukan, Uniform: t.common.uniform, Perkhidmatan: t.common.perkhidmatan }}
         />
       )}
     </div>
