@@ -15,7 +15,8 @@ jobs:
 
     env:
       DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
-      DIRECT_URL: "postgresql://ci:ci@localhost:5432/ci"
+      # directUrl dalam schema.prisma — wajib wujud untuk `prisma validate`.
+      DATABASE_URL_ADMIN: "postgresql://ci:ci@localhost:5432/ci"
       JWT_SECRET: "ci_dummy_secret_minimum_48_characters_long_xxxxxxxxxx"
       NEXT_PUBLIC_INSTITUSI: "CI"
 
