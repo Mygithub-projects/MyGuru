@@ -53,16 +53,27 @@ export const JAWATAN_PILIHAN = [
 ] as const;
 
 // Pilihan jawatan pelajar yang DITETAPKAN oleh guru penasihat (spec guru §5).
-// Markah dipetakan dalam MARKAH_JAWATAN (pajsk.ts): Ketua 10, Naib Ketua 8,
-// Setiausaha 7, Penolong Setiausaha 6, AJK 5.
+// Markah dipetakan dalam MARKAH_JAWATAN (pajsk.ts), cth. Kelab/Sukan: Pengerusi 10,
+// Naib Pengerusi 8, Setiausaha/Bendahari 7, Naib Setiausaha/Naib Bendahari 6, AJK 5.
+// Rekod lama (Ketua, Naib Ketua, Penolong Setiausaha) masih dikira dengan betul.
 export const JAWATAN_PELAJAR = [
-  "Ketua",
-  "Naib Ketua",
+  "Pengerusi",
+  "Naib Pengerusi",
   "Setiausaha",
-  "Penolong Setiausaha",
+  "Naib Setiausaha",
+  "Bendahari",
+  "Naib Bendahari",
   "AJK",
 ] as const;
 export type JawatanPelajar = (typeof JAWATAN_PELAJAR)[number];
+
+/** Nama lama → nama semasa, supaya rekod lama dipapar sebagai pilihan yang setara. */
+export const JAWATAN_PELAJAR_LAMA: Record<string, JawatanPelajar> = {
+  Ketua: "Pengerusi",
+  "Naib Ketua": "Naib Pengerusi",
+  "Penolong Setiausaha": "Naib Setiausaha",
+  "Penolong Bendahari": "Naib Bendahari",
+};
 
 export const STATUS_SEMAKAN = ["Draft", "Pending", "Approved", "Kuiri"] as const;
 export type StatusSemakan = (typeof STATUS_SEMAKAN)[number];

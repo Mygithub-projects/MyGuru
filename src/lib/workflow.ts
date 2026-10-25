@@ -515,7 +515,7 @@ export async function cadangJawatan(input: {
 /**
  * Guru penasihat MENETAPKAN terus jawatan pelajar untuk satu unit (spec guru §5).
  * Tidak melalui aliran cadangan — terus kemas kini T6, kira semula markah, dan
- * selaraskan sub-peranan pelajar (Setiausaha → SU, Penolong Setiausaha → NSU)
+ * selaraskan sub-peranan pelajar (Setiausaha → SU, Naib/Penolong Setiausaha → NSU)
  * supaya mereka boleh mengisi kehadiran & laporan.
  */
 export async function tetapkanJawatanOlehGuru(input: {
@@ -544,7 +544,7 @@ export async function tetapkanJawatanOlehGuru(input: {
 
   // Selaraskan sub-peranan pelajar mengikut jawatan yang ditetapkan.
   const j = input.jawatan.toUpperCase();
-  const subRole = j.includes("PENOLONG SETIAUSAHA")
+  const subRole = j.includes("PENOLONG SETIAUSAHA") || j.includes("NAIB SETIAUSAHA")
     ? "NSU"
     : j.includes("SETIAUSAHA")
     ? "SU"
@@ -557,7 +557,7 @@ export async function tetapkanJawatanOlehGuru(input: {
   await notifyPelajar(input.pelajarId, {
     tajuk: "Jawatan kokurikulum dikemas kini",
     mesej: `Guru penasihat menetapkan jawatan ${input.jenisKoko} anda kepada "${input.jawatan}" (${markah} markah)${
-      subRole ? ` — anda kini ${subRole === "SU" ? "Setiausaha" : "Penolong Setiausaha"} unit.` : "."
+      subRole ? ` — anda kini ${subRole === "SU" ? "Setiausaha" : "Naib Setiausaha"} unit.` : "."
     }`,
     jenis: "lulus",
     pautan: "/pelajar",

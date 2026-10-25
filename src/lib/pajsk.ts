@@ -82,9 +82,9 @@ export type BidangJawatan = "Uniform" | "KelabSukan";
 
 /** (a) Pasukan Badan Beruniform (§1.3a). */
 export const MARKAH_JAWATAN_UNIFORM: { pattern: RegExp; markah: number }[] = [
-  { pattern: /PEGAWAI WARAN\s*(II|2)|TIMBALAN PENGERUSI|BINTARA KANAN|STAF SARJAN|SARJAN MEJAR|KETUA TRUP|KETUA PESURUHJAYA/, markah: 8 },
+  { pattern: /PEGAWAI WARAN\s*(II|2)|TIMBALAN PENGERUSI|NAIB PENGERUSI|BINTARA KANAN|STAF SARJAN|SARJAN MEJAR|KETUA TRUP|KETUA PESURUHJAYA/, markah: 8 },
   { pattern: /PEGAWAI WARAN\s*(I|1)\b|SUB.?INSPEKTOR|DRUM MAJOR|PENGERUSI/, markah: 10 },
-  { pattern: /PENOLONG SETIAUSAHA|PENOLONG BENDAHARI|LANS KOPERAL|KOPERAL|PENOLONG KETUA PATROL|KETUA PATROL|LASKAR KANAN/, markah: 5 },
+  { pattern: /PENOLONG SETIAUSAHA|PENOLONG BENDAHARI|NAIB SETIAUSAHA|NAIB BENDAHARI|LANS KOPERAL|KOPERAL|PENOLONG KETUA PATROL|KETUA PATROL|LASKAR KANAN/, markah: 5 },
   { pattern: /SETIAUSAHA|BENDAHARI|PENOLONG TRUP|BINTARA MUDA|KETUA PLATUN|SARJAN/, markah: 7 },
   { pattern: /AJK|PRA.?PERSETIAAN|AHLI AKTIF/, markah: 4 },
   { pattern: /AHLI BIASA|AHLI/, markah: 2 },
@@ -94,7 +94,7 @@ export const MARKAH_JAWATAN_UNIFORM: { pattern: RegExp; markah: number }[] = [
 export const MARKAH_JAWATAN_KELABSUKAN: { pattern: RegExp; markah: number }[] = [
   { pattern: /NAIB PENGERUSI|TIMBALAN PENGERUSI|NAIB KETUA|NAIB PRESIDEN|NAIB KAPTEN/, markah: 8 },
   { pattern: /PENGERUSI|PRESIDEN|KAPTEN|KETUA PASUKAN|KETUA RUMAH|KETUA/, markah: 10 },
-  { pattern: /PENOLONG SETIAUSAHA|PENOLONG BENDAHARI/, markah: 6 },
+  { pattern: /PENOLONG SETIAUSAHA|PENOLONG BENDAHARI|NAIB SETIAUSAHA|NAIB BENDAHARI/, markah: 6 },
   { pattern: /SETIAUSAHA|BENDAHARI/, markah: 7 },
   { pattern: /AHLI JAWATANKUASA|AJK/, markah: 5 },
   { pattern: /AHLI AKTIF/, markah: 4 },
@@ -208,7 +208,7 @@ export function markahPencapaian(peringkat?: string | null, kedudukan?: string |
 // ===========================================================================
 
 export const MARKAH_PROJEK_JAWATAN: { pattern: RegExp; markah: number }[] = [
-  { pattern: /PENOLONG SETIAUSAHA|PENOLONG BENDAHARI/, markah: 7 },
+  { pattern: /PENOLONG SETIAUSAHA|PENOLONG BENDAHARI|NAIB SETIAUSAHA|NAIB BENDAHARI/, markah: 7 },
   { pattern: /TIMBALAN PENGERUSI|NAIB PENGERUSI|SETIAUSAHA/, markah: 9 },
   { pattern: /PENGURUS PROJEK|PENGERUSI/, markah: 10 },
   { pattern: /BENDAHARI/, markah: 8 },
@@ -257,7 +257,7 @@ export function markahProjekPeringkat(peringkat?: string | null): number {
 
 /** (a) Bidang Perkhidmatan (§1.8a). */
 export const MARKAH_EKSTRA_PERKHIDMATAN: { pattern: RegExp; markah: number }[] = [
-  { pattern: /PENOLONG KETUA MURID|TIMBALAN PENGERUSI/, markah: 8 },
+  { pattern: /PENOLONG KETUA MURID|TIMBALAN PENGERUSI|NAIB PENGERUSI/, markah: 8 },
   { pattern: /KETUA MURID|PENGERUSI/, markah: 10 },
   { pattern: /PENOLONG KETUA ASRAMA|PENGAWAS PUSAT SUMBER|LEMBAGA PENGARAH KOPERASI/, markah: 6 },
   { pattern: /PENGAWAS|KETUA ASRAMA|BADAR|KETUA PRS|BADAN PERKHIDMATAN/, markah: 7 },

@@ -69,6 +69,15 @@ describe("§1.3 Jawatan — dua jadual (Uniform vs Kelab/Sukan)", () => {
     expect(markahJawatan("AJK", "Uniform")).toBe(4);
     expect(markahJawatan("Ahli Biasa", "Uniform")).toBe(2);
   });
+  it("pilihan Tetapkan Jawatan (JAWATAN_PELAJAR) — Naib SU/Bendahari setara Penolong", () => {
+    expect(markahJawatan("Naib Setiausaha", "KelabSukan")).toBe(6);
+    expect(markahJawatan("Bendahari", "KelabSukan")).toBe(7);
+    expect(markahJawatan("Naib Bendahari", "KelabSukan")).toBe(6);
+    expect(markahJawatan("AJK", "KelabSukan")).toBe(5);
+    expect(markahJawatan("Naib Pengerusi", "Uniform")).toBe(8);
+    expect(markahJawatan("Naib Setiausaha", "Uniform")).toBe(5);
+    expect(markahJawatan("Naib Bendahari", "Uniform")).toBe(5);
+  });
   it("jadual dipilih dari jenisKoko (Sukan/Kelab → b, Uniform → a)", () => {
     expect(markahJawatan("Setiausaha", "Sukan")).toBe(7);
     expect(markahJawatan("Setiausaha", "Kelab")).toBe(7);

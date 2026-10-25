@@ -1094,6 +1094,7 @@ const JAWATAN_EN: [RegExp, string][] = [
   [/PENOLONG BENDAHARI/g, "Assistant Treasurer"],
   [/PENOLONG TRUP/g, "Assistant Troop Leader"],
   [/NAIB SETIAUSAHA/g, "Deputy Secretary"],
+  [/NAIB BENDAHARI/g, "Deputy Treasurer"],
   [/(TIMBALAN|NAIB) PENGERUSI/g, "Vice Chairperson"],
   [/NAIB PRESIDEN/g, "Vice President"],
   [/NAIB KAPTEN/g, "Vice Captain"],

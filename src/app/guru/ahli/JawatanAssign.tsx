@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { JAWATAN_PELAJAR } from "@/lib/enums";
+import { JAWATAN_PELAJAR, JAWATAN_PELAJAR_LAMA } from "@/lib/enums";
 import { labelJawatan, type Locale } from "@/lib/i18n";
 
 interface JawatanAssignDict { placeholder: string; assignTitle: string; networkError: string }
@@ -20,8 +20,9 @@ export function JawatanAssign({
   locale: Locale;
 }) {
   const router = useRouter();
+  const semasa = JAWATAN_PELAJAR_LAMA[current ?? ""] ?? current ?? "";
   const [nilai, setNilai] = useState<string>(
-    (JAWATAN_PELAJAR as readonly string[]).includes(current ?? "") ? (current as string) : ""
+    (JAWATAN_PELAJAR as readonly string[]).includes(semasa) ? semasa : ""
   );
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
