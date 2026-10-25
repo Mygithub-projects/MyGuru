@@ -10,7 +10,7 @@ interface Penugasan {
 const KOSONG = { nama: "", email: "", noIc: "", jawatanKoko: "GuruPenasihat" };
 
 interface TambahGuruDict {
-  jawatanKoko: { guruPenasihat: string; penolongKetuaGP: string; ketuaGP: string; penolongSU: string; pemantauKUPP: string; penyelaras: string };
+  jawatanKoko: { guruPenasihat: string; penolongKetuaGP: string; ketuaGP: string; penolongSU: string; pemantauKUPP: string; penyelaras: string; ketuaUnitKoko: string };
   kategori: { kelab: string; sukan: string; uniform: string; perkhidmatan: string };
   peranan: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string };
   fullName: string; fullNamePlaceholder: string; email: string; emailPlaceholder: string;
@@ -27,9 +27,8 @@ export function TambahGuruForm({ t }: { t: TambahGuruDict }) {
     { v: "GuruPenasihat", l: t.jawatanKoko.guruPenasihat },
     { v: "PenolongKetuaGP", l: t.jawatanKoko.penolongKetuaGP },
     { v: "KetuaGP", l: t.jawatanKoko.ketuaGP },
-    { v: "PenolongSU", l: t.jawatanKoko.penolongSU },
-    { v: "PemantauKUPP", l: t.jawatanKoko.pemantauKUPP },
     { v: "Penyelaras", l: t.jawatanKoko.penyelaras },
+    { v: "KetuaUnitKoko", l: t.jawatanKoko.ketuaUnitKoko },
   ];
   const JENIS = [
     { v: "Kelab", l: t.kategori.kelab }, { v: "Sukan", l: t.kategori.sukan }, { v: "Uniform", l: t.kategori.uniform },

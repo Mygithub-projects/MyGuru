@@ -6,6 +6,7 @@ import path from "node:path";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage } from "pdf-lib";
 import { getDict, type Locale } from "./i18n";
 import { labelStatusPilihanT6 } from "./pajsk";
+import { ECERT, ECERT_NOTA } from "./ecert-layout";
 
 const BRAND = rgb(0.05, 0.43, 0.37);
 const DARK = rgb(0.06, 0.09, 0.16);
@@ -37,11 +38,13 @@ export interface ECertData {
   namaPenandatangan?: string;
   jawatanPenandatangan?: string;
   teksCop?: string;
+  /** Data URL PNG/JPEG tandatangan pengesah (kosong = garisan sahaja). */
+  tandatangan?: string | null;
 }
 
 export async function janaECertPDF(d: ECertData): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const aset = await asetECert(doc);
+  const aset = await asetECert(doc, d.tandatangan);
   lukisECert(doc, aset, {
     ...d,
     barisIdentiti: `No. KP: ${d.noIc}  ·  ${d.kelas}`,
@@ -63,11 +66,12 @@ export interface ECertProgramData {
   namaPenandatangan?: string;
   jawatanPenandatangan?: string;
   teksCop?: string;
+  tandatangan?: string | null;
 }
 
 export async function janaECertProgramPDF(d: ECertProgramData): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  const aset = await asetECert(doc);
+  const aset = await asetECert(doc, d.tandatangan);
   const peringkat = `Peringkat ${d.peringkat}${d.tempat ? `  ·  ${d.tempat}` : ""}`;
   for (const p of d.peserta) {
     lukisECert(doc, aset, {
@@ -90,14 +94,33 @@ export async function janaECertProgramPDF(d: ECertProgramData): Promise<Uint8Arr
   return doc.save();
 }
 
-type AsetECert = { font: PDFFont; bold: PDFFont; logo: PDFImage | null };
+type AsetECert = { font: PDFFont; bold: PDFFont; latar: PDFImage | null; ttd: PDFImage | null };
 
-async function asetECert(doc: PDFDocument): Promise<AsetECert> {
+/** Imej dibenam sekali bagi setiap dokumen dan dikongsi oleh semua halaman. */
+async function asetECert(doc: PDFDocument, tandatangan?: string | null): Promise<AsetECert> {
+  let latar: PDFImage | null = null;
+  try {
+    latar = await doc.embedJpg(await readFile(path.join(process.cwd(), "public", ECERT.latar)));
+  } catch {
+    // Templat hilang — sijil masih dijana atas latar putih.
+  }
   return {
     font: await doc.embedFont(StandardFonts.Helvetica),
     bold: await doc.embedFont(StandardFonts.HelveticaBold),
-    logo: await muatLogo(doc),
+    latar,
+    ttd: await benamTandatangan(doc, tandatangan),
   };
+}
+
+async function benamTandatangan(doc: PDFDocument, dataUrl?: string | null): Promise<PDFImage | null> {
+  const m = dataUrl?.match(/^data:image\/(png|jpeg);base64,(.+)$/);
+  if (!m) return null;
+  try {
+    const buf = Buffer.from(m[2], "base64");
+    return m[1] === "png" ? await doc.embedPng(buf) : await doc.embedJpg(buf);
+  } catch {
+    return null;
+  }
 }
 
 interface HalamanECert {
@@ -115,56 +138,54 @@ interface HalamanECert {
   teksCop?: string;
 }
 
-/** Lukis satu halaman e-Cert (A4 landskap). Susun atur sepadan pratonton SijilClient. */
-function lukisECert(doc: PDFDocument, { font, bold, logo }: AsetECert, d: HalamanECert) {
-  const page = doc.addPage([842, 595]); // A4 landskap
-  const { width, height } = page.getSize();
+/** Lukis satu halaman e-Cert (A4 potret atas templat). Susun atur dari ecert-layout.ts — sama dengan SijilPreview. */
+function lukisECert(doc: PDFDocument, { font, bold, latar, ttd }: AsetECert, d: HalamanECert) {
+  const { w: width, h: height, y: Y, lebarTeks } = ECERT;
+  const page = doc.addPage([width, height]);
+  const [MERAH, EMAS, GELAP, KELABU] = [ECERT.warna.merah, ECERT.warna.emas, ECERT.warna.gelap, ECERT.warna.kelabu].map((c) => rgb(c[0], c[1], c[2]));
 
-  // Bingkai
-  page.drawRectangle({ x: 20, y: 20, width: width - 40, height: height - 40, borderColor: BRAND, borderWidth: 3 });
-  page.drawRectangle({ x: 28, y: 28, width: width - 56, height: height - 56, borderColor: BRAND, borderWidth: 1 });
+  if (latar) page.drawImage(latar, { x: 0, y: 0, width, height });
 
-  if (logo) {
-    const dims = logo.scale(70 / logo.height);
-    page.drawImage(logo, { x: width / 2 - dims.width / 2, y: height - 120, width: dims.width, height: dims.height });
-  }
-
-  const center = (text: string, y: number, size: number, f = font, color = DARK) => {
-    const w = f.widthOfTextAtSize(text, size);
-    page.drawText(text, { x: width / 2 - w / 2, y, size, font: f, color });
+  // Teks berpusat; saiz dikecilkan (hingga 60%) supaya muat lebarTeks, kemudian dipendekkan jika masih panjang.
+  const center = (text: string, y: number, size: number, f = font, color = GELAP) => {
+    const s = Math.max(size * 0.6, Math.min(size, (size * lebarTeks) / f.widthOfTextAtSize(text, size)));
+    const t = muat(text, s, f);
+    page.drawText(t, { x: width / 2 - f.widthOfTextAtSize(t, s) / 2, y: height - y, size: s, font: f, color });
   };
 
-  center((d.institusi ?? INSTITUSI).toUpperCase(), height - 145, 16, bold, BRAND);
-  center(d.tajukSijil ?? "SIJIL PENGHARGAAN KOKURIKULUM", height - 175, 22, bold, DARK);
-  center("e-Cert · Sistem KoKurikulum", height - 195, 11, font, GREY);
+  center((d.institusi ?? INSTITUSI).toUpperCase(), Y.institusi, 13, bold, MERAH);
+  center(d.tajukSijil ?? "SIJIL PENGHARGAAN KOKURIKULUM", Y.tajuk, 22, bold, GELAP);
+  center("e-Cert · Sistem KoKurikulum", Y.subtajuk, 10, font, KELABU);
+  page.drawLine({ start: { x: width / 2 - 60, y: height - Y.garis }, end: { x: width / 2 + 60, y: height - Y.garis }, thickness: 1, color: EMAS });
 
-  center("Dengan ini disahkan bahawa", height - 240, 13, font, GREY);
-  center(muat(d.nama.toUpperCase(), 26, bold), height - 275, 26, bold, DARK);
-  center(muat(d.barisIdentiti, 12, font), height - 298, 12, font, GREY);
+  center("Dengan ini disahkan bahawa", Y.disahkan, 12, font, KELABU);
+  center(d.nama.toUpperCase(), Y.nama, 22, bold, GELAP);
+  center(d.barisIdentiti, Y.identiti, 11, font, KELABU);
 
-  center(d.ayat, height - 335, 13, font, GREY);
-  center(muat(d.namaAktiviti, 18, bold), height - 365, 18, bold, BRAND);
-  center(muat(d.barisPeringkat, 13, font), height - 388, 13, font, DARK);
+  center(d.ayat, Y.ayat, 12, font, KELABU);
+  center(d.namaAktiviti, Y.aktiviti, 17, bold, MERAH);
+  center(d.barisPeringkat, Y.peringkat, 12, font, GELAP);
 
-  // Footer: tarikh, no siri, tandatangan
-  page.drawText(`Tarikh: ${d.tarikh}`, { x: 80, y: 90, size: 11, font, color: DARK });
-  page.drawText(`No. Siri: ${d.noSiri}`, { x: 80, y: 72, size: 10, font, color: GREY });
-
-  page.drawLine({ start: { x: width - 280, y: 110 }, end: { x: width - 80, y: 110 }, thickness: 1, color: GREY });
-  if (d.namaPenandatangan) {
-    page.drawText(d.namaPenandatangan, { x: width - 275, y: 94, size: 10, font: bold, color: DARK });
+  // Tandatangan pengesah — imej dipusatkan atas garisan
+  if (ttd) {
+    const skala = Math.min(ECERT.ttd.maksW / ttd.width, ECERT.ttd.maksH / ttd.height);
+    const [iw, ih] = [ttd.width * skala, ttd.height * skala];
+    page.drawImage(ttd, { x: width / 2 - iw / 2, y: height - Y.ttdBawah, width: iw, height: ih });
   }
-  page.drawText(d.jawatanPenandatangan ?? "Penyelaras Kokurikulum", { x: width - 275, y: 80, size: 9, font, color: GREY });
-  if (d.teksCop) page.drawText(d.teksCop, { x: width - 275, y: 66, size: 8, font, color: GREY });
+  const separuh = ECERT.garisTtdLebar / 2;
+  page.drawLine({ start: { x: width / 2 - separuh, y: height - Y.garisTtd }, end: { x: width / 2 + separuh, y: height - Y.garisTtd }, thickness: 0.8, color: KELABU });
+  if (d.namaPenandatangan) center(d.namaPenandatangan, Y.namaTtd, 10, bold, GELAP);
+  center(d.jawatanPenandatangan ?? "Penyelaras Kokurikulum", Y.jawatan, 9, font, KELABU);
+  if (d.teksCop) center(d.teksCop, Y.cop, 8, font, KELABU);
 
-  center("Sahkan keaslian sijil ini melalui No. Siri di portal KoKurikulum.", 50, 8, font, GREY);
+  center(`Tarikh: ${d.tarikh}   ·   No. Siri: ${d.noSiri}`, Y.tarikh, 9, font, GELAP);
+  center(ECERT_NOTA, Y.nota, 7, font, KELABU);
 
-  // Pendekkan teks panjang (cth. nama sekolah) supaya tidak melimpah bingkai.
+  // Pendekkan teks yang masih melebihi lebarTeks selepas saiz dikecilkan.
   function muat(teks: string, size: number, f: PDFFont): string {
-    const maks = width - 120;
-    if (f.widthOfTextAtSize(teks, size) <= maks) return teks;
+    if (f.widthOfTextAtSize(teks, size) <= lebarTeks) return teks;
     let t = teks;
-    while (t.length > 1 && f.widthOfTextAtSize(`${t}…`, size) > maks) t = t.slice(0, -1);
+    while (t.length > 1 && f.widthOfTextAtSize(`${t}…`, size) > lebarTeks) t = t.slice(0, -1);
     return `${t.trimEnd()}…`;
   }
 }

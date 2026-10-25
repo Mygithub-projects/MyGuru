@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getT } from "@/lib/locale";
@@ -22,6 +23,10 @@ export default async function TukarKataLaluanPage() {
         <div className="rounded-2xl bg-white p-6 shadow-xl sm:p-8">
           <TukarKataLaluanForm t={t.tukarKataLaluan} />
         </div>
+        {!session.mustChangePw && (
+          <Link href={session.role === "Admin" ? "/admin" : session.role === "Guru" ? "/guru" : "/pelajar"}
+            className="mt-4 block text-center text-sm text-white/85 hover:text-white">← Kembali</Link>
+        )}
       </div>
     </div>
   );

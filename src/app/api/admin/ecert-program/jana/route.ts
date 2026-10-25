@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireRole, fail } from "@/lib/api";
 import { janaECertProgramPDF } from "@/lib/pdf";
-import { getTetapanSijil } from "@/lib/tetapan-sijil";
+import { getTetapanSijil, tandatanganUntuk } from "@/lib/tetapan-sijil";
 import { muridT6IkutNoKp, moeTersedia } from "@/lib/moe-murid";
 import { PERINGKAT_PROGRAM, formatNoSiri } from "@/lib/ecert-program";
 
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
   if (murid.length === 0) return fail("Tiada murid T6 sepadan dengan No. KP dipilih", 404);
 
   const [y, m, h] = d.tarikh.split("-").map(Number);
+  const tetapan = await getTetapanSijil();
   const pdf = await janaECertProgramPDF({
     namaProgram: d.namaProgram,
     peringkat: d.peringkat,
@@ -51,10 +52,11 @@ export async function POST(request: NextRequest) {
       peranan: d.peranan,
       noSiri: formatNoSiri(d.tahunSiri, d.nomborMula + i),
     })),
-    ...(await getTetapanSijil()),
+    ...tetapan,
     // Penandatangan khusus program mengatasi Templat e-Cert (jika diisi).
     ...(d.namaPenandatangan ? { namaPenandatangan: d.namaPenandatangan } : {}),
     ...(d.jawatanPenandatangan ? { jawatanPenandatangan: d.jawatanPenandatangan } : {}),
+    tandatangan: tandatanganUntuk(tetapan, d.namaPenandatangan),
   });
 
   const fail_ = d.namaProgram.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "program";

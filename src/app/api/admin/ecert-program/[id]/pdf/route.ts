@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole, fail } from "@/lib/api";
 import { janaECertProgramPDF } from "@/lib/pdf";
-import { getTetapanSijil } from "@/lib/tetapan-sijil";
+import { getTetapanSijil, tandatanganUntuk } from "@/lib/tetapan-sijil";
 
 // Satu PDF berbilang halaman — satu e-Cert bagi setiap peserta.
 // ?peserta=<id> untuk jana sijil seorang peserta sahaja.
@@ -38,6 +38,7 @@ export async function GET(
     // Penandatangan khusus program mengatasi Templat e-Cert.
     namaPenandatangan: program.namaPenandatangan ?? tetapan.namaPenandatangan,
     jawatanPenandatangan: program.jawatanPenandatangan ?? tetapan.jawatanPenandatangan,
+    tandatangan: tandatanganUntuk(tetapan, program.namaPenandatangan),
   });
 
   const fail_ = program.namaProgram.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "program";

@@ -32,7 +32,7 @@ export function icToString(val: unknown): string {
   return normalizeIC(s);
 }
 
-function cellText(val: unknown): string {
+export function cellText(val: unknown): string {
   if (val == null) return "";
   if (typeof val === "object" && val !== null) {
     if ("text" in (val as object)) return String((val as { text: unknown }).text).trim();

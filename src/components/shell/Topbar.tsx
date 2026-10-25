@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LogoutButton } from "../LogoutButton";
 import { NotifBell } from "../NotifBell";
 import { ThemeToggle } from "../LandingClient";
@@ -54,6 +55,10 @@ export async function Topbar({
         >
           {initials(nama)}
         </div>
+        <Link href="/tukar-kata-laluan" title={t.header.changePassword} aria-label={t.header.changePassword}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-100 hover:text-slate-800">
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4"><path d="M15.5 2a4.5 4.5 0 00-4.42 5.34L2 16.4V19h2.6l1-1h1.9v-1.9h1.9l1.32-1.32A4.5 4.5 0 1015.5 2zm1 3a1 1 0 110 2 1 1 0 010-2z" /></svg>
+        </Link>
         <LogoutButton label={t.header.logout} onLight />
       </div>
     </header>

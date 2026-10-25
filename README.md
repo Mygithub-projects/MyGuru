@@ -129,7 +129,7 @@ mengikut `DOCKER.md` (projek `prestij-latifah-myguruai`, region `asia-southeast1
 - ✅ **Dokumentasi pengguna** — manual Pelajar/Guru/Admin (`docs/`) + halaman bantuan dalam-app (`/bantuan`)
 
 **Konfigurasi produksi** (lihat `.env.example`):
-- `DATABASE_URL` (pooled) + `DIRECT_URL` (direct, untuk migrasi) + `directUrl` dalam skema
+- `DATABASE_URL` (aplikasi) + `DATABASE_URL_ADMIN` (`directUrl` — akaun pemilik skema untuk `prisma migrate`)
 - `STORAGE_DRIVER=s3` + `S3_*` untuk storan objek
 - `SMTP_*` dan/atau `TELEGRAM_BOT_TOKEN` untuk notifikasi
 - Putar `JWT_SECRET`; pertimbang imbasan virus pada muat naik fail

@@ -6,6 +6,7 @@
 //    - Telegram : Bot API melalui fetch (TELEGRAM_BOT_TOKEN)
 // ===========================================================================
 import { prisma } from "./prisma";
+import { JAWATAN_GURU_SELURUH_SEKOLAH } from "./enums";
 
 export type JenisNotifikasi = "info" | "kuiri" | "lulus" | "tolak";
 
@@ -49,7 +50,7 @@ export async function notifyPelajar(pelajarId: string, input: Omit<NotifInput, "
 
 /** Notifikasi guru yang menyelia unit tertentu + guru berskop seluruh sekolah. */
 export async function notifyGuruUntukUnit(namaUnit: string | null, input: Omit<NotifInput, "userId">) {
-  const SELURUH = ["Penyelaras", "PemantauKUPP", "PenolongSU"];
+  const SELURUH: string[] = JAWATAN_GURU_SELURUH_SEKOLAH;
   const guru = await prisma.guru.findMany({
     where: {
       statusAktif: true,

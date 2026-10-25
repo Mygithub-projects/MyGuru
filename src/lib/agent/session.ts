@@ -5,9 +5,10 @@
 import type { SessionPayload } from "@/lib/auth-core";
 import type { AgentContext } from "./types";
 import { prisma } from "@/lib/prisma";
+import { JAWATAN_GURU_SELURUH_SEKOLAH } from "@/lib/enums";
 
 /** Jawatan guru yang melihat seluruh sekolah (bukan terhad unit seliaan). */
-const JAWATAN_SKOP_SEKOLAH = new Set(["Penyelaras", "PemantauKUPP", "PenolongSU"]);
+const JAWATAN_SKOP_SEKOLAH = new Set<string>(JAWATAN_GURU_SELURUH_SEKOLAH);
 
 /**
  * Bina AgentContext daripada SessionPayload.

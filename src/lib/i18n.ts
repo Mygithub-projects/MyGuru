@@ -26,7 +26,7 @@ export interface Dict {
     agama: { islam: string; buddha: string; hindu: string; kristian: string; lainLain: string };
     jawatanKoko: {
       guruPenasihat: string; penolongKetuaGP: string; ketuaGP: string;
-      penolongSU: string; pemantauKUPP: string; penyelaras: string;
+      penolongSU: string; pemantauKUPP: string; penyelaras: string; ketuaUnitKoko: string;
     };
     subRolePelajar: { pelajar: string; su: string; nsu: string };
     perananUnit: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string };
@@ -38,7 +38,7 @@ export interface Dict {
     kehadiran: string; jawatan: string; penglibatan: string; pencapaian: string;
     projekJawatan: string; projekPeringkat: string; ekstra: string;
   };
-  header: { roleStudent: string; roleTeacher: string; roleAdmin: string; help: string; logout: string; notifications: string; theme: string; chatbot: string };
+  header: { roleStudent: string; roleTeacher: string; roleAdmin: string; help: string; logout: string; changePassword: string; notifications: string; theme: string; chatbot: string };
   // Chrome global (NotifBell, TindakanBadge, AgentChat) — dipapar pada SEMUA
   // peranan/laman, jadi terasing daripada `header` (label peranan/tema).
   chrome: {
@@ -118,7 +118,7 @@ export interface Dict {
   guru: {
     dashboardTitle: string; position: string; scopeSchool: string; scopeUnit: string;
     linkMembers: string; linkAttendance: string; linkAnalytics: string; linkSelection: string;
-    cardStudents: string; cardPending: string; cardClub: string; cardSportBb: string;
+    cardStudents: string; cardPending: string; cardClub: string; cardSport: string; cardUniform: string;
     statusPilihan: string; noMembers: string; expandAll: string; collapseAll: string; colUnit: string;
     verifiedDocs: string; noVerifiedDocs: string; weekly: string; project: string;
     membersTitle: string; membersSub: string; unitCount: string; memberCount: string;
@@ -174,6 +174,11 @@ export interface Dict {
     actFormula: string; actDemographics: string; actManageTeachers: string; actAttendance: string;
     actCertTemplate: string; actAnalytics: string; seeAlso: string; teacherView: string; studentView: string;
     pelajarTitle: string; pelajarSub: string; downloadAll: string;
+    actRawData: string;
+    rawData: {
+      title: string; subtitle: string; button: string; contentsTitle: string; formatNote: string;
+      students: string; sheets: string;
+    };
     colUnits: string; colPajsk: string; colStatus: string; colActions: string; detail: string; edit: string;
     pelajarDetail: {
       backToList: string; downloadPdf: string; viewPdf: string; attendanceLabel: string;
@@ -239,7 +244,11 @@ export interface Dict {
       submitAdd: string; submitting: string;
     };
     sijilPage: { title: string; subtitle: string };
-    sijilTabs: { template: string; program: string };
+    sijilTabs: { template: string; program: string; signature: string };
+    sijilTandatangan: {
+      subtitle: string; current: string; none: string; choose: string; hint: string; tooBig: string; wrongType: string;
+      save: string; saving: string; remove: string; removeConfirm: string; preview: string; programNote: string;
+    };
     ecertProgram: {
       subtitle: string; noSaveMode: string; startNumber: string; generatePdf: string; signerName: string; signerPosition: string;
       programName: string; date: string; level: string; levels: string[]; venue: string; serialYear: string;
@@ -317,8 +326,9 @@ const ms: Dict = {
     kaum: { melayu: "Melayu", cina: "Cina", india: "India", lainLain: "Lain-lain" },
     agama: { islam: "Islam", buddha: "Buddha", hindu: "Hindu", kristian: "Kristian", lainLain: "Lain-lain" },
     jawatanKoko: {
-      guruPenasihat: "Guru Penasihat", penolongKetuaGP: "Penolong Ketua GP", ketuaGP: "Ketua Guru Penasihat",
+      guruPenasihat: "Guru Penasihat", penolongKetuaGP: "Penolong Guru Penasihat", ketuaGP: "Ketua Guru Penasihat",
       penolongSU: "Penolong SU Kokurikulum", pemantauKUPP: "Pemantau (KUPP)", penyelaras: "Penyelaras Kokurikulum",
+      ketuaUnitKoko: "Ketua Unit Kokurikulum",
     },
     subRolePelajar: { pelajar: "Pelajar biasa", su: "Setiausaha (SU)", nsu: "Naib Setiausaha (NSU)" },
     perananUnit: { penasihat: "Penasihat", ketuaPenasihat: "Ketua Penasihat", penolongKetuaGP: "Penolong Ketua GP" },
@@ -329,7 +339,7 @@ const ms: Dict = {
     kehadiran: "Kehadiran", jawatan: "Jawatan", penglibatan: "Penglibatan", pencapaian: "Pencapaian",
     projekJawatan: "Projek — Jawatan", projekPeringkat: "Projek — Peringkat", ekstra: "Ekstra Kurikulum (bonus)",
   },
-  header: { roleStudent: "Pelajar", roleTeacher: "Guru Penasihat", roleAdmin: "Pentadbir", help: "Bantuan", logout: "Log Keluar", notifications: "Notifikasi", theme: "Tukar mod terang/gelap", chatbot: "Chatbot" },
+  header: { roleStudent: "Pelajar", roleTeacher: "Guru Penasihat", roleAdmin: "Pentadbir", help: "Bantuan", logout: "Log Keluar", changePassword: "Tukar Kata Laluan", notifications: "Notifikasi", theme: "Tukar mod terang/gelap", chatbot: "Chatbot" },
   chrome: {
     notifTitle: "Notifikasi", notifEmpty: "Tiada notifikasi.",
     tindakanLabel: "Tindakan", tindakanTitle: "Item menunggu tindakan",
@@ -417,7 +427,7 @@ const ms: Dict = {
   guru: {
     dashboardTitle: "Dashboard Guru", position: "Jawatan", scopeSchool: "Skop: Seluruh Sekolah", scopeUnit: "Skop: Unit Seliaan",
     linkMembers: "👥 Senarai Ahli & Jawatan", linkAttendance: "🗓️ Kehadiran Perjumpaan", linkAnalytics: "📊 Lihat Analitik", linkSelection: "🏆 Pilih Pelajar untuk Pertandingan",
-    cardStudents: "Pelajar Diselia", cardPending: "Menunggu Tindakan", cardClub: "Kelab/Persatuan", cardSportBb: "Sukan / BB",
+    cardStudents: "Pelajar Diselia", cardPending: "Menunggu Tindakan", cardClub: "Kelab/Persatuan", cardSport: "Sukan/Permainan", cardUniform: "Badan Beruniform",
     statusPilihan: "Status Pilihan Unit T6", noMembers: "Tiada ahli dalam unit seliaan.",
     expandAll: "Buka Semua", collapseAll: "Tutup Semua", colUnit: "Unit",
     verifiedDocs: "Dokumen Laporan Disahkan", noVerifiedDocs: "Tiada laporan disahkan lagi.", weekly: "Mingguan", project: "Projek",
@@ -486,6 +496,14 @@ const ms: Dict = {
     actFormula: "Tetapan Formula Markah", actDemographics: "Kemas Kini Demografi", actManageTeachers: "Urus Guru & Penasihat", actAttendance: "Kehadiran (Setiap Perjumpaan)",
     actCertTemplate: "Templat e-Cert", actAnalytics: "📊 Analitik Keseluruhan", seeAlso: "Lihat juga:", teacherView: "Pandangan Guru", studentView: "Pandangan Pelajar",
     pelajarTitle: "Urus Pelajar", pelajarSub: "Senarai pelajar T6 (markah, nama, kelab, sukan, badan beruniform terkini). Klik Butiran untuk paparan penuh & muat turun PDF setiap pelajar.", downloadAll: "⬇ Muat turun semua (Excel)",
+    actRawData: "Muat Turun Raw Data (Excel)",
+    rawData: {
+      title: "Muat Turun Raw Data (Excel)",
+      subtitle: "Keluarkan data keseluruhan semua pelajar dalam format borang PAJSK kelas — satu fail Excel, satu tab setiap kelas.",
+      button: "⬇ Muat turun Raw Data (Excel)", contentsTitle: "Kandungan fail",
+      formatNote: "Setiap tab: Badan Beruniform, Kelab / Persatuan, Sukan / Permainan dan Ekstra Kurikulum (unit, kehadiran, jawatan, penglibatan, pencapaian, projek), diikuti markah PAJSK sistem, markah keseluruhan, gred dan analisis kelas.",
+      students: "pelajar", sheets: "tab kelas",
+    },
     colUnits: "Kelab / Sukan / BB", colPajsk: "PAJSK T6", colStatus: "Status", colActions: "Tindakan", detail: "Butiran", edit: "Edit",
     pelajarDetail: {
       backToList: "← Senarai Pelajar", downloadPdf: "⬇ Muat turun PDF", viewPdf: "👁 Papar PDF", attendanceLabel: "Kehadiran",
@@ -562,7 +580,17 @@ const ms: Dict = {
       submitAdd: "Tambah Pelajar", submitting: "Menyimpan…",
     },
     sijilPage: { title: "Templat e-Cert", subtitle: "Suai institusi, tajuk sijil, nama & jawatan penandatangan, serta teks cop." },
-    sijilTabs: { template: "Templat e-Cert", program: "e-Cert Program" },
+    sijilTabs: { template: "Templat e-Cert", program: "e-Cert Program", signature: "Tandatangan Pengesah" },
+    sijilTandatangan: {
+      subtitle: "Muat naik imej tandatangan pengesah. Ia dicetak di atas garisan tandatangan pada setiap e-Cert.",
+      current: "Tandatangan semasa", none: "Belum ada tandatangan dimuat naik. e-Cert akan dicetak dengan garisan kosong.",
+      choose: "Pilih imej tandatangan", hint: "PNG berlatar telus paling sesuai. PNG atau JPG, maksimum 300KB.",
+      tooBig: "Saiz imej melebihi 300KB.", wrongType: "Hanya fail PNG atau JPG dibenarkan.",
+      save: "Simpan Tandatangan", saving: "Menyimpan…", remove: "Buang Tandatangan",
+      removeConfirm: "Buang tandatangan pengesah? e-Cert seterusnya akan dicetak tanpa tandatangan.",
+      preview: "Pratonton e-Cert",
+      programNote: "Tandatangan ini milik penandatangan dalam Templat e-Cert. e-Cert Program yang menggunakan penandatangan lain dicetak tanpa tandatangan.",
+    },
     ecertProgram: {
       subtitle: "Jana e-Cert untuk pelajar Tingkatan 6 (dari mana-mana sekolah) yang menyertai program anjuran kolej.",
       noSaveMode: "Mod tanpa simpan: e-Cert dijana terus sebagai PDF dan tiada rekod disimpan. Tetapkan No. Siri bermula sendiri (sistem tidak menyemak nombor yang pernah digunakan). Simpanan & nombor automatik aktif selepas pentadbir DB menjalankan scripts/manual-migration-ecert-program.sql.",
@@ -677,8 +705,9 @@ const en: Dict = {
     kaum: { melayu: "Malay", cina: "Chinese", india: "Indian", lainLain: "Other" },
     agama: { islam: "Islam", buddha: "Buddhist", hindu: "Hindu", kristian: "Christian", lainLain: "Other" },
     jawatanKoko: {
-      guruPenasihat: "Adviser Teacher", penolongKetuaGP: "Deputy Head Adviser", ketuaGP: "Head Adviser Teacher",
+      guruPenasihat: "Adviser Teacher", penolongKetuaGP: "Assistant Adviser Teacher", ketuaGP: "Head Adviser Teacher",
       penolongSU: "Deputy Co-curriculum Secretary", pemantauKUPP: "Monitor (KUPP)", penyelaras: "Co-curriculum Coordinator",
+      ketuaUnitKoko: "Head of Co-curriculum Unit",
     },
     subRolePelajar: { pelajar: "Regular student", su: "Secretary (SU)", nsu: "Deputy Secretary (NSU)" },
     perananUnit: { penasihat: "Adviser", ketuaPenasihat: "Head Adviser", penolongKetuaGP: "Deputy Head Adviser" },
@@ -689,7 +718,7 @@ const en: Dict = {
     kehadiran: "Attendance", jawatan: "Position", penglibatan: "Participation", pencapaian: "Achievement",
     projekJawatan: "Project — Position", projekPeringkat: "Project — Level", ekstra: "Extra-curricular (bonus)",
   },
-  header: { roleStudent: "Student", roleTeacher: "Advisor Teacher", roleAdmin: "Administrator", help: "Help", logout: "Log Out", notifications: "Notifications", theme: "Toggle light/dark mode", chatbot: "Chatbot" },
+  header: { roleStudent: "Student", roleTeacher: "Advisor Teacher", roleAdmin: "Administrator", help: "Help", logout: "Log Out", changePassword: "Change Password", notifications: "Notifications", theme: "Toggle light/dark mode", chatbot: "Chatbot" },
   chrome: {
     notifTitle: "Notifications", notifEmpty: "No notifications.",
     tindakanLabel: "Actions", tindakanTitle: "Items awaiting action",
@@ -784,7 +813,7 @@ const en: Dict = {
   guru: {
     dashboardTitle: "Teacher Dashboard", position: "Position", scopeSchool: "Scope: Whole School", scopeUnit: "Scope: Supervised Units",
     linkMembers: "👥 Member List & Positions", linkAttendance: "🗓️ Meeting Attendance", linkAnalytics: "📊 View Analytics", linkSelection: "🏆 Select Students for Competition",
-    cardStudents: "Students Supervised", cardPending: "Pending Actions", cardClub: "Club/Society", cardSportBb: "Sports / UB",
+    cardStudents: "Students Supervised", cardPending: "Pending Actions", cardClub: "Club/Society", cardSport: "Sports/Games", cardUniform: "Uniformed Body",
     statusPilihan: "F6 Unit Selection Status", noMembers: "No members in supervised units.",
     expandAll: "Expand All", collapseAll: "Collapse All", colUnit: "Unit",
     verifiedDocs: "Verified Report Documents", noVerifiedDocs: "No verified reports yet.", weekly: "Weekly", project: "Project",
@@ -853,6 +882,14 @@ const en: Dict = {
     actFormula: "Mark Formula Settings", actDemographics: "Update Demographics", actManageTeachers: "Manage Teachers & Advisors", actAttendance: "Attendance (Per Meeting)",
     actCertTemplate: "e-Cert Template", actAnalytics: "📊 Overall Analytics", seeAlso: "See also:", teacherView: "Teacher View", studentView: "Student View",
     pelajarTitle: "Manage Students", pelajarSub: "F6 student list (latest marks, name, club, sport, uniformed body). Click Details for the full view & per-student PDF download.", downloadAll: "⬇ Download all (Excel)",
+    actRawData: "Download Raw Data (Excel)",
+    rawData: {
+      title: "Download Raw Data (Excel)",
+      subtitle: "Export the complete data of every student in the PAJSK class form layout — one Excel file, one tab per class.",
+      button: "⬇ Download Raw Data (Excel)", contentsTitle: "File contents",
+      formatNote: "Each tab: Uniformed Body, Club / Society, Sport / Game and Extra-curricular (unit, attendance, position, participation, achievement, project), followed by the system PAJSK marks, overall mark, grade and class analysis.",
+      students: "students", sheets: "class tabs",
+    },
     colUnits: "Club / Sport / UB", colPajsk: "PAJSK F6", colStatus: "Status", colActions: "Actions", detail: "Details", edit: "Edit",
     pelajarDetail: {
       backToList: "← Student List", downloadPdf: "⬇ Download PDF", viewPdf: "👁 View PDF", attendanceLabel: "Attendance",
@@ -929,7 +966,17 @@ const en: Dict = {
       submitAdd: "Add Student", submitting: "Saving…",
     },
     sijilPage: { title: "e-Cert Template", subtitle: "Customize institution, certificate title, signer name & position, and stamp text." },
-    sijilTabs: { template: "e-Cert Template", program: "Program e-Cert" },
+    sijilTabs: { template: "e-Cert Template", program: "Program e-Cert", signature: "Verifier Signature" },
+    sijilTandatangan: {
+      subtitle: "Upload the verifier's signature image. It is printed above the signature line on every e-Cert.",
+      current: "Current signature", none: "No signature uploaded yet. e-Certs will be printed with a blank line.",
+      choose: "Choose signature image", hint: "A PNG with a transparent background works best. PNG or JPG, max 300KB.",
+      tooBig: "Image is larger than 300KB.", wrongType: "Only PNG or JPG files are allowed.",
+      save: "Save Signature", saving: "Saving…", remove: "Remove Signature",
+      removeConfirm: "Remove the verifier signature? Later e-Certs will be printed without a signature.",
+      preview: "e-Cert Preview",
+      programNote: "This signature belongs to the signer in the e-Cert Template. Program e-Certs that use a different signer are printed without it.",
+    },
     ecertProgram: {
       subtitle: "Generate e-Certs for Form 6 students (from any school) who took part in a programme organised by the college.",
       noSaveMode: "No-save mode: e-Certs are generated directly as a PDF and no record is kept. Set the starting serial number yourself (the system does not check numbers already used). Saving & automatic numbering activate once the DB administrator runs scripts/manual-migration-ecert-program.sql.",

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getT } from "@/lib/locale";
 import { senaraiUnit } from "@/lib/unit-list";
 import { GuruClient } from "./GuruClient";
+import { GuruExcelButtons } from "./GuruExcelButtons";
 
 export default async function GuruAdminPage() {
   const [{ t }, guruRaw, unitOptions] = await Promise.all([
@@ -33,7 +34,10 @@ export default async function GuruAdminPage() {
         <Link href="/admin" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">{t.admin.back}</Link>
         <div className="mt-1 flex items-center justify-between gap-3">
           <h1 className="text-xl font-bold text-slate-800">{t.admin.guruPage.title}</h1>
-          <Link href="/admin/guru/tambah" className="shrink-0 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover">{t.admin.actAddTeacher}</Link>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <GuruExcelButtons />
+            <Link href="/admin/guru/tambah" className="shrink-0 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover">{t.admin.actAddTeacher}</Link>
+          </div>
         </div>
         <p className="text-sm text-slate-500">
           {t.admin.guruPage.subtitle}

@@ -5,10 +5,12 @@ import { getT } from "@/lib/locale";
 import { AWALAN_SIRI } from "@/lib/ecert-program";
 import { SijilClient } from "./SijilClient";
 import { ProgramClient } from "./ProgramClient";
+import { TandatanganClient } from "./TandatanganClient";
 
 export default async function SijilPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { tab } = await searchParams;
   const tabProgram = tab === "program";
+  const tabTtd = tab === "tandatangan";
   const { t } = await getT();
 
   // null = jadual e-Cert Program belum wujud (migrasi manual belum dijalankan).
@@ -23,16 +25,21 @@ export default async function SijilPage({ searchParams }: { searchParams: Promis
     : [];
 
   const tabs = [
-    { href: "/admin/sijil", label: t.admin.sijilTabs.template, on: !tabProgram },
+    { href: "/admin/sijil", label: t.admin.sijilTabs.template, on: !tabProgram && !tabTtd },
     { href: "/admin/sijil?tab=program", label: t.admin.sijilTabs.program, on: tabProgram },
+    { href: "/admin/sijil?tab=tandatangan", label: t.admin.sijilTabs.signature, on: tabTtd },
   ];
 
   return (
     <div className="space-y-6">
       <div>
         <Link href="/admin" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">{t.admin.back}</Link>
-        <h1 className="mt-1 text-xl font-bold text-slate-800">{tabProgram ? t.admin.sijilTabs.program : t.admin.sijilPage.title}</h1>
-        <p className="text-sm text-slate-500">{tabProgram ? t.admin.ecertProgram.subtitle : t.admin.sijilPage.subtitle}</p>
+        <h1 className="mt-1 text-xl font-bold text-slate-800">
+          {tabProgram ? t.admin.sijilTabs.program : tabTtd ? t.admin.sijilTabs.signature : t.admin.sijilPage.title}
+        </h1>
+        <p className="text-sm text-slate-500">
+          {tabProgram ? t.admin.ecertProgram.subtitle : tabTtd ? t.admin.sijilTandatangan.subtitle : t.admin.sijilPage.subtitle}
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-2" role="tablist">
@@ -69,6 +76,8 @@ export default async function SijilPage({ searchParams }: { searchParams: Promis
           modSimpan={programs !== null}
           t={t.admin.ecertProgram}
         />
+      ) : tabTtd ? (
+        <TandatanganClient tetapan={await getTetapanSijil()} t={t.admin.sijilTandatangan} tp={t.admin.sijilClient} />
       ) : (
         <SijilClient tetapan={await getTetapanSijil()} t={t.admin.sijilClient} />
       )}

@@ -31,6 +31,7 @@ export async function PUT(request: NextRequest) {
     where: { id: "default" },
     update: parsed.data,
     create: { id: "default", ...parsed.data },
+    select: { id: true },
   });
   return ok(null, "Templat sijil dikemas kini");
 }

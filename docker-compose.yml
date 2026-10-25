@@ -33,6 +33,7 @@ services:
       # Sengaja literal: JANGAN interpolasi ${DATABASE_URL} — Compose auto-baca
       # .env, dan .env projek ini menunjuk ke pangkalan data JAUH.
       DATABASE_URL: postgresql://postgres:postgres@db:5432/ekokot6?schema=public
+      DATABASE_URL_ADMIN: postgresql://postgres:postgres@db:5432/ekokot6?schema=public
     depends_on:
       db:
         condition: service_healthy
@@ -50,6 +51,7 @@ services:
     environment:
       # Literal — lihat nota pada perkhidmatan `migrate`.
       DATABASE_URL: postgresql://postgres:postgres@db:5432/ekokot6?schema=public
+      DATABASE_URL_ADMIN: postgresql://postgres:postgres@db:5432/ekokot6?schema=public
       # .env projek menetapkan NODE_ENV=development; env_file mengatasi ENV imej.
       NODE_ENV: production
     ports:

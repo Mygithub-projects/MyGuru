@@ -3,6 +3,7 @@ import type { JawatanGuru } from "./enums";
 /** Petakan teks jawatan bebas dari borang guru ke enum JawatanGuru. */
 export function mapJawatanGuru(teks?: string | null): JawatanGuru {
   const t = (teks || "").toUpperCase();
+  if (/KETUA\s+UNIT/.test(t)) return "KetuaUnitKoko";
   if (/PENYELARAS/.test(t)) return "Penyelaras";
   if (/PEMANTAU|KUPP/.test(t)) return "PemantauKUPP";
   if (/PENOLONG\s+SETIAUSAHA|PEN\.?\s*SU/.test(t)) return "PenolongSU";

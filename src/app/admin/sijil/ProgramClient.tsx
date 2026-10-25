@@ -11,6 +11,7 @@ interface Tetapan {
   namaPenandatangan: string;
   jawatanPenandatangan: string;
   teksCop: string;
+  tandatangan: string | null;
 }
 interface ProgramRingkas {
   id: string;
@@ -263,6 +264,8 @@ export function ProgramClient({
             {...tetapan}
             namaPenandatangan={form.namaPenandatangan}
             jawatanPenandatangan={form.jawatanPenandatangan}
+            // Sama seperti tandatanganUntuk(): hanya jika penandatangan = Templat e-Cert
+            tandatangan={!form.namaPenandatangan || form.namaPenandatangan === tetapan.namaPenandatangan ? tetapan.tandatangan : null}
             nama={pratonton ? pratonton.nama.toUpperCase() : t.previewStudent}
             barisIdentiti={pratonton ? `No. KP: ${pratonton.noKp}` : t.previewIc}
             ayat={ayatPeranan(form.peranan)}

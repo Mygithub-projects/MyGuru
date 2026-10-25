@@ -16,8 +16,10 @@ interface SijilDict {
 }
 
 
-export function SijilClient({ tetapan, t }: { tetapan: T; t: SijilDict }) {
-  const [form, setForm] = useState<T>(tetapan);
+export function SijilClient({ tetapan, t }: { tetapan: T & { tandatangan: string | null }; t: SijilDict }) {
+  // Tandatangan diurus dalam tab sendiri — jangan hantar data URL bersama borang teks.
+  const { tandatangan, ...teks } = tetapan;
+  const [form, setForm] = useState<T>(teks);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
@@ -74,6 +76,7 @@ export function SijilClient({ tetapan, t }: { tetapan: T; t: SijilDict }) {
         <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{t.previewTitle}</h2>
         <SijilPreview
           {...form}
+          tandatangan={form.namaPenandatangan === tetapan.namaPenandatangan ? tandatangan : null}
           nama={t.previewStudent}
           barisIdentiti={t.previewIc}
           ayat="telah menyertai dan menunjukkan pencapaian dalam"

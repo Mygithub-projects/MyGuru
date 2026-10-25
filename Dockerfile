@@ -33,7 +33,8 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     DOCKER_BUILD=1 \
     NODE_ENV=production
 # Placeholder sahaja: tiada sambungan DB sebenar berlaku semasa build.
-ENV DATABASE_URL="postgresql://user:pass@localhost:5432/placeholder?schema=public"
+ENV DATABASE_URL="postgresql://user:pass@localhost:5432/placeholder?schema=public" \
+    DATABASE_URL_ADMIN="postgresql://user:pass@localhost:5432/placeholder?schema=public"
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

@@ -10,8 +10,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // aplikasi (g5_p4_user — tiada kebenaran DDL)
+  // Arahan `prisma migrate` guna sambungan ini — pemilik skema (cipta/ubah jadual).
+  directUrl = env("DATABASE_URL_ADMIN")
 }
 
 // === Akaun & Akses ========================================================
@@ -292,6 +294,8 @@ model TetapanSijil {
   namaPenandatangan    String   @default("")
   jawatanPenandatangan String   @default("Penyelaras Kokurikulum")
   teksCop              String   @default("")
+  // Imej tandatangan pengesah sebagai data URL (PNG/JPEG, ≤300KB) — dilukis atas garisan tandatangan e-Cert
+  tandatangan          String?
   updatedAt            DateTime @updatedAt
 }
 

@@ -1,13 +1,20 @@
 // src/app/api/admin/guru/[id]/reset-kata-laluan/route.ts
 // Reset kata laluan guru (Admin sahaja) — untuk guru yang lupa kata laluan.
-// Kata laluan & username ditetapkan semula kepada No. IC guru dan
-// mustChangePw = true, jadi guru log masuk dengan No. IC & dipaksa
-// menetapkan kata laluan baharu.
+// Kata laluan baharu dijana secara rawak & dipulangkan SEKALI kepada admin
+// untuk diserahkan kepada guru. mustChangePw = true, jadi guru dipaksa
+// menetapkan kata laluan sendiri selepas log masuk. Username tidak diubah.
 
 import type { NextRequest } from "next/server";
+import { randomInt } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { requireRole, ok, fail } from "@/lib/api";
 import { hashPassword } from "@/lib/auth";
+
+// Tiada aksara mengelirukan (0/O, 1/l/I).
+const ABJAD = "abcdefghjkmnpqrstuvwxyz23456789";
+function janaKataLaluan(panjang = 8): string {
+  return Array.from({ length: panjang }, () => ABJAD[randomInt(ABJAD.length)]).join("");
+}
 
 export async function POST(
   _request: NextRequest,
@@ -19,34 +26,31 @@ export async function POST(
 
   const guru = await prisma.guru.findUnique({
     where: { id },
-    select: { id: true, nama: true, noIc: true, email: true },
+    select: { id: true, nama: true, email: true },
   });
   if (!guru) return fail("Guru tidak dijumpai", 404);
-  if (!/^\d{12}$/.test(guru.noIc))
-    return fail("No. IC guru tidak sah (bukan 12 digit) — tidak boleh reset kepada IC", 422);
 
-  // Elak pertembungan username IC dengan akaun lain.
-  const bentrok = await prisma.user.findFirst({
-    where: { username: guru.noIc, guruId: { not: id } },
-    select: { id: true },
-  });
-  if (bentrok) return fail(`No. IC ${guru.noIc} sudah digunakan oleh akaun lain`, 409);
-
-  const passwordHash = await hashPassword(guru.noIc);
-  const akaun = await prisma.user.findFirst({ where: { guruId: id }, select: { id: true } });
+  const kataLaluan = janaKataLaluan();
+  const passwordHash = await hashPassword(kataLaluan);
+  const akaun = await prisma.user.findFirst({ where: { guruId: id }, select: { id: true, username: true } });
+  let username: string;
   if (akaun) {
     await prisma.user.update({
       where: { id: akaun.id },
-      data: { username: guru.noIc, passwordHash, mustChangePw: true, statusAktif: true },
+      data: { passwordHash, mustChangePw: true, statusAktif: true },
     });
+    username = akaun.username;
   } else {
+    const bentrok = await prisma.user.findFirst({ where: { username: guru.email }, select: { id: true } });
+    if (bentrok) return fail(`Email ${guru.email} sudah digunakan oleh akaun lain`, 409);
     await prisma.user.create({
-      data: { username: guru.noIc, email: guru.email, passwordHash, role: "Guru", guruId: id, mustChangePw: true },
+      data: { username: guru.email, email: guru.email, passwordHash, role: "Guru", guruId: id, mustChangePw: true },
     });
+    username = guru.email;
   }
 
   return ok(
-    { username: guru.noIc, kataLaluan: guru.noIc },
-    `Kata laluan "${guru.nama}" telah di-reset kepada No. IC (${guru.noIc}). Guru dipaksa tukar semasa log masuk.`
+    { username, kataLaluan },
+    `Kata laluan "${guru.nama}" telah di-reset. Guru dipaksa tukar semasa log masuk.`
   );
 }

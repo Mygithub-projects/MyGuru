@@ -2,7 +2,7 @@
 export type IconName =
   | "dashboard" | "members" | "attendance" | "analytics" | "trophy"
   | "achievements" | "reports" | "transfer" | "bell" | "chat"
-  | "settings" | "import" | "demographics" | "cert" | "admin" | "scan";
+  | "settings" | "import" | "demographics" | "cert" | "admin" | "scan" | "spreadsheet";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -101,6 +101,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 0-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3" />
       <path d="M4 12h16" />
+    </>
+  ),
+  spreadsheet: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
+      <path d="M3.5 9h17M3.5 14.5h17M9.5 9v11.5" />
     </>
   ),
 };

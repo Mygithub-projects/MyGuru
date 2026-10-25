@@ -98,6 +98,11 @@ export default async function GuruDashboard() {
 
   const seluruh = guruSeluruhSekolah(guruEff);
   const units = await unitSeliaan(guruEff);
+  // Unit seliaan ikut kategori (sumber kebenaran: GuruPenasihatKelab).
+  const penugasan = guru
+    ? await prisma.guruPenasihatKelab.findMany({ where: { guruId: guru.id }, select: { namaUnit: true, jenisKoko: true }, orderBy: { namaUnit: "asc" } })
+    : [];
+  const unitJenis = (jenis: string) => penugasan.filter((p) => p.jenisKoko === jenis).map((p) => p.namaUnit).join(", ") || "-";
   const {
     pencapaian, aktivitiLuar, pertukaran, laporanMingguan, laporanProjek, sesiKehadiran, cadanganJawatan,
   } = await getGuruDashboard(guruEff);
@@ -169,11 +174,12 @@ export default async function GuruDashboard() {
         scopeLabel={seluruh ? t.guru.scopeSchool : t.guru.scopeUnit}
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard label={t.guru.cardStudents} value={bilPelajar} />
         <StatCard label={t.guru.cardPending} value={totalPending} tone={totalPending > 0 ? "warn" : "default"} />
-        <StatCard label={t.guru.cardClub} value={guruEff.kelabDiselia ?? "-"} small />
-        <StatCard label={t.guru.cardSportBb} value={guruEff.sukanDiselia ?? guruEff.badanDiselia ?? "-"} small />
+        <StatCard label={t.guru.cardClub} value={unitJenis("Kelab")} small />
+        <StatCard label={t.guru.cardSport} value={unitJenis("Sukan")} small />
+        <StatCard label={t.guru.cardUniform} value={unitJenis("Uniform")} small />
       </div>
 
       <LivePending t={t.guru.livePending} />
