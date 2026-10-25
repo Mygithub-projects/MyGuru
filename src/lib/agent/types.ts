@@ -1,10 +1,10 @@
 // src/lib/agent/types.ts
-// Jenis teras untuk MyGuru AI — lapisan agentik e-KokoT6.
+// Jenis teras untuk EzKokoT6 AI — lapisan agentik EzKokoT6.
 
 import type { Role, SubRole } from "@/lib/enums";
 
 /**
- * Peranan RBAC sistem e-KokoT6: "Pelajar" | "Guru" | "Admin".
+ * Peranan RBAC sistem EzKokoT6: "Pelajar" | "Guru" | "Admin".
  * Alias kepada `Role` supaya kod agent kekal selari dengan terminologi sistem.
  */
 export type Peranan = Role;

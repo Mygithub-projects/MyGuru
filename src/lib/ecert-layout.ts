@@ -41,4 +41,4 @@ export const ECERT = {
   garisTtdLebar: 180,
 } as const;
 
-export const ECERT_NOTA = "Sahkan keaslian sijil ini melalui No. Siri di portal KoKurikulum.";
+export const ECERT_NOTA = "Sahkan keaslian sijil ini melalui No. Siri di portal EzKokoT6.";

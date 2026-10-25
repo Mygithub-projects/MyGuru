@@ -1,4 +1,4 @@
-// KoKurikulum — Skema Pangkalan Data (Prisma)
+// EzKokoT6 — Skema Pangkalan Data (Prisma)
 // ---------------------------------------------------------------------------
 // PostgreSQL (local & produksi). Skema ini sengaja mengelak enum & array
 // native supaya mudah-alih antara pembekal SQL. Nilai "enum" disimpan sebagai
@@ -151,7 +151,7 @@ model CadanganJawatan {
   @@index([status])
 }
 
-// === Cadangan Agent (MyGuru AI cadang -> Guru/Admin sahkan) ===============
+// === Cadangan Agent (EzKokoT6 AI cadang -> Guru/Admin sahkan) ===============
 // Berbeza daripada CadanganJawatan: ini baris gilir kelulusan umum untuk
 // SEMUA tindakan berisiko yang dicadang oleh agent AI (pertukaran unit,
 // pengesahan pencapaian, kira semula markah, jana e-Cert). Tiada perubahan

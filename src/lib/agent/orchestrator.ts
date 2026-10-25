@@ -1,5 +1,5 @@
 // src/lib/agent/orchestrator.ts
-// Orchestrator MyGuru AI, dibina sebagai graf LangGraph sebenar (StateGraph):
+// Orchestrator EzKokoT6 AI, dibina sebagai graf LangGraph sebenar (StateGraph):
 //   START -> planner -> dispatch -(conditional, Send per langkah sedia)-> subAgent -> dispatch -> ... -> synthesis -> END
 //   1) RANCANG  — LLM pecahkan tugas kepada langkah (domain + arahan + kebergantungan)
 //   2) HANTAR   — "dispatch" kira langkah yang sedia (dependsOn selesai) & Send() setiap satu
@@ -22,7 +22,7 @@ import { subAgentFor } from "./subagents";
 import { findTool } from "./tools";
 import { runSession } from "./runner";
 
-const PLANNER_PROMPT = `Anda ORCHESTRATOR MyGuru AI. Pecahkan permintaan pengguna kepada langkah-langkah
+const PLANNER_PROMPT = `Anda ORCHESTRATOR EzKokoT6 AI. Pecahkan permintaan pengguna kepada langkah-langkah
 untuk sub-agent khusus. Sub-agent yang ada: markah, kehadiran, kelulusan, analitik, notifikasi.
 
 Balas HANYA JSON (tiada teks lain, tiada markdown) dalam bentuk:
@@ -59,7 +59,7 @@ async function sintesis(userTask: string, results: SubAgentResult[]): Promise<st
     model: MODEL,
     max_tokens: 1200,
     system:
-      "Anda ORCHESTRATOR MyGuru AI. Gabungkan output sub-agent jadi satu jawapan padat, " +
+      "Anda ORCHESTRATOR EzKokoT6 AI. Gabungkan output sub-agent jadi satu jawapan padat, " +
       "jelas, dalam Bahasa Melayu. Nyatakan dengan jelas mana-mana cadangan yang menunggu " +
       "kelulusan manusia. Jangan reka maklumat di luar output yang diberi.",
     messages: [

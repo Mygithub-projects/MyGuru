@@ -1,5 +1,5 @@
-"""CLI servis AI e-KokoT6.
-e-KokoT6 AI service CLI.
+"""CLI servis AI EzKokoT6.
+EzKokoT6 AI service CLI.
 
     python main.py semak            # semak konfigurasi, DB, dan fail sumber
     python main.py senarai          # senaraikan pelajar dari pangkalan data

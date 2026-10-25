@@ -1,4 +1,4 @@
-"""Servis AI Python untuk e-KokoT6.
-Python AI service for e-KokoT6."""
+"""Servis AI Python untuk EzKokoT6.
+Python AI service for EzKokoT6."""
 
 __all__ = ["config", "db", "claude", "cerapan"]

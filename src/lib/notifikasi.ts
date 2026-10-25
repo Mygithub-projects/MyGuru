@@ -97,9 +97,9 @@ async function hantarEmel(input: NotifInput, kenalan: Kenalan) {
   });
   const base = process.env.NEXT_PUBLIC_BASE_URL || "";
   await transport.sendMail({
-    from: process.env.SMTP_FROM || "KoKurikulum <no-reply@ekoko.local>",
+    from: process.env.SMTP_FROM || "EzKokoT6 <no-reply@ekoko.local>",
     to: kenalan.email,
-    subject: `[KoKurikulum] ${input.tajuk}`,
+    subject: `[EzKokoT6] ${input.tajuk}`,
     text: `${input.mesej}${input.pautan ? `\n\n${base}${input.pautan}` : ""}`,
   });
 }

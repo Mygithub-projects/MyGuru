@@ -1,4 +1,4 @@
-# Menjalankan e-KokoT6 dengan Docker
+# Menjalankan EzKokoT6 dengan Docker
 
 Deploy rasmi projek ini ialah **Vercel** (lihat `DEPLOY.md`). Setup Docker di sini
 untuk **self-host** atau **dev tempatan** — ia tidak menggantikan Vercel.

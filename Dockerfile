@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # ---------------------------------------------------------------------------
-# e-KokoT6 — Next.js 16 + Prisma 6 (PostgreSQL)
+# EzKokoT6 — Next.js 16 + Prisma 6 (PostgreSQL)
 # Bina:  docker build -t ekokot6 .
 # Guna:  lihat docker-compose.yml (disyorkan) atau DOCKER.md
 # ---------------------------------------------------------------------------
@@ -22,7 +22,7 @@ RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 # NEXT_PUBLIC_* ditanam masa build — mesti dihantar sebagai build arg.
-ARG NEXT_PUBLIC_APP_NAME="KoKurikulum"
+ARG NEXT_PUBLIC_APP_NAME="EzKokoT6"
 ARG NEXT_PUBLIC_INSTITUSI="KTE (Prauniversiti) Desa Mahkota"
 ARG NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME \

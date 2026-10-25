@@ -1,4 +1,4 @@
-# Servis AI Python — e-KokoT6
+# Servis AI Python — EzKokoT6
 
 Servis kecil yang membaca data PAJSK dari Postgres yang sama dengan `ekokot6`
 dan menjana cerapan menggunakan Claude.

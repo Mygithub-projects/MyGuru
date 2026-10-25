@@ -1,11 +1,11 @@
 // src/lib/agent/tools.ts
 // Tools dibahagi kepada READ (autonomi penuh) dan PROPOSE (cadang sahaja → kelulusan manusia).
-// Setiap pelaksana membungkus fungsi sedia ada e-KokoT6 (pelajar.ts, guru.ts, insights.ts, dll).
+// Setiap pelaksana membungkus fungsi sedia ada EzKokoT6 (pelajar.ts, guru.ts, insights.ts, dll).
 
 import type { ToolDef, ToolResult, AgentContext } from "./types";
 import { wrapProposeResult } from "./guardrails";
 
-// ---- Modul sebenar e-KokoT6 ----
+// ---- Modul sebenar EzKokoT6 ----
 import { prisma } from "@/lib/prisma";
 import { getPelajarProfil } from "@/lib/pelajar";
 import { getGuruDashboard, countPendingGuru } from "@/lib/guru";

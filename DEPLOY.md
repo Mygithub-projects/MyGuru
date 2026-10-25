@@ -1,6 +1,6 @@
-# Panduan Deploy — e-KokoT6 (Vercel + PostgreSQL + Secrets)
+# Panduan Deploy — EzKokoT6 (Vercel + PostgreSQL + Secrets)
 
-Panduan langkah-demi-langkah untuk menerbitkan e-KokoT6 ke produksi pada **Vercel**
+Panduan langkah-demi-langkah untuk menerbitkan EzKokoT6 ke produksi pada **Vercel**
 dengan **PostgreSQL** terurus dan storan objek untuk muat naik fail.
 
 > **Tiga keputusan produksi penting** (berbeza daripada pembangunan tempatan):

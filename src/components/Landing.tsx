@@ -42,7 +42,7 @@ export function Landing({ institusi }: { institusi: string }) {
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <Image src="/logo-kpm.png" alt="Logo KPM" width={36} height={36} className="rounded-lg ring-1 ring-slate-200 dark:ring-white/20" />
           <div className="flex-1">
-            <p className="text-sm font-bold text-ink dark:text-white">MyGuru AI</p>
+            <p className="text-sm font-bold text-ink dark:text-white">EzKokoT6</p>
             <p className="hidden text-[11px] text-slate-500 dark:text-white/60 sm:block">{institusi}</p>
           </div>
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 dark:text-white/70 md:flex">
@@ -222,7 +222,7 @@ export function Landing({ institusi }: { institusi: string }) {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-8 sm:flex-row">
           <div className="flex items-center gap-2">
             <Image src="/logo-kpm.png" alt="Logo KPM" width={28} height={28} className="rounded-md bg-white p-0.5" />
-            <span className="text-sm font-semibold text-white">MyGuru AI</span>
+            <span className="text-sm font-semibold text-white">EzKokoT6</span>
           </div>
           <p className="text-center text-xs">{institusi} · Sistem Pengurusan Kokurikulum Tingkatan 6</p>
           <p className="text-xs">© {new Date().getFullYear()}</p>

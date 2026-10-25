@@ -1,4 +1,4 @@
-# Manual Pengguna — Guru (e-KokoT6)
+# Manual Pengguna — Guru (EzKokoT6)
 
 ## 1. Log Masuk
 - Gunakan **emel berdaftar** dan kata laluan. Tukar kata laluan lalai pada log masuk pertama.

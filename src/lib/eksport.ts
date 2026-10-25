@@ -60,7 +60,7 @@ function namaTabUnik(nama: string, digunakan: Set<string>): string {
 export async function eksportKehadiranExcel(filter: FilterKehadiran): Promise<Buffer> {
   const rows = await dataKehadiran(filter);
   const wb = new ExcelJS.Workbook();
-  wb.creator = "KoKurikulum";
+  wb.creator = "EzKokoT6";
 
   const kumpulan = new Map<string, typeof rows>();
   for (const r of rows) {
@@ -103,7 +103,7 @@ export async function eksportPelajarRosterExcel(): Promise<Buffer> {
   };
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = "KoKurikulum";
+  wb.creator = "EzKokoT6";
   const ws = wb.addWorksheet("Roster Pelajar T6");
   ws.columns = [
     { header: "Nama", key: "nama", width: 34 },
@@ -402,7 +402,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
   }
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = "KoKurikulum";
+  wb.creator = "EzKokoT6";
   const namaDigunakan = new Set<string>();
   const urutanKelas = [...kumpulan.keys()].sort((a, b) => a.localeCompare(b, "ms", { numeric: true }));
   for (const kelas of urutanKelas) {
@@ -455,7 +455,7 @@ export async function eksportExcel(units?: string[]): Promise<Buffer> {
   ]);
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = "KoKurikulum";
+  wb.creator = "EzKokoT6";
 
   const wsK = wb.addWorksheet("Kehadiran");
   wsK.columns = [
@@ -526,7 +526,7 @@ export async function eksportPdf(units?: string[]): Promise<Buffer> {
     y -= size + 6;
   };
 
-  line("Laporan Analitik Kokurikulum — KoKurikulum", 16, bold, BRAND);
+  line("Laporan Analitik Kokurikulum — EzKokoT6", 16, bold, BRAND);
   line(units ? `Skop: ${units.join(", ")}` : "Skop: Seluruh Sekolah", 10, font);
   y -= 8;
 

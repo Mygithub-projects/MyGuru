@@ -1,7 +1,7 @@
-# Manual Pengguna — Pelajar (e-KokoT6)
+# Manual Pengguna — Pelajar (EzKokoT6)
 
 ## 1. Log Masuk
-- Buka portal e-KokoT6, masukkan **No. Kad Pengenalan** (12 digit, tanpa sengkang) dan kata laluan.
+- Buka portal EzKokoT6, masukkan **No. Kad Pengenalan** (12 digit, tanpa sengkang) dan kata laluan.
 - Kali pertama log masuk, anda **wajib menukar kata laluan** lalai.
 
 ## 2. Dashboard

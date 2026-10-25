@@ -46,7 +46,7 @@ export function SijilPreview(p: SijilPreviewProps) {
 
       <Teks y={Y.institusi} size={13} bold fill={MERAH}>{(p.institusi || "").toUpperCase()}</Teks>
       <Teks y={Y.tajuk} size={22} bold fill={GELAP}>{p.tajukSijil}</Teks>
-      <Teks y={Y.subtajuk} size={10} fill={KELABU}>e-Cert · Sistem KoKurikulum</Teks>
+      <Teks y={Y.subtajuk} size={10} fill={KELABU}>e-Cert · EzKokoT6</Teks>
       <line x1={W / 2 - 60} y1={Y.garis} x2={W / 2 + 60} y2={Y.garis} stroke={EMAS} strokeWidth={1} />
 
       <Teks y={Y.disahkan} size={12} fill={KELABU}>Dengan ini disahkan bahawa</Teks>

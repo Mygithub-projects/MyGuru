@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Active Hands, Brilliant Minds : MyGuru AI",
+  title: "Active Hands, Brilliant Minds : EzKokoT6",
   description:
     "Pengurusan kokurikulum Tingkatan 6: markah PAJSK, kehadiran & jawatan, e-Cert & analitik.",
 };

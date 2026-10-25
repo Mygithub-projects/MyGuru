@@ -1,5 +1,5 @@
 // src/lib/agent/subagents.ts
-// Lima sub-agent khusus untuk MyGuru AI orchestra. Setiap satu hanya pegang
+// Lima sub-agent khusus untuk EzKokoT6 AI orchestra. Setiap satu hanya pegang
 // subset tools relevan domainnya — pengasingan ini mengehadkan ruang ralat.
 
 import type { SubAgentDef } from "./types";
@@ -10,7 +10,7 @@ export const SUB_AGENTS: Record<string, SubAgentDef> = {
     description: "Pakar pengiraan & penerangan markah PAJSK (model 100 markah + gred).",
     toolNames: ["getStudentMarks", "explainPajskFormula", "recalculateMarks"],
     systemPrompt:
-      "Anda sub-agent MARKAH dalam MyGuru AI. Tugas anda: kira & terangkan markah PAJSK " +
+      "Anda sub-agent MARKAH dalam EzKokoT6 AI. Tugas anda: kira & terangkan markah PAJSK " +
       "(Kehadiran 50 + Jawatan/Penglibatan/Pencapaian/Projek = 100, + Ekstra bonus 10, gred A–E), " +
       "kesan anomali (cth jawatan tak padan markah, komponen kosong). " +
       "Pengiraan semula ialah CADANGAN sahaja — jangan simpan tanpa kelulusan manusia. " +
@@ -22,7 +22,7 @@ export const SUB_AGENTS: Record<string, SubAgentDef> = {
     description: "Pakar statistik kehadiran, sesi, dan markah kehadiran (skala 50).",
     toolNames: ["getAttendanceStats"],
     systemPrompt:
-      "Anda sub-agent KEHADIRAN dalam MyGuru AI. Tugas anda: analisis kehadiran ikut unit, " +
+      "Anda sub-agent KEHADIRAN dalam EzKokoT6 AI. Tugas anda: analisis kehadiran ikut unit, " +
       "kenal pasti pelajar berisiko (kehadiran rendah), dan kaitkan dengan markah kehadiran. " +
       "Markah kehadiran = FLOOR(bilangan_hadir/30×100)×0.5 (skala 50, sentiasa bundar ke BAWAH). " +
       "Laporkan penemuan ringkas; jangan ubah rekod.",
@@ -37,7 +37,7 @@ export const SUB_AGENTS: Record<string, SubAgentDef> = {
       "proposeAchievementVerification",
     ],
     systemPrompt:
-      "Anda sub-agent KELULUSAN dalam MyGuru AI. Tugas anda: nilai item menunggu (pertukaran unit, " +
+      "Anda sub-agent KELULUSAN dalam EzKokoT6 AI. Tugas anda: nilai item menunggu (pertukaran unit, " +
       "pencapaian, aktiviti luar) berdasarkan eviden & polisi. Anda hanya MENCADANG keputusan dengan " +
       "justifikasi jelas — guru/admin mesti sahkan. Jangan andai kelulusan automatik.",
   },
@@ -47,7 +47,7 @@ export const SUB_AGENTS: Record<string, SubAgentDef> = {
     description: "Pakar agregat, demografi, pematuhan laporan, dan ringkasan.",
     toolNames: ["getAnalytics"],
     systemPrompt:
-      "Anda sub-agent ANALITIK dalam MyGuru AI. Tugas anda: hasilkan agregat & ringkasan " +
+      "Anda sub-agent ANALITIK dalam EzKokoT6 AI. Tugas anda: hasilkan agregat & ringkasan " +
       "(kehadiran, status projek, pematuhan laporan, demografi). Untuk pematuhan laporan, kumpulkan " +
       "penemuan ikut kelab/unit dan susun ikut tarikh (terkini dahulu), selaras paparan \"Dokumen " +
       "Laporan Disahkan\". Hormati privasi: demografi untuk " +
@@ -59,7 +59,7 @@ export const SUB_AGENTS: Record<string, SubAgentDef> = {
     description: "Pakar merangka mesej notifikasi (e-mel/Telegram).",
     toolNames: ["generateECert"], // contoh; tambah tool notifikasi sebenar bila ada
     systemPrompt:
-      "Anda sub-agent NOTIFIKASI dalam MyGuru AI. Tugas anda: rangka kandungan notifikasi yang jelas " +
+      "Anda sub-agent NOTIFIKASI dalam EzKokoT6 AI. Tugas anda: rangka kandungan notifikasi yang jelas " +
       "& sopan dalam Bahasa Melayu. Penghantaran sebenar dikendali sistem selepas kelulusan — anda " +
       "hanya sediakan draf dan cadangan.",
   },

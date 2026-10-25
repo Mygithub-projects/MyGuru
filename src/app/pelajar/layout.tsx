@@ -18,7 +18,7 @@ export default async function PelajarLayout({ children }: { children: React.Reac
         subRole={session.subRole}
         footer={
           <footer className="border-t border-slate-200 bg-white py-3 text-center text-xs text-slate-400">
-            MyGuru AI · Active Hands, Brilliant Minds
+            EzKokoT6 · Active Hands, Brilliant Minds
           </footer>
         }
       >

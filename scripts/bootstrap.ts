@@ -12,7 +12,7 @@ const ADMIN_USER = process.env.ADMIN_USERNAME || "admin";
 const ADMIN_PW = process.env.ADMIN_PASSWORD || process.env.DEFAULT_SEED_PASSWORD || "ekoko2026";
 
 async function main() {
-  console.log("Bootstrap produksi KoKurikulum ...");
+  console.log("Bootstrap produksi EzKokoT6 ...");
 
   // 1. Tetapan markah PAJSK
   const jawatan: Record<string, number> = {

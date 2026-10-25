@@ -87,11 +87,11 @@ export function AgentChat({ role, t }: { role: string; t: AgentChatDict }) {
       {/* Butang terapung */}
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label={open ? "Tutup MyGuru AI" : "Buka MyGuru AI"}
+        aria-label={open ? "Tutup EzKokoT6 AI" : "Buka EzKokoT6 AI"}
         className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-brand px-4 py-3 text-sm font-semibold text-white shadow-lg ring-1 ring-black/5 transition hover:bg-brand-hover"
       >
         <span className="text-lg leading-none">{open ? "✕" : "🤖"}</span>
-        {!open && <span className="hidden sm:inline">MyGuru AI</span>}
+        {!open && <span className="hidden sm:inline">EzKokoT6 AI</span>}
       </button>
 
       {/* Panel sembang */}
@@ -100,7 +100,7 @@ export function AgentChat({ role, t }: { role: string; t: AgentChatDict }) {
           <div className="flex items-center gap-2 bg-ink px-4 py-3 text-white">
             <span className="text-lg">🤖</span>
             <div className="min-w-0">
-              <p className="text-sm font-bold leading-tight">MyGuru AI</p>
+              <p className="text-sm font-bold leading-tight">EzKokoT6 AI</p>
               <p className="text-[11px] text-white/70">{t.subtitle}</p>
             </div>
           </div>

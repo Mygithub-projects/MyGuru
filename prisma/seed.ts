@@ -301,7 +301,7 @@ async function seedGuru() {
 }
 
 async function main() {
-  console.log("Seeding KoKurikulum ...");
+  console.log("Seeding EzKokoT6 ...");
   await seedTetapanMarkah();
   await seedAdmin();
   await seedPelajar();

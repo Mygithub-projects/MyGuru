@@ -1,5 +1,5 @@
-# Servis AI Python — MyGuru AI / e-KokoT6
-# Python AI service — MyGuru AI / e-KokoT6
+# Servis AI Python — EzKokoT6
+# Python AI service — EzKokoT6
 #
 # Pasang / Install:  pip install -r requirements.txt
 #

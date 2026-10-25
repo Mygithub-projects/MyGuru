@@ -21,7 +21,7 @@ export default async function LoginPage() {
             height={80}
             className="mb-3 rounded-2xl bg-white p-1.5 shadow-lg ring-2 ring-white/30"
           />
-          <h1 className="text-2xl font-bold tracking-tight text-white">MyGuru AI</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">EzKokoT6</h1>
           <p className="text-xs font-semibold uppercase tracking-wide text-gold">Active Hands, Brilliant Minds</p>
           <p className="mt-1 text-sm text-white/85">{t.login.subtitle}</p>
           <p className="mt-0.5 text-xs text-white/70">{institusi}</p>

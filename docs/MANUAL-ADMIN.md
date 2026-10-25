@@ -1,4 +1,4 @@
-# Manual Pengguna — Pentadbir (Admin) (e-KokoT6)
+# Manual Pengguna — Pentadbir (Admin) (EzKokoT6)
 
 ## 1. Log Masuk
 - Akaun lalai: `admin`. Tukar kata laluan dengan segera selepas pemasangan.

@@ -1,4 +1,4 @@
-# e-KokoT6 — Sistem Pengurusan Kokurikulum Tingkatan 6
+# EzKokoT6 — Sistem Pengurusan Kokurikulum Tingkatan 6
 
 Sistem web untuk mengurus kokurikulum Tingkatan 6: markah PAJSK automatik,
 kesinambungan kepimpinan T5→T6, e-Cert *self-service*, dan analitik — selaras
