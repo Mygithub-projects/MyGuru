@@ -2,12 +2,18 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getT } from "@/lib/locale";
 import { TetapanClient } from "./TetapanClient";
+import { KehadiranTetapan } from "./KehadiranTetapan";
+import { jumlahAktiviti } from "@/lib/tetapan-kehadiran";
 
 export default async function TetapanPage() {
-  const items = await prisma.tetapanMarkah.findMany({
-    orderBy: [{ kategori: "asc" }, { nilaiMarkah: "desc" }],
-  });
-  const { t } = await getT();
+  const [items, jumlah, { t, locale }] = await Promise.all([
+    prisma.tetapanMarkah.findMany({
+      where: { kategori: { not: "Kehadiran" } }, // diurus oleh KehadiranTetapan
+      orderBy: [{ kategori: "asc" }, { nilaiMarkah: "desc" }],
+    }),
+    jumlahAktiviti(),
+    getT(),
+  ]);
   return (
     <div className="space-y-6">
       <div>
@@ -17,6 +23,11 @@ export default async function TetapanPage() {
           {t.admin.tetapanPage.subtitle}
         </p>
       </div>
+      <KehadiranTetapan
+        awal={jumlah}
+        label={{ Kelab: `${t.common.kelab} (KP)`, Sukan: `${t.common.sukan} (SP)`, Uniform: `${t.common.uniform} (BU)` }}
+        locale={locale}
+      />
       <TetapanClient
         items={items.map((i) => ({ id: i.id, kategori: i.kategori, namaItem: i.namaItem, nilaiMarkah: i.nilaiMarkah }))}
         t={t.admin.tetapanClient}

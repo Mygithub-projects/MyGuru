@@ -75,7 +75,7 @@ export default async function PelajarDashboard() {
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label={t.pelajar.present} value={`${kehadiran.hadir} / ${kehadiran.jumlahSetahun}`} sub={`${kehadiran.direkod} ${t.pelajar.sessionsRecorded}`} />
-          <StatCard label={t.pelajar.attendancePct} value={`${kehadiran.peratus}%`} sub={t.pelajar.outOf30} />
+          <StatCard label={t.pelajar.attendancePct} value={`${kehadiran.peratus}%`} sub={t.pelajar.outOf30(kehadiran.jumlahSetahun)} />
           <StatCard label={t.pelajar.attendanceMark} value={kehadiran.markah} sub={t.pelajar.fullMarks40} />
           <StatCard label={t.pelajar.pajskContribution} value={kehadiran.markah} sub={t.pelajar.countedInT6} />
         </div>

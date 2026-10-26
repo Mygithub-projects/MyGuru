@@ -6,7 +6,10 @@ import { requireRole, ok, fail } from "@/lib/api";
 export async function GET() {
   const auth = await requireRole("Admin");
   if ("response" in auth) return auth.response;
-  const items = await prisma.tetapanMarkah.findMany({ orderBy: [{ kategori: "asc" }, { nilaiMarkah: "desc" }] });
+  const items = await prisma.tetapanMarkah.findMany({
+    where: { kategori: { not: "Kehadiran" } }, // lihat /api/admin/tetapan/kehadiran
+    orderBy: [{ kategori: "asc" }, { nilaiMarkah: "desc" }],
+  });
   return ok(items);
 }
 

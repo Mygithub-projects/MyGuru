@@ -4,7 +4,8 @@
 import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { prisma } from "./prisma";
-import { markahKehadiran, markahProjekJawatan, markahProjekPeringkat, JUMLAH_PERJUMPAAN_WAJIB } from "./pajsk";
+import { markahKehadiran, markahProjekJawatan, markahProjekPeringkat } from "./pajsk";
+import { jumlahAktiviti, jumlahKeseluruhan } from "./tetapan-kehadiran";
 import {
   analitikKehadiran,
   analitikProjek,
@@ -195,7 +196,7 @@ function kolumBidang(jenis: "Uniform" | "Kelab" | "Sukan", kod: string, labelUni
 }
 
 /** Blok-blok lajur borang. `tajuk` null = setiap lajur dicantum baris 3–4. */
-function blokBorang(): { tajuk: string | null; kelasDiSini?: boolean; kol: Kolum[] }[] {
+function blokBorang(jumlahSemua: number): { tajuk: string | null; kelasDiSini?: boolean; kol: Kolum[] }[] {
   const bu = kolumBidang("Uniform", "BU", "Nama Uniform");
   return [
     {
@@ -223,7 +224,7 @@ function blokBorang(): { tajuk: string | null; kelasDiSini?: boolean; kol: Kolum
     {
       tajuk: "MARKAH PAJSK (SISTEM)",
       kol: [
-        { h: `Kehadiran (/${JUMLAH_PERJUMPAAN_WAJIB})`, w: 5, rot: true, val: (x) => x.hadir },
+        { h: `Kehadiran (/${jumlahSemua})`, w: 5, rot: true, val: (x) => x.hadir },
         { h: "Markah Kehadiran (/50)", w: 5.5, rot: true, val: (x) => x.mKehadiran },
         { h: "Markah Jawatan (/10)", w: 5, rot: true, val: (x) => x.mJawatan },
         { h: "Markah Penglibatan (/10)", w: 5, rot: true, val: (x) => x.mPenglibatan },
@@ -245,8 +246,8 @@ function blokBorang(): { tajuk: string | null; kelasDiSini?: boolean; kol: Kolum
   ];
 }
 
-function isiTabKelas(ws: ExcelJS.Worksheet, kelas: string, baris: BarisPelajar[]) {
-  const blok = blokBorang();
+function isiTabKelas(ws: ExcelJS.Worksheet, kelas: string, baris: BarisPelajar[], jumlahSemua: number) {
+  const blok = blokBorang(jumlahSemua);
   const font = { name: "Arial", size: 9 };
   let col = 1;
   for (const bk of blok) {
@@ -324,6 +325,7 @@ function isiTabKelas(ws: ExcelJS.Worksheet, kelas: string, baris: BarisPelajar[]
  * kelas: satu tab setiap kelas T6.
  */
 export async function eksportRawDataExcel(): Promise<Buffer> {
+  const jumlahSemua = jumlahKeseluruhan(await jumlahAktiviti()); // tetapan Admin
   const pelajar = await prisma.pelajar.findMany({
     orderBy: [{ kelasT6: "asc" }, { nama: "asc" }],
     include: {
@@ -390,7 +392,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
       anugerah: p.pencapaian.filter((c) => c.kategori === "ekstra").map((c) => c.namaPencapaian).join("; "),
       mEkstra: p.markahEkstra,
       hadir,
-      mKehadiran: markahKehadiran(hadir),
+      mKehadiran: markahKehadiran(hadir, jumlahSemua),
       mJawatan: Math.max(0, ...p.kokurikulum.map((k) => k.markahJawatanT6 ?? 0)),
       mPenglibatan: p.markahPenglibatan,
       mPencapaian: p.markahPencapaian,
@@ -407,7 +409,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
   const urutanKelas = [...kumpulan.keys()].sort((a, b) => a.localeCompare(b, "ms", { numeric: true }));
   for (const kelas of urutanKelas) {
     const baris = kumpulan.get(kelas)!;
-    isiTabKelas(wb.addWorksheet(namaTabUnik(kelas, namaDigunakan)), kelas, baris);
+    isiTabKelas(wb.addWorksheet(namaTabUnik(kelas, namaDigunakan)), kelas, baris, jumlahSemua);
   }
   if (kumpulan.size === 0) wb.addWorksheet("Tiada Data");
 

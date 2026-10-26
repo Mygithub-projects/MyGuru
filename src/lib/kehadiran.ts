@@ -7,6 +7,7 @@ import { randomBytes } from "node:crypto";
 import { prisma } from "./prisma";
 import { markahKehadiran, peratusKehadiran, MARKAH_KEHADIRAN_PENUH, JUMLAH_PERJUMPAAN_WAJIB } from "./pajsk";
 import { kiraSemulaT6 } from "./workflow";
+import { jumlahAktiviti, jumlahKeseluruhan } from "./tetapan-kehadiran";
 import type { JenisKoko } from "./enums";
 
 // Jumlah perjumpaan mingguan wajib = 30 kali sepanjang pengajian (§1.2).
@@ -159,22 +160,37 @@ export async function kiraSemulaKehadiran(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
   if (recs.length === 0) return;
   const hadir = recs.filter((r) => r.statusHadir).length;
-  const denom = PERJUMPAAN_STANDARD;
+  const denom = jumlahKeseluruhan(await jumlahAktiviti()); // cth 16 + 17 + 14 = 47
   const markah = markahKehadiran(hadir, denom);
   await prisma.pelajar.update({ where: { id: pelajarId }, data: { markahKehadiran: markah } });
   await kiraSemulaT6(pelajarId);
   return { hadir, denom, markah };
 }
 
-/** Ringkasan kehadiran keseluruhan pelajar (atas 30 perjumpaan wajib).
+/**
+ * Kira semula markah SEMUA pelajar (cth. selepas Admin menukar jumlah aktiviti
+ * bahagian). Pelajar dengan rekod kehadiran: kehadiran + T6; tanpa rekod: T6.
+ */
+export async function kiraSemulaSemuaPelajar() {
+  const senarai = await prisma.pelajar.findMany({
+    select: { id: true, _count: { select: { kehadiran: true } } },
+  });
+  for (const p of senarai) {
+    if (p._count.kehadiran > 0) await kiraSemulaKehadiran(p.id);
+    else await kiraSemulaT6(p.id);
+  }
+  return senarai.length;
+}
+
+/** Ringkasan kehadiran keseluruhan pelajar (atas jumlah aktiviti semua bahagian — tetapan Admin).
  *  `direkod` dihadkan pada jumlahSetahun — perjumpaan tambahan yang berlaku
  *  selepas kuota wajib dipenuhi tetap disimpan (tidak dipadam), tetapi tidak
  *  dipaparkan melebihi jumlah wajib supaya tidak kelihatan bercanggah dengan
- *  penyebut "/ 30" di sebelahnya. */
+ *  penyebut jumlah di sebelahnya. */
 export async function ringkasanKehadiranPelajar(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
   const hadir = recs.filter((r) => r.statusHadir).length;
-  const jumlahSetahun = PERJUMPAAN_STANDARD;
+  const jumlahSetahun = jumlahKeseluruhan(await jumlahAktiviti());
   const direkod = Math.min(recs.length, jumlahSetahun);
   const markah = markahKehadiran(hadir, jumlahSetahun);
   const peratus = peratusKehadiran(hadir, jumlahSetahun);

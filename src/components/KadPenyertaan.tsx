@@ -28,7 +28,7 @@ export function KadPenyertaan({
   penyertaan: BarisPenyertaan[];
   label: Record<string, string>;
   pajsk: Dict["pajsk"];
-  t: Pick<Dict["pelajar"], "participationTotal" | "best2" | "attendedOf30" | "extraTotal">;
+  t: Pick<Dict["pelajar"], "participationTotal" | "best2" | "attendedOf" | "extraTotal">;
 }) {
   return (
     <div className={`grid gap-3 sm:grid-cols-2 ${penyertaan.length > 3 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
@@ -58,7 +58,7 @@ export function KadPenyertaan({
                 </>
               ) : (
                 <>
-                  <Baris label={pajsk.kehadiran} sub={t.attendedOf30(s.hadir)} nilai={s.mKehadiran} maks={50} />
+                  <Baris label={pajsk.kehadiran} sub={t.attendedOf(s.hadir, s.jumlahAktiviti)} nilai={s.mKehadiran} maks={50} />
                   <Baris label={pajsk.jawatan} sub={s.jawatan || undefined} nilai={s.mJawatan} maks={10} />
                   <Baris label={pajsk.penglibatan} sub={s.peringkat || undefined} nilai={s.mPenglibatan} maks={10} />
                   <Baris label={pajsk.pencapaian} nilai={s.pcpMarkah} maks={10} />

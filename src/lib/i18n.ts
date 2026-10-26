@@ -69,7 +69,7 @@ export interface Dict {
     gred: string; finalGrade: string;
     scoreT5: string; importedRecord: string; change: string; t5ToT6: string;
     marksByUnit: string; participationTotal: string; unitNote: string;
-    best2: string; attendedOf30: (n: number) => string; extraTotal: string;
+    best2: string; attendedOf: (n: number, total: number) => string; extraTotal: string;
     slip: {
       title: string; sub: string; elemen: string; aspek: string; ekstra: string;
       pelibatan: string; aktiviti: string; jawatan: string; peringkat: string; tahapPencapaian: string;
@@ -79,7 +79,7 @@ export interface Dict {
       belumDaftar: string; note: string;
     };
     attendanceTitle: string; present: string; sessionsRecorded: string; attendancePct: string;
-    outOf30: string; attendanceMark: string; fullMarks40: string; pajskContribution: string; countedInT6: string;
+    outOf30: (total: number) => string; attendanceMark: string; fullMarks40: string; pajskContribution: string; countedInT6: string;
     comparison: string; detail: string; marksByCategory: string;
     currentUnits: string; history: string; achievements: string;
     backToDashboard: string;
@@ -402,20 +402,20 @@ const ms: Dict = {
     gred: "Gred", finalGrade: "gred akhir (A–E)",
     scoreT5: "Markah PAJSK T5", importedRecord: "rekod import", change: "Perubahan", t5ToT6: "T5 → T6",
     marksByUnit: "Markah Mengikut Penyertaan (T6)", participationTotal: "Jumlah Skor Bidang",
-    best2: "✓ Dikira (2 terbaik)", attendedOf30: (n) => `${n}/30 hadir`, extraTotal: "Markah Ekstra (bonus)",
+    best2: "✓ Dikira (2 terbaik)", attendedOf: (n, total) => `${n}/${total} hadir`, extraTotal: "Markah Ekstra (bonus)",
     slip: {
       title: "Rekod Pentaksiran Kokurikulum (PAJSK)", sub: "Rujukan anda — dikemas kini automatik daripada rekod kehadiran SU/NSU, jawatan, pencapaian & projek yang disahkan guru.",
       elemen: "Elemen", aspek: "Aspek", ekstra: "Ekstra Kurikulum",
       pelibatan: "Pelibatan", aktiviti: "Aktiviti", jawatan: "Jawatan", peringkat: "Peringkat", tahapPencapaian: "Tahap Pencapaian",
       namaProjek: "Nama Projek", pengurusan: "Pengurusan", peringkatPelaksanaan: "Peringkat Pelaksanaan",
-      penyertaan: "Penyertaan", kehadiran: "Kehadiran", kehadiranNote: "perjumpaan PAJSK (markah /50)",
+      penyertaan: "Penyertaan", kehadiran: "Kehadiran", kehadiranNote: "perjumpaan PAJSK gabungan, maks 15 (markah /50)",
       perkhidmatan: "Perkhidmatan", anugerah: "Anugerah Khas", pelaporan: "Pelaporan Markah", jumlahSkor: "Jumlah Skor (%)", gred10: "10% / Gred",
       belumDaftar: "Belum berdaftar",
       note: "Nombor dalam kurungan ialah markah. Kehadiran: 1 perjumpaan PAJSK = 2 sesi (160 minit), maks 15. Markah keseluruhan = purata 2 bidang terbaik + ekstra (had 100); 10% = markah ÷ 10.",
     },
-    unitNote: "Nota: setiap bidang (Sukan / Kelab / Badan Beruniform) dinilai /100. Markah keseluruhan = purata 2 bidang terbaik + Ekstra Kurikulum (jawatan Unit Perkhidmatan / anugerah khas, maks 10), had 100.",
+    unitNote: "Nota: kehadiran dikira gabungan semua bahagian (hadir ÷ 2, maks 15 perjumpaan) dan dipakai dalam setiap bidang. Setiap bidang (Sukan / Kelab / Badan Beruniform) dinilai /100. Markah keseluruhan = purata 2 bidang terbaik + Ekstra Kurikulum (jawatan Unit Perkhidmatan / anugerah khas, maks 10), had 100.",
     attendanceTitle: "Kehadiran Perjumpaan (Setahun)", present: "Hadir", sessionsRecorded: "sesi direkod", attendancePct: "Peratus Kehadiran",
-    outOf30: "atas 30 aktiviti (80 minit)", attendanceMark: "Markah Kehadiran", fullMarks40: "/ 50 markah penuh", pajskContribution: "Sumbang PAJSK", countedInT6: "dikira dalam markah T6",
+    outOf30: (total) => `atas ${total} aktiviti (80 minit)`, attendanceMark: "Markah Kehadiran", fullMarks40: "/ 50 markah penuh", pajskContribution: "Sumbang PAJSK", countedInT6: "dikira dalam markah T6",
     comparison: "Perbandingan T5 vs T6", detail: "Butiran", marksByCategory: "Markah Mengikut Kategori",
     currentUnits: "Unit Kokurikulum Semasa (T6)", history: "Sejarah", achievements: "Pencapaian & Ekstra Kurikulum",
     backToDashboard: "← Kembali ke Dashboard",
@@ -801,20 +801,20 @@ const en: Dict = {
     gred: "Grade", finalGrade: "final grade (A–E)",
     scoreT5: "PAJSK Score (F5)", importedRecord: "imported record", change: "Change", t5ToT6: "F5 → F6",
     marksByUnit: "Marks by Participation (F6)", participationTotal: "Division Score",
-    best2: "✓ Counted (best 2)", attendedOf30: (n) => `${n}/30 attended`, extraTotal: "Extra Marks (bonus)",
+    best2: "✓ Counted (best 2)", attendedOf: (n, total) => `${n}/${total} attended`, extraTotal: "Extra Marks (bonus)",
     slip: {
       title: "Co-curricular Assessment Record (PAJSK)", sub: "For your reference — updated automatically from SU/NSU attendance records and teacher-verified positions, achievements & projects.",
       elemen: "Element", aspek: "Aspect", ekstra: "Extra-curricular",
       pelibatan: "Involvement", aktiviti: "Activity", jawatan: "Position", peringkat: "Level", tahapPencapaian: "Achievement",
       namaProjek: "Project Name", pengurusan: "Management", peringkatPelaksanaan: "Implementation Level",
-      penyertaan: "Participation", kehadiran: "Attendance", kehadiranNote: "PAJSK meetings (marks /50)",
+      penyertaan: "Participation", kehadiran: "Attendance", kehadiranNote: "combined PAJSK meetings, max 15 (marks /50)",
       perkhidmatan: "Service", anugerah: "Special Award", pelaporan: "Mark Reporting", jumlahSkor: "Total Score (%)", gred10: "10% / Grade",
       belumDaftar: "Not registered",
       note: "Numbers in brackets are marks. Attendance: 1 PAJSK meeting = 2 sessions (160 min), max 15. Overall = average of the best 2 divisions + extra (capped at 100); 10% = score ÷ 10.",
     },
-    unitNote: "Note: each division (Sport / Club / Uniformed Body) is scored /100. Overall score = average of the best 2 divisions + Extra-curricular (Service Unit position / special award, max 10), capped at 100.",
+    unitNote: "Note: attendance is combined across divisions (attended ÷ 2, max 15 meetings) and used in every division. Each division (Sport / Club / Uniformed Body) is scored /100. Overall score = average of the best 2 divisions + Extra-curricular (Service Unit position / special award, max 10), capped at 100.",
     attendanceTitle: "Meeting Attendance (Yearly)", present: "Present", sessionsRecorded: "sessions recorded", attendancePct: "Attendance %",
-    outOf30: "out of 30 activities (80 min)", attendanceMark: "Attendance Mark", fullMarks40: "/ 50 full marks", pajskContribution: "PAJSK Contribution", countedInT6: "counted in F6 score",
+    outOf30: (total) => `out of ${total} activities (80 min)`, attendanceMark: "Attendance Mark", fullMarks40: "/ 50 full marks", pajskContribution: "PAJSK Contribution", countedInT6: "counted in F6 score",
     comparison: "F5 vs F6 Comparison", detail: "Detail", marksByCategory: "Marks by Category",
     currentUnits: "Current Co-curriculum Units (F6)", history: "History", achievements: "Achievements & Extra-curricular",
     backToDashboard: "← Back to Dashboard",

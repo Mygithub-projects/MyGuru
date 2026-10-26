@@ -1,6 +1,5 @@
 import type { BarisRumusan } from "@/lib/rumusan";
 import type { Dict } from "@/lib/i18n";
-import { perjumpaanPajsk } from "@/lib/pajsk";
 
 // Slip PAJSK pelajar — format seperti laporan rasmi: satu lajur setiap bahagian
 // (Sukan / Kelab / Uniform) + Ekstra Kurikulum. Data sama dengan Borang Rumusan
@@ -102,7 +101,7 @@ export function SlipPajsk({
               </td>
               {lajur.map((r, i) => (
                 <td key={i} className={`${td} text-center`}>
-                  {r ? `${perjumpaanPajsk(r.hadir)} (${r.mKehadiran})` : "—"}
+                  {r ? `${r.perjumpaan} (${r.mKehadiran})` : "—"}
                 </td>
               ))}
             </tr>
