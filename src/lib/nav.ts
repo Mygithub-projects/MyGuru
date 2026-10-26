@@ -9,7 +9,7 @@ export interface NavItem {
 }
 
 /** Buang emel/ikon emoji utama dari label sedia ada (label pil aksi lama). */
-function stripEmoji(label: string): string {
+export function stripEmoji(label: string): string {
   return label.replace(/^[\p{Extended_Pictographic}️‍]+\s*/u, "");
 }
 
