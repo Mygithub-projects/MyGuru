@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Kokurikulum, Pencapaian } from "@prisma/client";
-import { kiraSkor, markahKeseluruhan, markahEkstra } from "../src/lib/pajsk";
+import { kiraSkor, markahKehadiran, markahKeseluruhan, markahEkstra, perjumpaanPajsk } from "../src/lib/pajsk";
 import { itemEkstra, skorUnit, type RekodPelajar } from "../src/lib/skor-unit";
 
 const koko = (k: Partial<Kokurikulum>) =>
@@ -77,5 +77,40 @@ describe("contoh pengiraan panduan KPM — jumlah komponen sebenar", () => {
   });
   it("dengan jumlah sebenar: (92 + 77.67) / 2 = 84.84 (84.835), + 6 = 90.84", () => {
     expect(markahKeseluruhan([73.33, 92, 77.67], 6)).toBe(90.84);
+  });
+});
+
+describe("kehadiran GABUNGAN KP + SP + BU, maks 15 perjumpaan (KPM)", () => {
+  it("contoh: tetapan 16 + 17 + 14 = 47, hadir 44 → 22 → had 15 → 50", () => {
+    expect(perjumpaanPajsk(44, 47)).toBe(15);
+    expect(markahKehadiran(44, 47)).toBe(50);
+  });
+  it("hadir 20 daripada 47 → 10 perjumpaan → 33.33", () => {
+    expect(markahKehadiran(20, 47)).toBe(33.33);
+  });
+  it("hadir dihadkan pada jumlah tetapan", () => {
+    expect(perjumpaanPajsk(60, 20)).toBe(10);
+  });
+  it("lalai 30 kekal sama seperti panduan (29 → 14 → 46.67)", () => {
+    expect(markahKehadiran(29)).toBe(46.67);
+    expect(markahKehadiran(30)).toBe(50);
+  });
+  it("skorUnit: markah kehadiran sama dalam setiap bidang (gabungan)", () => {
+    const rekod = {
+      ...kosong,
+      kehadiran: [
+        ...[...Array(16)].map(() => ({ jenisKoko: "Kelab" })),
+        ...[...Array(15)].map(() => ({ jenisKoko: "Sukan" })),
+        ...[...Array(13)].map(() => ({ jenisKoko: "Uniform" })),
+      ],
+    };
+    const kp = skorUnit(rekod, koko({ namaUnitT6: "Kelab Muzik" }), { bidang: 16, gabung: 47 });
+    const bu = skorUnit(rekod, koko({ jenisKoko: "Uniform", namaUnitT6: "PISPA" }), { bidang: 14, gabung: 47 });
+    expect(kp.hadir).toBe(16);
+    expect(bu.hadir).toBe(13);
+    expect(kp.hadirGabung).toBe(44);
+    expect(kp.perjumpaan).toBe(15);
+    expect(kp.mKehadiran).toBe(50);
+    expect(bu.mKehadiran).toBe(50);
   });
 });

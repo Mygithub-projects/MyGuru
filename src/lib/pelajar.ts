@@ -3,6 +3,7 @@ import { prisma } from "./prisma";
 import { ringkasanKehadiranPelajar } from "./kehadiran";
 import { markahEkstra } from "./pajsk";
 import { itemEkstra, skorUnit, type RekodPelajar, type SkorUnit } from "./skor-unit";
+import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
 
 export interface BarisPenyertaan {
   jenisKoko: string;
@@ -94,11 +95,12 @@ export async function getPelajarProfil(pelajarId: string) {
     laporanProjek: pelajar.laporanProjek,
   };
   const ekstra = markahEkstra(itemEkstra(rekod, pelajar.kokurikulum));
+  const jumlah = await jumlahAktiviti();
   const asas = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"]
     .map((jenis) => {
       const k = byJenis(jenis);
       if (!k || !k.namaUnitT6) return null;
-      return { jenisKoko: jenis, label: labelJenis[jenis], namaUnit: k.namaUnitT6, skor: skorUnit(rekod, k) };
+      return { jenisKoko: jenis, label: labelJenis[jenis], namaUnit: k.namaUnitT6, skor: skorUnit(rekod, k, jumlahKehadiranUntuk(jumlah, jenis)) };
     })
     .filter((x): x is Omit<BarisPenyertaan, "dikira" | "ekstra"> => x !== null);
   // 2 bidang terbaik (Sukan/Kelab/Uniform) yang dipuratakan untuk markah keseluruhan.

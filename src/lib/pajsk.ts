@@ -68,19 +68,27 @@ export function bundarTo(nilai: number, dp = 2): number {
 //  (80 × 2 = 160 minit) untuk layak mendapat 1 perjumpaan PAJSK.
 //  Semester 1: 12 aktiviti + Semester 2–3: 18 aktiviti = 30 aktiviti
 //  → maksimum 15 perjumpaan. Cth: hadir 29 → 29/2 = 14.5 → dikira 14.
-//  Markah = perjumpaan / 15 × 50 (14 → 46.67).
+//  Markah = perjumpaan / 15 × 50 (14 → 46.67). Kehadiran dikira GABUNGAN
+//  semua bahagian (KP + SP + BU, jumlah ikut tetapan Admin), had 15.
 // ===========================================================================
 
 /** Bilangan aktiviti (80 minit) bagi 1 perjumpaan PAJSK (160 minit). */
 export const AKTIVITI_SE_PERJUMPAAN = 2;
 
-/** Bilangan perjumpaan PAJSK = FLOOR(aktiviti hadir / 2), maks jumlahAktiviti / 2 (15). */
+/** Maksimum perjumpaan PAJSK yang diambil kira (Panduan KPM). */
+export const MAKS_PERJUMPAAN_PAJSK = 15;
+
+/**
+ * Bilangan perjumpaan PAJSK = FLOOR(aktiviti hadir / 2), maks 15 (KPM).
+ * `jumlahAktiviti` = jumlah aktiviti penuh yang diambil kira (lalai 30; atau
+ * gabungan KP + SP + BU ikut tetapan Admin, cth 47) — hadir dihadkan padanya.
+ */
 export function perjumpaanPajsk(hadir: number, jumlahAktiviti = JUMLAH_PERJUMPAAN_WAJIB): number {
   const h = Math.max(0, Math.min(hadir, jumlahAktiviti));
-  return Math.floor(h / AKTIVITI_SE_PERJUMPAAN);
+  return Math.min(MAKS_PERJUMPAAN_PAJSK, Math.floor(h / AKTIVITI_SE_PERJUMPAAN));
 }
 
-/** Peratus kehadiran aktiviti (hadir / 30 × 100) — untuk paparan kadar hadir. */
+/** Peratus kehadiran aktiviti (hadir / jumlah × 100) — untuk paparan kadar hadir. */
 export function peratusKehadiran(hadir: number, jumlahPerjumpaan = JUMLAH_PERJUMPAAN_WAJIB): number {
   if (jumlahPerjumpaan <= 0) return 0;
   const h = Math.max(0, Math.min(hadir, jumlahPerjumpaan));
@@ -89,12 +97,10 @@ export function peratusKehadiran(hadir: number, jumlahPerjumpaan = JUMLAH_PERJUM
 
 /**
  * Markah kehadiran (skala 50) = perjumpaan PAJSK / 15 × 50, bundar 2dp.
- * Cth: hadir 29 → 14 perjumpaan → 46.67 ; hadir 26 → 13 → 43.33 ; 30 → 50.
+ * Cth: hadir 29 (/30) → 14 → 46.67 ; hadir 44 (/47) → 22 → had 15 → 50.
  */
 export function markahKehadiran(hadir: number, jumlahAktiviti = JUMLAH_PERJUMPAAN_WAJIB): number {
-  const maks = Math.floor(jumlahAktiviti / AKTIVITI_SE_PERJUMPAAN);
-  if (maks <= 0) return 0;
-  return bundarTo((perjumpaanPajsk(hadir, jumlahAktiviti) / maks) * MARKAH_KEHADIRAN_PENUH, 2);
+  return bundarTo((perjumpaanPajsk(hadir, jumlahAktiviti) / MAKS_PERJUMPAAN_PAJSK) * MARKAH_KEHADIRAN_PENUH, 2);
 }
 
 // ===========================================================================

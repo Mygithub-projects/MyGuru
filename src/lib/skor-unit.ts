@@ -6,9 +6,11 @@
 import type { AktivitiLuar, Kokurikulum, LaporanProjek, Pencapaian } from "@prisma/client";
 import {
   bidangDariJenisKoko,
+  JUMLAH_PERJUMPAAN_WAJIB,
   kiraSkor,
   markahJawatan,
   markahKehadiran,
+  perjumpaanPajsk,
   markahPenglibatan,
   markahProjekJawatan,
   markahProjekPeringkat,
@@ -27,7 +29,13 @@ export interface RekodPelajar {
 
 export interface SkorUnit {
   unit: string;
+  /** Aktiviti dihadiri dalam bahagian ini / jumlah penuh bahagian (paparan). */
   hadir: number;
+  jumlahAktiviti: number;
+  /** Kehadiran GABUNGAN KP + SP + BU — asas markah kehadiran (had 15 perjumpaan). */
+  hadirGabung: number;
+  jumlahGabung: number;
+  perjumpaan: number;
   mKehadiran: number;
   jawatan: string;
   mJawatan: number;
@@ -49,12 +57,26 @@ export interface SkorUnit {
 const terbaik = <T>(arr: T[], skor: (x: T) => number) =>
   arr.reduce<T | null>((m, x) => (m === null || skor(x) > skor(m) ? x : m), null);
 
-export function skorUnit(p: RekodPelajar, k: Kokurikulum): SkorUnit {
+/** Jumlah aktiviti penuh: bahagian ini (paparan) & gabungan semua bahagian (markah). */
+export interface JumlahKehadiran {
+  bidang: number;
+  gabung: number;
+}
+
+const BIDANG_KEHADIRAN = ["Kelab", "Sukan", "Uniform"];
+
+export function skorUnit(
+  p: RekodPelajar,
+  k: Kokurikulum,
+  jk: JumlahKehadiran = { bidang: JUMLAH_PERJUMPAAN_WAJIB, gabung: JUMLAH_PERJUMPAAN_WAJIB },
+): SkorUnit {
   const unit = k.namaUnitT6 ?? "";
   const jenis = k.jenisKoko;
   const padan = (u: string | null) => !!unit && u === unit;
 
   const hadir = p.kehadiran.filter((h) => h.jenisKoko === jenis).length;
+  // Markah kehadiran = gabungan semua bahagian (KPM: maks 15 perjumpaan).
+  const hadirGabung = p.kehadiran.filter((h) => BIDANG_KEHADIRAN.includes(h.jenisKoko)).length;
   // Pencapaian unit: tertinggi antara pencapaian & aktiviti luar yang diluluskan.
   const pcp = terbaik(
     [
@@ -73,7 +95,11 @@ export function skorUnit(p: RekodPelajar, k: Kokurikulum): SkorUnit {
   const s: SkorUnit = {
     unit,
     hadir,
-    mKehadiran: markahKehadiran(hadir),
+    jumlahAktiviti: jk.bidang,
+    hadirGabung,
+    jumlahGabung: jk.gabung,
+    perjumpaan: perjumpaanPajsk(hadirGabung, jk.gabung),
+    mKehadiran: markahKehadiran(hadirGabung, jk.gabung),
     jawatan: k.jawatanT6 ?? "",
     mJawatan: k.jawatanT6 ? markahJawatan(k.jawatanT6, bidangDariJenisKoko(jenis)) : 0,
     peringkat: k.peringkatT6 ?? "",

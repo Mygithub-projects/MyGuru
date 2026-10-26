@@ -8,8 +8,9 @@
 // ===========================================================================
 import ExcelJS from "exceljs";
 import { prisma } from "./prisma";
-import { nilaiEkstra, perjumpaanPajsk, type Gred } from "./pajsk";
+import { nilaiEkstra, type Gred } from "./pajsk";
 import { skorUnit, type SkorUnit } from "./skor-unit";
+import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
 
 export const BAHAGIAN = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"] as const;
 export type Bahagian = (typeof BAHAGIAN)[number];
@@ -67,6 +68,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
     },
   });
 
+  const jumlah = await jumlahAktiviti();
   const baris: BarisRumusan[] = [];
   for (const p of pelajar) {
     // Anugerah khas (ekstra) — dipaparkan dalam borang Unit Perkhidmatan.
@@ -76,7 +78,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
     );
     for (const k of p.kokurikulum) {
       if (!isBahagian(k.jenisKoko) || !k.namaUnitT6) continue;
-      const s = skorUnit(p, k);
+      const s = skorUnit(p, k, jumlahKehadiranUntuk(jumlah, k.jenisKoko));
       const mAnugerah = ekstra ? nilaiEkstra(ekstra.namaPencapaian) : 0;
       baris.push({
         ...s,
@@ -231,6 +233,7 @@ function tulisBaris(ws: ExcelJS.Worksheet, mula: number, data: Nilai[][], lajurT
 
 /** Helaian Kelab / Sukan / Badan Beruniform (lajur A–AA seperti borang rasmi). */
 function helaianUnit(ws: ExcelJS.Worksheet, bahagian: Bahagian, unit: string, guru: string[], rows: BarisRumusan[]) {
+  const maks = rows[0]?.jumlahAktiviti ?? 30; // jumlah aktiviti penuh bahagian (tetapan Admin)
   const lebar = [5, 9, 36, 16, 28, 9, 11, 8, 18, 7, 16, 7, 7, 18, 7, 7, 18, 7, 24, 7, 14, 7, 24, 7, 8, 7, 12];
   lebar.forEach((w, i) => (ws.getColumn(i + 1).width = w));
   kepalaBorang(ws, 27, bahagian, unit, guru);
@@ -246,7 +249,7 @@ function helaianUnit(ws: ExcelJS.Worksheet, bahagian: Bahagian, unit: string, gu
   tajuk(ws, 6, 14, 6, 16, "PENCAPAIAN");
   tajuk(ws, 6, 17, 6, 24, "PROJEK");
   [
-    "Bilangan Kali Hadir (max 30)", "Bil Perjumpaan PAJSK (max 15)", "Markah",
+    `Bilangan Kali Hadir (max ${maks})`, "Bil Perjumpaan PAJSK gabungan KP+SP+BU (max 15)", "Markah",
     "Jawatan", "Markah",
     "Peringkat Sek/Zon/Negeri/Keb", "No. Borang", "Markah",
     "Peringkat Sek/Zon/Negeri/Keb", "No. Borang", "Markah",
@@ -260,7 +263,7 @@ function helaianUnit(ws: ExcelJS.Worksheet, bahagian: Bahagian, unit: string, gu
     8,
     rows.map((r, i) => [
       i + 1, r.kelas, r.nama.toUpperCase(), r.noIc, r.unit.toUpperCase(),
-      r.hadir, perjumpaanPajsk(r.hadir), r.mKehadiran,
+      r.hadir, r.perjumpaan, r.mKehadiran,
       r.jawatan.toUpperCase(), r.mJawatan,
       r.peringkat.toUpperCase(), null, r.mPenglibatan,
       r.pcpTahap.toUpperCase(), null, r.pcpMarkah,
