@@ -196,9 +196,11 @@ const explainPajskFormula: ToolDef = {
     return {
       ok: true,
       summary:
-        "Formula PAJSK (100 markah teras): Kehadiran (50, = FLOOR(hadir/30×100)×0.5, bundar " +
-        "ke bawah) + Jawatan (10) + Penglibatan (10) + Pencapaian (10) + Projek Jawatan (10) " +
-        "+ Projek Peringkat (10). Ekstra Kurikulum (10) ialah bonus berasingan. Gred: " +
+        "Formula PAJSK (setiap bidang Sukan/Kelab/Badan Beruniform, 100 markah): Kehadiran (50; " +
+        "2 aktiviti 80 minit = 1 perjumpaan, FLOOR(hadir/2) maks 15, markah = perjumpaan/15×50) + " +
+        "Jawatan (10) + Penglibatan (10) + Pencapaian (10) + Projek Jawatan (10) + Projek Peringkat " +
+        "(10). Markah keseluruhan = purata 2 bidang terbaik + Ekstra Kurikulum (jawatan Unit " +
+        "Perkhidmatan / anugerah khas, maks 10). Bundar biasa 2dp. 10% = markah ÷ 10. Gred: " +
         "A 80–100, B 60–79.9, C 40–59.9, D 20–39.9, E ≤19.9.",
     };
   },

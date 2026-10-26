@@ -114,6 +114,7 @@ jobs:
                 --name myguru \
                 --restart unless-stopped \
                 -p 3000:3000 \
+                -v myguru-uploads:/app/storage/uploads \
                 --env-file /opt/myguru/.env \
                 asia-southeast1-docker.pkg.dev/prestij-latifah-myguruai/myguru/myguru:${{ github.sha }}
 

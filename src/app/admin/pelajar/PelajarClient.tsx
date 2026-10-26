@@ -220,6 +220,13 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
                     >
                       {t.admin.edit}
                     </Link>
+                    <Link
+                      href={`/admin/pelajar/${p.id}/unit`}
+                      title={L("Tukar penempatan unit (Admin sahaja)", "Change unit placement (Admin only)")}
+                      className="whitespace-nowrap rounded-md bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 hover:bg-indigo-600 hover:text-white"
+                    >
+                      🔁 {L("Unit", "Unit")}
+                    </Link>
                     <button
                       onClick={() => resetKataLaluan(p)}
                       disabled={busyId === p.id}

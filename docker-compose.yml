@@ -59,7 +59,8 @@ services:
     volumes:
       # STORAGE_DRIVER="local" — kekalkan muat naik merentas rebuild.
       # Tukar ke STORAGE_DRIVER="s3" jika app dijalankan >1 replika.
-      - uploads:/app/public/uploads
+      # Fail eviden PERIBADI — di luar public/, dihidang via /api/fail/[nama].
+      - uploads:/app/storage/uploads
     depends_on:
       db:
         condition: service_healthy

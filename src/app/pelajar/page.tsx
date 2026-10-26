@@ -7,8 +7,10 @@ import { HeroBanner } from "@/components/HeroBanner";
 import { StatCard } from "@/components/StatCard";
 import { senaraiUnitBerpenasihat } from "@/lib/unit-list";
 import { getT } from "@/lib/locale";
-import { labelJawatan, labelPeringkat } from "@/lib/i18n";
+import { dataRumusan } from "@/lib/rumusan";
 import { UnitSection } from "./UnitSection";
+import { SlipPajsk } from "./SlipPajsk";
+import { KadPenyertaan } from "@/components/KadPenyertaan";
 
 export default async function PelajarDashboard() {
   const session = await getSession();
@@ -17,8 +19,11 @@ export default async function PelajarDashboard() {
   const data = await getPelajarProfil(session.pelajarId);
   if (!data) redirect("/login");
   const { pelajar, markah, penyertaan, kehadiran } = data;
-  const senarai = await senaraiUnitBerpenasihat();
-  const { t, locale } = await getT();
+  const [senarai, slipRows] = await Promise.all([
+    senaraiUnitBerpenasihat(),
+    dataRumusan({ pelajarId: pelajar.id }),
+  ]);
+  const { t } = await getT();
   const unitLabel: Record<string, string> = {
     Kelab: t.common.kelab, Sukan: t.common.sukan, Uniform: t.common.uniform, Perkhidmatan: t.common.perkhidmatan,
   };
@@ -40,6 +45,16 @@ export default async function PelajarDashboard() {
         <StatCard label={t.pelajar.gred} value={pelajar.gredPajskT6 ?? "-"} sub={t.pelajar.finalGrade} />
       </div>
 
+      {/* Slip PAJSK — rujukan pelajar, setiap bahagian (sama data dengan Borang Rumusan guru) */}
+      <SlipPajsk
+        rows={slipRows}
+        markah={pelajar.markahPajskT6}
+        gred={pelajar.gredPajskT6}
+        markahEkstra={pelajar.markahEkstra}
+        t={t.pelajar.slip}
+        label={unitLabel}
+      />
+
       {/* Markah bagi setiap penyertaan (spec pelajar §1) */}
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">
@@ -48,28 +63,7 @@ export default async function PelajarDashboard() {
         {penyertaan.length === 0 ? (
           <p className="text-sm text-slate-400">{t.guru.noMembers}</p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-3">
-            {penyertaan.map((p) => (
-              <div key={p.jenisKoko} className="rounded-lg border border-slate-200 p-3">
-                <p className="text-xs font-semibold uppercase text-brand-dark">{unitLabel[p.jenisKoko] ?? p.label}</p>
-                <p className="mt-1 font-medium text-slate-800">{p.namaUnit}</p>
-                <dl className="mt-2 space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-slate-500">{t.common.jawatan} {p.jawatan ? `(${labelJawatan(p.jawatan, locale)})` : ""}</dt>
-                    <dd className="font-semibold text-slate-700">{p.markahJawatan}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-slate-500">{t.common.peringkat} {p.peringkat ? `(${labelPeringkat(p.peringkat, locale)})` : ""}</dt>
-                    <dd className="font-semibold text-slate-700">{p.markahPeringkat}</dd>
-                  </div>
-                  <div className="flex justify-between border-t border-slate-100 pt-1">
-                    <dt className="font-semibold text-slate-600">{t.pelajar.participationTotal}</dt>
-                    <dd className="font-bold text-brand-dark">{p.jumlah}</dd>
-                  </div>
-                </dl>
-              </div>
-            ))}
-          </div>
+          <KadPenyertaan penyertaan={penyertaan} label={unitLabel} pajsk={t.pajsk} t={t.pelajar} />
         )}
         <p className="mt-2 text-[11px] text-slate-400">{t.pelajar.unitNote}</p>
       </section>

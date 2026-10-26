@@ -137,7 +137,7 @@ export async function eksportPelajarRosterExcel(): Promise<Buffer> {
 // ---------------------------------------------------------------------------
 //  Raw data keseluruhan pelajar — format borang PAJSK kelas (satu tab setiap
 //  kelas; blok Badan Beruniform / Kelab / Sukan / Ekstra sebelah-menyebelah).
-//  Markah keseluruhan & gred ikut model sistem (§1.1), bukan purata 2 bidang.
+//  Markah keseluruhan & gred = purata 2 bidang terbaik + ekstra (kiraSemulaT6).
 // ---------------------------------------------------------------------------
 
 type Nilai = string | number | null;

@@ -70,10 +70,12 @@ npx prisma migrate dev --name <nama_perubahan>
 
 ## Langkah 3 — Storan objek untuk muat naik (WAJIB)
 
-Vercel *serverless* tidak boleh menulis ke `public/uploads`. Gunakan adapter S3
+Vercel *serverless* tidak boleh menulis ke cakera tempatan (`storage/uploads`). Gunakan adapter S3
 (sudah dibina dalam `src/lib/storage.ts`).
 
-1. Cipta bucket (Cloudflare R2 atau AWS S3), jadikan boleh-baca awam (atau guna CDN).
+1. Cipta bucket (Cloudflare R2 atau AWS S3) dan **kekalkan PERIBADI** — jangan
+   aktifkan akses awam / CDN. Eviden pelajar hanya dihidang melalui
+   `/api/fail/[nama]`, yang menyemak sesi Admin atau guru penasihat unit berkenaan.
 2. Jana kunci akses (Access Key ID + Secret).
 3. Tetapkan env (Langkah 6):
 
@@ -84,7 +86,6 @@ S3_REGION=auto                          # R2: "auto"; AWS: cth "ap-southeast-1"
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
 S3_ENDPOINT=https://<akaun>.r2.cloudflarestorage.com   # R2 sahaja; kosongkan untuk AWS
-S3_PUBLIC_BASE_URL=https://cdn.sekolah.edu.my          # URL awam bucket/CDN
 ```
 
 ---
@@ -131,7 +132,7 @@ git push origin master
 | `NEXT_PUBLIC_INSTITUSI` | ✅ | Nama kolej |
 | `NEXT_PUBLIC_BASE_URL` | — | URL produksi (cth `https://ekokot6.vercel.app`) |
 | `STORAGE_DRIVER` | ✅ | `s3` |
-| `S3_BUCKET` `S3_REGION` `S3_ACCESS_KEY_ID` `S3_SECRET_ACCESS_KEY` `S3_PUBLIC_BASE_URL` | ✅ | Lihat Langkah 3 |
+| `S3_BUCKET` `S3_REGION` `S3_ACCESS_KEY_ID` `S3_SECRET_ACCESS_KEY` | ✅ | Lihat Langkah 3 |
 | `S3_ENDPOINT` | R2 | Endpoint R2 |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | — | Akaun admin awal (untuk bootstrap) |
 | `SMTP_HOST` … | — | Notifikasi e-mel (pilihan) |

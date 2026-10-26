@@ -1,16 +1,19 @@
 // Lapisan data pelajar — profil & pecahan markah PAJSK T6 (model §1.1)
 import { prisma } from "./prisma";
 import { ringkasanKehadiranPelajar } from "./kehadiran";
+import { markahEkstra } from "./pajsk";
+import { itemEkstra, skorUnit, type RekodPelajar, type SkorUnit } from "./skor-unit";
 
 export interface BarisPenyertaan {
   jenisKoko: string;
   label: string;
   namaUnit: string;
-  jawatan: string | null;
-  peringkat: string | null;
-  markahJawatan: number;
-  markahPeringkat: number;
-  jumlah: number;
+  /** Skor penuh bidang ini (/100) — sama dengan slip & Borang Rumusan. */
+  skor: SkorUnit;
+  /** Termasuk dalam 2 bidang terbaik yang dipuratakan (Sukan/Kelab/Uniform). */
+  dikira: boolean;
+  /** Unit Perkhidmatan: markah ekstra keseluruhan (MAX jawatan UP / anugerah). */
+  ekstra: number | null;
 }
 
 /** Satu baris pecahan komponen markah (T6 sahaja). `kunci` = kunci i18n stabil
@@ -53,6 +56,8 @@ export async function getPelajarProfil(pelajarId: string) {
       kokurikulum: true,
       pencapaian: { orderBy: { createdAt: "desc" } },
       aktivitiLuar: { orderBy: { createdAt: "desc" } },
+      kehadiran: { where: { statusHadir: true }, select: { jenisKoko: true } },
+      laporanProjek: { where: { statusPengesahan: "Approved" } },
     },
   });
   if (!pelajar) return null;
@@ -66,7 +71,7 @@ export async function getPelajarProfil(pelajarId: string) {
   };
 
   // Jawatan tertinggi merentas unit (T6)
-  const maxJawT6 = Math.max(0, ...pelajar.kokurikulum.map((k) => k.markahJawatanT6 ?? 0));
+  const maxJawT6 = Math.max(0, ...pelajar.kokurikulum.filter((k) => k.jenisKoko !== "Perkhidmatan").map((k) => k.markahJawatanT6 ?? 0));
 
   // Pecahan komponen model baharu (§1.1): Kehadiran(50) + Jawatan(10) +
   // Penglibatan(10) + Pencapaian(10) + Projek Jawatan(10) + Projek Peringkat(10)
@@ -81,25 +86,34 @@ export async function getPelajarProfil(pelajarId: string) {
     { kunci: "ekstra", kategori: "Ekstra Kurikulum (bonus)", nilai: pelajar.markahEkstra, maks: 10 },
   ];
 
-  // Markah bagi SETIAP penyertaan/unit (spec pelajar §1)
-  const penyertaan: BarisPenyertaan[] = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"]
+  // Skor bagi SETIAP bidang (/100) — sumber sama dengan slip PAJSK & Borang Rumusan.
+  const rekod: RekodPelajar = {
+    kehadiran: pelajar.kehadiran,
+    pencapaian: pelajar.pencapaian.filter((p) => p.statusSemakan === "Approved"),
+    aktivitiLuar: pelajar.aktivitiLuar.filter((a) => a.statusPengesahan === "Approved"),
+    laporanProjek: pelajar.laporanProjek,
+  };
+  const ekstra = markahEkstra(itemEkstra(rekod, pelajar.kokurikulum));
+  const asas = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"]
     .map((jenis) => {
       const k = byJenis(jenis);
       if (!k || !k.namaUnitT6) return null;
-      const mJ = k.markahJawatanT6 ?? 0;
-      const mP = k.markahPeringkatT6 ?? 0;
-      return {
-        jenisKoko: jenis,
-        label: labelJenis[jenis],
-        namaUnit: k.namaUnitT6,
-        jawatan: k.jawatanT6,
-        peringkat: k.peringkatT6,
-        markahJawatan: mJ,
-        markahPeringkat: mP,
-        jumlah: Math.round((mJ + mP) * 100) / 100,
-      };
+      return { jenisKoko: jenis, label: labelJenis[jenis], namaUnit: k.namaUnitT6, skor: skorUnit(rekod, k) };
     })
-    .filter((x): x is BarisPenyertaan => x !== null);
+    .filter((x): x is Omit<BarisPenyertaan, "dikira" | "ekstra"> => x !== null);
+  // 2 bidang terbaik (Sukan/Kelab/Uniform) yang dipuratakan untuk markah keseluruhan.
+  const duaTerbaik = new Set(
+    asas
+      .filter((p) => (p.skor.jumlah ?? 0) > 0) // belum ada markah → tiada tanda
+      .sort((x, y) => (y.skor.jumlah ?? 0) - (x.skor.jumlah ?? 0))
+      .slice(0, 2)
+      .map((p) => p.jenisKoko),
+  );
+  const penyertaan: BarisPenyertaan[] = asas.map((p) => ({
+    ...p,
+    dikira: duaTerbaik.has(p.jenisKoko),
+    ekstra: p.jenisKoko === "Perkhidmatan" ? ekstra : null,
+  }));
 
   // Ringkasan kehadiran keseluruhan (atas 30 perjumpaan/tahun — spec pelajar §2)
   const kehadiran = await ringkasanKehadiranPelajar(pelajarId);

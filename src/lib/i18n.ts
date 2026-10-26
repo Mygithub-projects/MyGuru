@@ -69,6 +69,15 @@ export interface Dict {
     gred: string; finalGrade: string;
     scoreT5: string; importedRecord: string; change: string; t5ToT6: string;
     marksByUnit: string; participationTotal: string; unitNote: string;
+    best2: string; attendedOf30: (n: number) => string; extraTotal: string;
+    slip: {
+      title: string; sub: string; elemen: string; aspek: string; ekstra: string;
+      pelibatan: string; aktiviti: string; jawatan: string; peringkat: string; tahapPencapaian: string;
+      namaProjek: string; pengurusan: string; peringkatPelaksanaan: string;
+      penyertaan: string; kehadiran: string; kehadiranNote: string;
+      perkhidmatan: string; anugerah: string; pelaporan: string; jumlahSkor: string; gred10: string;
+      belumDaftar: string; note: string;
+    };
     attendanceTitle: string; present: string; sessionsRecorded: string; attendancePct: string;
     outOf30: string; attendanceMark: string; fullMarks40: string; pajskContribution: string; countedInT6: string;
     comparison: string; detail: string; marksByCategory: string;
@@ -154,7 +163,7 @@ export interface Dict {
       approveBtn: string; rejectBtn: string; rejectPrompt: string; networkError: string;
       jenis: { unitTransfer: string; achievement: string; recalc: string; ecert: string };
     };
-    senaraiAhliTabs: { tabsAriaLabel: string; marksComputed: string; marksNotYet: string };
+    senaraiAhliTabs: { tabsAriaLabel: string; marksComputed: string; marksNotYet: string; downloadForm: string };
     jawatanAssign: { placeholder: string; assignTitle: string; networkError: string };
     pemilihan: {
       back: string; title: string; subtitle: string; noStudents: string;
@@ -175,6 +184,12 @@ export interface Dict {
     actCertTemplate: string; actAnalytics: string; seeAlso: string; teacherView: string; studentView: string;
     pelajarTitle: string; pelajarSub: string; downloadAll: string;
     actRawData: string;
+    actRumusan: string;
+    rumusan: {
+      title: string; subtitle: string; bahagian: string; kelas: string; all: string; filter: string;
+      download: string; byBahagian: string; byUnit: string; byKelas: string; overall: string;
+      members: string; average: string; unit: string; form: string; noData: string; bonusNote: string;
+    };
     rawData: {
       title: string; subtitle: string; button: string; contentsTitle: string; formatNote: string;
       students: string; sheets: string;
@@ -386,10 +401,21 @@ const ms: Dict = {
     scoreT6: "Markah PAJSK T6", systemComputed: "dikira sistem", pctT6: "Peratus T6", fullMarks100: "/ 100 markah penuh",
     gred: "Gred", finalGrade: "gred akhir (A–E)",
     scoreT5: "Markah PAJSK T5", importedRecord: "rekod import", change: "Perubahan", t5ToT6: "T5 → T6",
-    marksByUnit: "Markah Mengikut Penyertaan (T6)", participationTotal: "Jumlah Penyertaan",
-    unitNote: "Nota: markah keseluruhan (100) = Kehadiran + Jawatan + Penglibatan + Pencapaian + Projek; markah jawatan & penglibatan mengambil nilai tertinggi merentas unit.",
+    marksByUnit: "Markah Mengikut Penyertaan (T6)", participationTotal: "Jumlah Skor Bidang",
+    best2: "✓ Dikira (2 terbaik)", attendedOf30: (n) => `${n}/30 hadir`, extraTotal: "Markah Ekstra (bonus)",
+    slip: {
+      title: "Rekod Pentaksiran Kokurikulum (PAJSK)", sub: "Rujukan anda — dikemas kini automatik daripada rekod kehadiran SU/NSU, jawatan, pencapaian & projek yang disahkan guru.",
+      elemen: "Elemen", aspek: "Aspek", ekstra: "Ekstra Kurikulum",
+      pelibatan: "Pelibatan", aktiviti: "Aktiviti", jawatan: "Jawatan", peringkat: "Peringkat", tahapPencapaian: "Tahap Pencapaian",
+      namaProjek: "Nama Projek", pengurusan: "Pengurusan", peringkatPelaksanaan: "Peringkat Pelaksanaan",
+      penyertaan: "Penyertaan", kehadiran: "Kehadiran", kehadiranNote: "perjumpaan PAJSK (markah /50)",
+      perkhidmatan: "Perkhidmatan", anugerah: "Anugerah Khas", pelaporan: "Pelaporan Markah", jumlahSkor: "Jumlah Skor (%)", gred10: "10% / Gred",
+      belumDaftar: "Belum berdaftar",
+      note: "Nombor dalam kurungan ialah markah. Kehadiran: 1 perjumpaan PAJSK = 2 sesi (160 minit), maks 15. Markah keseluruhan = purata 2 bidang terbaik + ekstra (had 100); 10% = markah ÷ 10.",
+    },
+    unitNote: "Nota: setiap bidang (Sukan / Kelab / Badan Beruniform) dinilai /100. Markah keseluruhan = purata 2 bidang terbaik + Ekstra Kurikulum (jawatan Unit Perkhidmatan / anugerah khas, maks 10), had 100.",
     attendanceTitle: "Kehadiran Perjumpaan (Setahun)", present: "Hadir", sessionsRecorded: "sesi direkod", attendancePct: "Peratus Kehadiran",
-    outOf30: "atas 30 perjumpaan", attendanceMark: "Markah Kehadiran", fullMarks40: "/ 50 markah penuh", pajskContribution: "Sumbang PAJSK", countedInT6: "dikira dalam markah T6",
+    outOf30: "atas 30 aktiviti (80 minit)", attendanceMark: "Markah Kehadiran", fullMarks40: "/ 50 markah penuh", pajskContribution: "Sumbang PAJSK", countedInT6: "dikira dalam markah T6",
     comparison: "Perbandingan T5 vs T6", detail: "Butiran", marksByCategory: "Markah Mengikut Kategori",
     currentUnits: "Unit Kokurikulum Semasa (T6)", history: "Sejarah", achievements: "Pencapaian & Ekstra Kurikulum",
     backToDashboard: "← Kembali ke Dashboard",
@@ -471,7 +497,7 @@ const ms: Dict = {
       approveBtn: "Luluskan", rejectBtn: "Tolak", rejectPrompt: "Sebab penolakan (pilihan):", networkError: "Ralat rangkaian",
       jenis: { unitTransfer: "Pertukaran Unit", achievement: "Pengesahan Pencapaian", recalc: "Kira Semula Markah", ecert: "Jana e-Cert" },
     },
-    senaraiAhliTabs: { tabsAriaLabel: "Unit seliaan", marksComputed: "markah dikira", marksNotYet: "belum ada markah" },
+    senaraiAhliTabs: { tabsAriaLabel: "Unit seliaan", marksComputed: "markah dikira", marksNotYet: "belum ada markah", downloadForm: "⬇ Borang Rumusan Markah (Excel)" },
     jawatanAssign: { placeholder: "— Tetapkan —", assignTitle: "Tetapkan jawatan", networkError: "Ralat rangkaian." },
     pemilihan: {
       back: "← Kembali ke Dashboard", title: "Pilih Pelajar untuk Pertandingan / Sukan",
@@ -497,6 +523,15 @@ const ms: Dict = {
     actCertTemplate: "Templat e-Cert", actAnalytics: "📊 Analitik Keseluruhan", seeAlso: "Lihat juga:", teacherView: "Pandangan Guru", studentView: "Pandangan Pelajar",
     pelajarTitle: "Urus Pelajar", pelajarSub: "Senarai pelajar T6 (markah, nama, kelab, sukan, badan beruniform terkini). Klik Butiran untuk paparan penuh & muat turun PDF setiap pelajar.", downloadAll: "⬇ Muat turun semua (Excel)",
     actRawData: "Muat Turun Raw Data (Excel)",
+    actRumusan: "Rumusan Markah Kokurikulum",
+    rumusan: {
+      title: "Rumusan Markah Kokurikulum",
+      subtitle: "Analitik markah & gred setiap bahagian, unit dan kelas. Muat turun Borang Rumusan Markah (Excel) — satu helaian setiap unit, ikut format borang rasmi.",
+      bahagian: "Bahagian", kelas: "Kelas", all: "Semua", filter: "Tapis",
+      download: "⬇ Muat turun Excel", byBahagian: "Ikut Bahagian", byUnit: "Ikut Unit", byKelas: "Ikut Kelas", overall: "Keseluruhan",
+      members: "Bil Ahli", average: "Purata", unit: "Unit", form: "Borang", noData: "Tiada data untuk penapis ini.",
+      bonusNote: "Unit Perkhidmatan ialah markah bonus (ekstra) — tidak dikira dalam purata & taburan gred.",
+    },
     rawData: {
       title: "Muat Turun Raw Data (Excel)",
       subtitle: "Keluarkan data keseluruhan semua pelajar dalam format borang PAJSK kelas — satu fail Excel, satu tab setiap kelas.",
@@ -765,10 +800,21 @@ const en: Dict = {
     scoreT6: "PAJSK Score (F6)", systemComputed: "system-computed", pctT6: "Percentage (F6)", fullMarks100: "/ 100 full marks",
     gred: "Grade", finalGrade: "final grade (A–E)",
     scoreT5: "PAJSK Score (F5)", importedRecord: "imported record", change: "Change", t5ToT6: "F5 → F6",
-    marksByUnit: "Marks by Participation (F6)", participationTotal: "Participation Total",
-    unitNote: "Note: overall score (100) = Attendance + Position + Participation + Achievement + Project; position & participation take the highest value across units.",
+    marksByUnit: "Marks by Participation (F6)", participationTotal: "Division Score",
+    best2: "✓ Counted (best 2)", attendedOf30: (n) => `${n}/30 attended`, extraTotal: "Extra Marks (bonus)",
+    slip: {
+      title: "Co-curricular Assessment Record (PAJSK)", sub: "For your reference — updated automatically from SU/NSU attendance records and teacher-verified positions, achievements & projects.",
+      elemen: "Element", aspek: "Aspect", ekstra: "Extra-curricular",
+      pelibatan: "Involvement", aktiviti: "Activity", jawatan: "Position", peringkat: "Level", tahapPencapaian: "Achievement",
+      namaProjek: "Project Name", pengurusan: "Management", peringkatPelaksanaan: "Implementation Level",
+      penyertaan: "Participation", kehadiran: "Attendance", kehadiranNote: "PAJSK meetings (marks /50)",
+      perkhidmatan: "Service", anugerah: "Special Award", pelaporan: "Mark Reporting", jumlahSkor: "Total Score (%)", gred10: "10% / Grade",
+      belumDaftar: "Not registered",
+      note: "Numbers in brackets are marks. Attendance: 1 PAJSK meeting = 2 sessions (160 min), max 15. Overall = average of the best 2 divisions + extra (capped at 100); 10% = score ÷ 10.",
+    },
+    unitNote: "Note: each division (Sport / Club / Uniformed Body) is scored /100. Overall score = average of the best 2 divisions + Extra-curricular (Service Unit position / special award, max 10), capped at 100.",
     attendanceTitle: "Meeting Attendance (Yearly)", present: "Present", sessionsRecorded: "sessions recorded", attendancePct: "Attendance %",
-    outOf30: "out of 30 meetings", attendanceMark: "Attendance Mark", fullMarks40: "/ 50 full marks", pajskContribution: "PAJSK Contribution", countedInT6: "counted in F6 score",
+    outOf30: "out of 30 activities (80 min)", attendanceMark: "Attendance Mark", fullMarks40: "/ 50 full marks", pajskContribution: "PAJSK Contribution", countedInT6: "counted in F6 score",
     comparison: "F5 vs F6 Comparison", detail: "Detail", marksByCategory: "Marks by Category",
     currentUnits: "Current Co-curriculum Units (F6)", history: "History", achievements: "Achievements & Extra-curricular",
     backToDashboard: "← Back to Dashboard",
@@ -857,7 +903,7 @@ const en: Dict = {
       approveBtn: "Approve", rejectBtn: "Reject", rejectPrompt: "Reason for rejection (optional):", networkError: "Network error",
       jenis: { unitTransfer: "Unit Transfer", achievement: "Achievement Verification", recalc: "Recalculate Marks", ecert: "Generate e-Cert" },
     },
-    senaraiAhliTabs: { tabsAriaLabel: "Supervised units", marksComputed: "marks computed", marksNotYet: "no marks yet" },
+    senaraiAhliTabs: { tabsAriaLabel: "Supervised units", marksComputed: "marks computed", marksNotYet: "no marks yet", downloadForm: "⬇ Mark Summary Form (Excel)" },
     jawatanAssign: { placeholder: "— Assign —", assignTitle: "Assign position", networkError: "Network error." },
     pemilihan: {
       back: "← Back to Dashboard", title: "Select Students for Competition / Sports",
@@ -883,6 +929,15 @@ const en: Dict = {
     actCertTemplate: "e-Cert Template", actAnalytics: "📊 Overall Analytics", seeAlso: "See also:", teacherView: "Teacher View", studentView: "Student View",
     pelajarTitle: "Manage Students", pelajarSub: "F6 student list (latest marks, name, club, sport, uniformed body). Click Details for the full view & per-student PDF download.", downloadAll: "⬇ Download all (Excel)",
     actRawData: "Download Raw Data (Excel)",
+    actRumusan: "Co-curricular Mark Summary",
+    rumusan: {
+      title: "Co-curricular Mark Summary",
+      subtitle: "Mark & grade analytics per division, unit and class. Download the Mark Summary Form (Excel) — one sheet per unit, in the official form layout.",
+      bahagian: "Division", kelas: "Class", all: "All", filter: "Filter",
+      download: "⬇ Download Excel", byBahagian: "By Division", byUnit: "By Unit", byKelas: "By Class", overall: "Overall",
+      members: "Members", average: "Average", unit: "Unit", form: "Form", noData: "No data for this filter.",
+      bonusNote: "Service Units carry bonus (extra) marks — excluded from the average & grade distribution.",
+    },
     rawData: {
       title: "Download Raw Data (Excel)",
       subtitle: "Export the complete data of every student in the PAJSK class form layout — one Excel file, one tab per class.",

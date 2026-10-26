@@ -35,6 +35,7 @@ docker-compose*.yml
 prisma/dev.db*
 uploads
 public/uploads
+storage
 
 # Log
 npm-debug.log*

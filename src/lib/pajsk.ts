@@ -35,7 +35,7 @@ export const JUMLAH_PERJUMPAAN_WAJIB = 30;
 export const MARKAH_KEHADIRAN_PENUH = 50;
 
 // ---------------------------------------------------------------------------
-//  Pembundar — sentiasa ke BAWAH (floor/truncate), 2 titik perpuluhan (§1.2)
+//  Pembundar
 // ---------------------------------------------------------------------------
 
 /**
@@ -49,26 +49,52 @@ export function floorTo(nilai: number, dp = 2): number {
   return Math.floor(nilai * f + 1e-6) / f;
 }
 
+/**
+ * Bundar BIASA (setengah ke atas) pada `dp` titik perpuluhan — ikut contoh
+ * Panduan Pentaksiran Kokurikulum T6 KPM: (94 + 76.67) / 2 = 85.335 → 85.34,
+ * 14/15 × 50 = 46.666… → 46.67. Epsilon sama seperti floorTo (85.335 dalam
+ * binari = 85.33499…).
+ */
+export function bundarTo(nilai: number, dp = 2): number {
+  if (!Number.isFinite(nilai)) return 0;
+  const f = 10 ** dp;
+  return Math.round(nilai * f + 1e-6) / f;
+}
+
 // ===========================================================================
-//  1.2  KEHADIRAN — 50 markah (bundar ke BAWAH)
+//  1.2  KEHADIRAN — 50 markah, kaedah KTE (Prauniversiti) Desa Mahkota
+// ---------------------------------------------------------------------------
+//  1 aktiviti kokurikulum = 80 minit. Pelajar perlu hadir 2 aktiviti
+//  (80 × 2 = 160 minit) untuk layak mendapat 1 perjumpaan PAJSK.
+//  Semester 1: 12 aktiviti + Semester 2–3: 18 aktiviti = 30 aktiviti
+//  → maksimum 15 perjumpaan. Cth: hadir 29 → 29/2 = 14.5 → dikira 14.
+//  Markah = perjumpaan / 15 × 50 (14 → 46.67).
 // ===========================================================================
 
-/**
- * Peratus kehadiran = FLOOR((hadir / 30) × 100, 2dp). Dibundar ke BAWAH.
- * `hadir` dihadkan pada julat [0, jumlahPerjumpaan].
- */
+/** Bilangan aktiviti (80 minit) bagi 1 perjumpaan PAJSK (160 minit). */
+export const AKTIVITI_SE_PERJUMPAAN = 2;
+
+/** Bilangan perjumpaan PAJSK = FLOOR(aktiviti hadir / 2), maks jumlahAktiviti / 2 (15). */
+export function perjumpaanPajsk(hadir: number, jumlahAktiviti = JUMLAH_PERJUMPAAN_WAJIB): number {
+  const h = Math.max(0, Math.min(hadir, jumlahAktiviti));
+  return Math.floor(h / AKTIVITI_SE_PERJUMPAAN);
+}
+
+/** Peratus kehadiran aktiviti (hadir / 30 × 100) — untuk paparan kadar hadir. */
 export function peratusKehadiran(hadir: number, jumlahPerjumpaan = JUMLAH_PERJUMPAAN_WAJIB): number {
   if (jumlahPerjumpaan <= 0) return 0;
   const h = Math.max(0, Math.min(hadir, jumlahPerjumpaan));
-  return floorTo((h / jumlahPerjumpaan) * 100, 2);
+  return bundarTo((h / jumlahPerjumpaan) * 100, 2);
 }
 
 /**
- * Markah kehadiran (skala 50) = FLOOR(peratus_kehadiran × 0.5, 2dp).
- * Contoh: 23/30 → 76.66% → 76.66 × 0.5 = 38.33 (bukan 38.34).
+ * Markah kehadiran (skala 50) = perjumpaan PAJSK / 15 × 50, bundar 2dp.
+ * Cth: hadir 29 → 14 perjumpaan → 46.67 ; hadir 26 → 13 → 43.33 ; 30 → 50.
  */
-export function markahKehadiran(hadir: number, jumlahPerjumpaan = JUMLAH_PERJUMPAAN_WAJIB): number {
-  return floorTo(peratusKehadiran(hadir, jumlahPerjumpaan) * 0.5, 2);
+export function markahKehadiran(hadir: number, jumlahAktiviti = JUMLAH_PERJUMPAAN_WAJIB): number {
+  const maks = Math.floor(jumlahAktiviti / AKTIVITI_SE_PERJUMPAAN);
+  if (maks <= 0) return 0;
+  return bundarTo((perjumpaanPajsk(hadir, jumlahAktiviti) / maks) * MARKAH_KEHADIRAN_PENUH, 2);
 }
 
 // ===========================================================================
@@ -84,9 +110,9 @@ export type BidangJawatan = "Uniform" | "KelabSukan";
 export const MARKAH_JAWATAN_UNIFORM: { pattern: RegExp; markah: number }[] = [
   { pattern: /PEGAWAI WARAN\s*(II|2)|TIMBALAN PENGERUSI|NAIB PENGERUSI|BINTARA KANAN|STAF SARJAN|SARJAN MEJAR|KETUA TRUP|KETUA PESURUHJAYA/, markah: 8 },
   { pattern: /PEGAWAI WARAN\s*(I|1)\b|SUB.?INSPEKTOR|DRUM MAJOR|PENGERUSI/, markah: 10 },
-  { pattern: /PENOLONG SETIAUSAHA|PENOLONG BENDAHARI|NAIB SETIAUSAHA|NAIB BENDAHARI|LANS KOPERAL|KOPERAL|PENOLONG KETUA PATROL|KETUA PATROL|LASKAR KANAN/, markah: 5 },
+  { pattern: /PENOLONG SETIAUSAHA|PENOLONG BENDAHARI|NAIB SETIAUSAHA|NAIB BENDAHARI|LANS KOPERAL|KOPERAL|PENOLONG KETUA PATROL|KETUA PATROL|LASKAR KANAN|AHLI JAWATANKUASA|AJK/, markah: 5 },
   { pattern: /SETIAUSAHA|BENDAHARI|PENOLONG TRUP|BINTARA MUDA|KETUA PLATUN|SARJAN/, markah: 7 },
-  { pattern: /AJK|PRA.?PERSETIAAN|AHLI AKTIF/, markah: 4 },
+  { pattern: /PRA.?PERSETIAAN|AHLI AKTIF/, markah: 4 },
   { pattern: /AHLI BIASA|AHLI/, markah: 2 },
 ];
 
@@ -255,14 +281,19 @@ export function markahProjekPeringkat(peringkat?: string | null): number {
 //  1.8  EKSTRA KURIKULUM — 10 markah (BONUS) = MAX((a), (b))
 // ===========================================================================
 
-/** (a) Bidang Perkhidmatan (§1.8a). */
+/**
+ * (a) Bidang Perkhidmatan — Jadual 1 Panduan Pentaksiran Kokurikulum T6 KPM.
+ * Susunan PENTING: corak lebih spesifik dahulu ("Penolong Ketua Kelas" 3
+ * sebelum "Ketua Kelas" 5; "Pengawas Pusat Sumber" 6 / "Pengawas Koperasi" 5
+ * sebelum "Pengawas" 7; "Pengerusi Badan Perkhidmatan" 7 sebelum "Pengerusi" 10).
+ */
 export const MARKAH_EKSTRA_PERKHIDMATAN: { pattern: RegExp; markah: number }[] = [
+  { pattern: /AJK KECIL|PENOLONG KETUA KELAS|PENOLONG KETUA BILIK|KETUA BILIK|KETUA DORM/, markah: 3 },
   { pattern: /PENOLONG KETUA MURID|TIMBALAN PENGERUSI|NAIB PENGERUSI/, markah: 8 },
+  { pattern: /PENOLONG KETUA ASRAMA|PENOLONG BADAR|PENGAWAS PUSAT SUMBER|LEMBAGA PENGARAH KOPERASI/, markah: 6 },
+  { pattern: /PENGAWAS KOPERASI|AJK UTAMA|AHLI JAWATANKUASA|\bAJK\b|BENDAHARI|SETIAUSAHA|KETUA BIRO|KETUA KELAS|KETUA TINGKATAN/, markah: 5 },
+  { pattern: /PENGERUSI BADAN|BADAN PERKHIDMATAN|PENGURUSAN UTAMA|PENGAWAS|KETUA ASRAMA|BADAR|KETUA PRS/, markah: 7 },
   { pattern: /KETUA MURID|PENGERUSI/, markah: 10 },
-  { pattern: /PENOLONG KETUA ASRAMA|PENGAWAS PUSAT SUMBER|LEMBAGA PENGARAH KOPERASI/, markah: 6 },
-  { pattern: /PENGAWAS|KETUA ASRAMA|BADAR|KETUA PRS|BADAN PERKHIDMATAN/, markah: 7 },
-  { pattern: /BENDAHARI|SETIAUSAHA|KETUA BIRO|PENGAWAS KOPERASI|KETUA KELAS|KETUA TINGKATAN/, markah: 5 },
-  { pattern: /AJK KECIL|KETUA BILIK|KETUA DORM|PENOLONG KETUA KELAS/, markah: 3 },
 ];
 
 /** (b) Anugerah Khas (§1.8b). */
@@ -437,12 +468,12 @@ export function kiraSkor(k: KomponenSkor, markahPenuh = MARKAH_PENUH_DEFAULT): H
   const projekPeringkat = had(k.markahProjekPeringkat, 10);
   const ekstra = had(k.markahEkstra, 10);
 
-  const jumlahTeras = floorTo(
+  const jumlahTeras = bundarTo(
     kehadiran + jawatan + penglibatan + pencapaian + projekJawatan + projekPeringkat,
     2
   );
-  const jumlahDenganBonus = floorTo(jumlahTeras + ekstra, 2);
-  const peratus = markahPenuh > 0 ? floorTo((jumlahTeras / markahPenuh) * 100, 2) : 0;
+  const jumlahDenganBonus = bundarTo(jumlahTeras + ekstra, 2);
+  const peratus = markahPenuh > 0 ? bundarTo((jumlahTeras / markahPenuh) * 100, 2) : 0;
 
   return {
     kehadiran,
@@ -458,6 +489,17 @@ export function kiraSkor(k: KomponenSkor, markahPenuh = MARKAH_PENUH_DEFAULT): H
     gred: gred(jumlahTeras),
     markahPenuh,
   };
+}
+
+/**
+ * Markah keseluruhan T6 (slip PAJSK rasmi) = PURATA 2 skor bidang TERBAIK
+ * (Sukan / Badan Beruniform / Kelab — setiap satu /100 via kiraSkor) +
+ * Ekstra Kurikulum (Unit Perkhidmatan / Anugerah Khas, maks 10), had 100.
+ * Bidang yang tidak disertai dikira 0. Cth: [83, 80, 93] + 7 → (93+83)/2 + 7 = 95.
+ */
+export function markahKeseluruhan(skorBidang: number[], ekstra: number): number {
+  const dua = [...skorBidang, 0, 0].sort((a, b) => b - a).slice(0, 2);
+  return bundarTo(Math.min(MARKAH_PENUH_DEFAULT, bundarTo((dua[0] + dua[1]) / 2, 2) + had(ekstra, 10)), 2);
 }
 
 // ---------------------------------------------------------------------------

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPelajarProfil } from "@/lib/pelajar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getT } from "@/lib/locale";
+import { KadPenyertaan } from "@/components/KadPenyertaan";
 
 const JENIS_LABEL_KEY = { Kelab: "kelab", Sukan: "sukan", Uniform: "uniform", Perkhidmatan: "perkhidmatan" } as const;
 
@@ -18,7 +19,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 
 export default async function AdminPelajarDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [data, { t }] = await Promise.all([getPelajarProfil(id), getT()]);
+  const [data, { t, locale }] = await Promise.all([getPelajarProfil(id), getT()]);
   if (!data) notFound();
   const { pelajar, markah, penyertaan, kehadiran } = data;
   const d = t.admin.pelajarDetail;
@@ -35,6 +36,7 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
           <a href={`/api/pelajar/${pelajar.id}/butiran-diri?download=1`} className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover">{d.downloadPdf}</a>
           <a href={`/api/pelajar/${pelajar.id}/butiran-diri`} target="_blank" className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">{d.viewPdf}</a>
           <Link href={`/admin/pelajar/${pelajar.id}/edit`} className="rounded-md bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">✏ {t.admin.edit}</Link>
+          <Link href={`/admin/pelajar/${pelajar.id}/unit`} className="rounded-md bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200 hover:bg-indigo-600 hover:text-white">🔁 {locale === "en" ? "Update Unit" : "Kemas Kini Unit"}</Link>
         </div>
       </div>
 
@@ -51,16 +53,12 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
         {penyertaan.length === 0 ? (
           <p className="text-sm text-slate-400">{d.notRegistered}</p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-3">
-            {penyertaan.map((p) => (
-              <div key={p.jenisKoko} className="rounded-lg border border-slate-200 p-3">
-                <p className="text-xs font-semibold uppercase text-brand-dark">{t.common[JENIS_LABEL_KEY[p.jenisKoko as keyof typeof JENIS_LABEL_KEY]]}</p>
-                <p className="mt-1 font-medium text-slate-800">{p.namaUnit}</p>
-                <p className="text-xs text-slate-500">{p.jawatan ?? "-"} · {p.peringkat ?? "-"}</p>
-                <p className="mt-1 text-sm">{t.common.jawatan} <strong>{p.markahJawatan}</strong> · {t.common.peringkat} <strong>{p.markahPeringkat}</strong> · {d.totalLabel} <strong className="text-brand-dark">{p.jumlah}</strong></p>
-              </div>
-            ))}
-          </div>
+          <KadPenyertaan
+            penyertaan={penyertaan}
+            label={Object.fromEntries(Object.entries(JENIS_LABEL_KEY).map(([k, v]) => [k, t.common[v]]))}
+            pajsk={t.pajsk}
+            t={t.pelajar}
+          />
         )}
       </section>
 

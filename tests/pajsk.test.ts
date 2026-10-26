@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   floorTo,
+  bundarTo,
+  perjumpaanPajsk,
   peratusKehadiran,
   markahKehadiran,
   markahJawatan,
@@ -23,32 +25,47 @@ import {
   delta,
 } from "../src/lib/pajsk";
 
-describe("pembundar FLOOR (§1.2 — sentiasa ke bawah)", () => {
+describe("pembundar", () => {
   it("floorTo 2dp membuang perpuluhan lebihan (tidak membundar ke atas)", () => {
     expect(floorTo(76.666, 2)).toBe(76.66);
-    expect(floorTo(38.335, 2)).toBe(38.33); // bukan 38.34
+    expect(floorTo(38.335, 2)).toBe(38.33);
     expect(floorTo(99.999, 2)).toBe(99.99);
     expect(floorTo(50, 2)).toBe(50);
   });
+  it("bundarTo 2dp — bundar biasa ikut contoh panduan KPM", () => {
+    expect(bundarTo(85.335, 2)).toBe(85.34); // (94 + 76.67) / 2
+    expect(bundarTo(46.6666, 2)).toBe(46.67); // 14/15 × 50
+    expect(bundarTo(43.3333, 2)).toBe(43.33); // 13/15 × 50
+    expect(bundarTo(9.134, 2)).toBe(9.13);
+  });
 });
 
-describe("§1.2 Kehadiran — 50 markah, bundar ke bawah, atas 30 perjumpaan", () => {
-  it("peratus kehadiran floor 2dp", () => {
-    expect(peratusKehadiran(23, 30)).toBe(76.66); // 76.666.. → 76.66
-    expect(peratusKehadiran(30, 30)).toBe(100);
-    expect(peratusKehadiran(0, 30)).toBe(0);
+describe("§1.2 Kehadiran — kaedah KTE (Prauniversiti) Desa Mahkota", () => {
+  it("2 aktiviti (160 minit) = 1 perjumpaan PAJSK, maks 15", () => {
+    expect(perjumpaanPajsk(29)).toBe(14); // contoh panduan: 29/2 = 14.5 → 14
+    expect(perjumpaanPajsk(30)).toBe(15);
+    expect(perjumpaanPajsk(1)).toBe(0);
+    expect(perjumpaanPajsk(40)).toBe(15); // dihadkan 30 aktiviti
   });
-  it("contoh rasmi: 23/30 → 38.33 (bukan 38.34)", () => {
-    expect(markahKehadiran(23, 30)).toBe(38.33);
+  it("markah = perjumpaan / 15 × 50", () => {
+    expect(markahKehadiran(29)).toBe(46.67); // 14 → 46.67
+    expect(markahKehadiran(26)).toBe(43.33); // 13 → 43.33 (contoh Kelab)
+    expect(markahKehadiran(28)).toBe(46.67); // 14 → 46.67 (contoh Sukan)
+    expect(markahKehadiran(23)).toBe(36.67); // 11 → 36.67
   });
-  it("30/30 = 50 (penuh)", () => expect(markahKehadiran(30)).toBe(50));
-  it("15/30 = 25 (separuh)", () => expect(markahKehadiran(15)).toBe(25));
-  it("0/30 = 0", () => expect(markahKehadiran(0)).toBe(0));
-  it("kehadiran melebihi 30 dihadkan pada 50 (kes tepi hadir > 30)", () => {
+  it("30 aktiviti = 50 (penuh); 0 = 0", () => {
+    expect(markahKehadiran(30)).toBe(50);
+    expect(markahKehadiran(0)).toBe(0);
+  });
+  it("kehadiran melebihi 30 dihadkan pada 50", () => {
     expect(markahKehadiran(35, 30)).toBe(50);
     expect(markahKehadiran(40, 30)).toBe(50);
   });
-  it("29/30 → 48.33 (bundar ke bawah)", () => expect(markahKehadiran(29, 30)).toBe(48.33));
+  it("peratus kehadiran aktiviti (paparan)", () => {
+    expect(peratusKehadiran(23, 30)).toBe(76.67);
+    expect(peratusKehadiran(30, 30)).toBe(100);
+    expect(peratusKehadiran(0, 30)).toBe(0);
+  });
 });
 
 describe("§1.3 Jawatan — dua jadual (Uniform vs Kelab/Sukan)", () => {
@@ -66,7 +83,10 @@ describe("§1.3 Jawatan — dua jadual (Uniform vs Kelab/Sukan)", () => {
     expect(markahJawatan("Sarjan Mejar", "Uniform")).toBe(8);
     expect(markahJawatan("Setiausaha", "Uniform")).toBe(7);
     expect(markahJawatan("Koperal", "Uniform")).toBe(5);
-    expect(markahJawatan("AJK", "Uniform")).toBe(4);
+    expect(markahJawatan("AJK", "Uniform")).toBe(5); // KPM: sebaris Koperal/Ketua Patrol
+    expect(markahJawatan("Ahli Jawatankuasa", "Uniform")).toBe(5);
+    expect(markahJawatan("Ahli Aktif", "Uniform")).toBe(4);
+    expect(markahJawatan("Pra-Persetiaan", "Uniform")).toBe(4);
     expect(markahJawatan("Ahli Biasa", "Uniform")).toBe(2);
   });
   it("pilihan Tetapkan Jawatan (JAWATAN_PELAJAR) — Naib SU/Bendahari setara Penolong", () => {

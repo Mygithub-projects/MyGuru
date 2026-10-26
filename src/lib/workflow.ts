@@ -3,14 +3,18 @@
 //  (Spesifikasi §4, §5.5, §7). Semua peralihan status & kemas kini T6 di sini.
 // ===========================================================================
 import { prisma } from "./prisma";
+import { itemEkstra, skorUnit, type RekodPelajar } from "./skor-unit";
 import {
+  gred,
   kiraSkor,
+  markahKeseluruhan,
   markahAktivitiLuar,
   markahJawatan,
   markahPenglibatan,
   markahProjekJawatan,
   markahProjekPeringkat,
   markahEkstra,
+  nilaiEkstra,
   bidangDariJenisKoko,
 } from "./pajsk";
 import { JAWATAN_GURU_SELURUH_SEKOLAH, JAWATAN_BOLEH_SAHKAN_BUTIRAN, type JenisKoko } from "./enums";
@@ -176,9 +180,11 @@ export async function kiraSemulaT6(pelajarId: string) {
   // segarkan nilai tersimpan setiap baris kokurikulum.
   let markahJwt = 0;
   for (const k of pelajar.kokurikulum) {
-    const mj = k.jawatanT6 ? markahJawatan(k.jawatanT6, bidangDariJenisKoko(k.jenisKoko)) : 0;
+    const up = k.jenisKoko === "Perkhidmatan";
+    // Unit Perkhidmatan: Jadual 1 (ekstra), tidak dikira dalam jawatan bidang.
+    const mj = !k.jawatanT6 ? 0 : up ? nilaiEkstra(k.jawatanT6) : markahJawatan(k.jawatanT6, bidangDariJenisKoko(k.jenisKoko));
     const mp = markahPenglibatan(k.peringkatT6);
-    markahJwt = Math.max(markahJwt, mj);
+    if (!up) markahJwt = Math.max(markahJwt, mj);
     if (mj !== (k.markahJawatanT6 ?? -1) || mp !== (k.markahPeringkatT6 ?? -1)) {
       await prisma.kokurikulum.update({
         where: { id: k.id },
@@ -210,11 +216,17 @@ export async function kiraSemulaT6(pelajarId: string) {
   const markahPjJwt = maks(projekLulus.map((pr) => markahProjekJawatan(pr.jawatanProjek)));
   const markahPjPrk = maks(projekLulus.map((pr) => markahProjekPeringkat(pr.peringkatProjek)));
 
-  // --- EKSTRA KURIKULUM (§1.8): MAX antara item ekstra yang diluluskan (bonus).
-  const markahEks = markahEkstra(
-    pencapaianLulus.filter((p) => p.kategori === "ekstra").map((p) => p.namaPencapaian)
-  );
+  // --- EKSTRA KURIKULUM (§1.8): MAX antara jawatan Unit Perkhidmatan & anugerah
+  // khas yang diluluskan (bonus, maks 10).
+  const rekod: RekodPelajar = {
+    kehadiran: pelajar.kehadiran.filter((h) => h.statusHadir),
+    pencapaian: pencapaianLulus,
+    aktivitiLuar: luarLulus,
+    laporanProjek: projekLulus,
+  };
+  const markahEks = markahEkstra(itemEkstra(rekod, pelajar.kokurikulum));
 
+  // Komponen tertinggi merentas unit — untuk carta pecahan markah pelajar.
   const skor = kiraSkor({
     markahKehadiran: pelajar.markahKehadiran, // §1.2, dikira oleh modul Kehadiran
     markahJawatan: markahJwt,
@@ -225,12 +237,19 @@ export async function kiraSemulaT6(pelajarId: string) {
     markahEkstra: markahEks,
   });
 
+  // --- MARKAH KESELURUHAN (slip PAJSK): purata 2 bidang terbaik (SP/BU/KP,
+  // setiap satu /100 dengan kehadiran bidang itu sendiri) + ekstra, had 100.
+  const skorBidang = pelajar.kokurikulum
+    .filter((k) => k.namaUnitT6 && k.jenisKoko !== "Perkhidmatan")
+    .map((k) => skorUnit(rekod, k).jumlah ?? 0);
+  const keseluruhan = markahKeseluruhan(skorBidang, markahEks);
+
   await prisma.pelajar.update({
     where: { id: pelajarId },
     data: {
-      markahPajskT6: skor.jumlahTeras,
-      peratusPajskT6: skor.peratus,
-      gredPajskT6: skor.gred,
+      markahPajskT6: keseluruhan,
+      peratusPajskT6: keseluruhan, // markah penuh = 100
+      gredPajskT6: gred(keseluruhan),
       markahPenglibatan: skor.penglibatan,
       markahPencapaian: skor.pencapaian,
       markahProjekJawatan: skor.projekJawatan,
@@ -238,7 +257,7 @@ export async function kiraSemulaT6(pelajarId: string) {
       markahEkstra: skor.ekstra,
     },
   });
-  return skor;
+  return { ...skor, jumlahTeras: keseluruhan, peratus: keseluruhan, gred: gred(keseluruhan), skorBidang };
 }
 
 // ---------------------------------------------------------------------------
@@ -329,7 +348,7 @@ export async function prosesPertukaran(input: {
         jawatanT6: "Ahli Aktif",
         markahJawatanT6: 4, // Ahli Aktif = 4 (spec 5.2)
         peringkatT6: "Sekolah",
-        markahPeringkatT6: 5,
+        markahPeringkatT6: 4, // Sekolah = 4 (Penglibatan)
         statusPertukaran: "Approved",
         tarikhKemaskini: new Date(),
         guruLulusId: input.guruId ?? null,
@@ -355,6 +374,85 @@ export async function prosesPertukaran(input: {
   });
 
   return log;
+}
+
+/**
+ * ADMIN SAHAJA — tetapkan terus penempatan unit pelajar bagi satu bahagian
+ * (cth. pelajar sebenarnya bukan ahli Kelab Komputer, jadi guru unit itu tidak
+ * boleh mengesahkan jawatannya). Direkod dalam LogPertukaran sebagai
+ * "Approved" (guruId null = Admin); permohonan Pending bahagian itu ditutup.
+ * Unit baharu: jawatan reset "Ahli Aktif" / peringkat "Sekolah" (sama seperti
+ * kelulusan pertukaran). `unitBaru` null = kosongkan penempatan bahagian itu.
+ */
+export async function tetapkanUnitOlehAdmin(input: {
+  pelajarId: string;
+  jenisKoko: JenisKoko;
+  unitBaru: string | null;
+  sebab?: string;
+}) {
+  const koko = await prisma.kokurikulum.findUnique({
+    where: { pelajarId_jenisKoko: { pelajarId: input.pelajarId, jenisKoko: input.jenisKoko } },
+  });
+  const unitLama = koko?.namaUnitT6 ?? null;
+  if (unitLama === input.unitBaru) throw new Error("Unit baharu sama dengan unit semasa.");
+
+  const sebab = `Dikemas kini oleh Admin${input.sebab ? `: ${input.sebab}` : ""}`;
+  await prisma.$transaction([
+    // Permohonan pelajar yang masih menunggu untuk bahagian ini sudah tidak relevan.
+    prisma.logPertukaran.updateMany({
+      where: { pelajarId: input.pelajarId, jenisKoko: input.jenisKoko, status: "Pending" },
+      data: { status: "Reject", komenGuru: "Digantikan oleh kemas kini penempatan Admin", tarikhLulus: new Date() },
+    }),
+    prisma.logPertukaran.create({
+      data: {
+        pelajarId: input.pelajarId,
+        jenisKoko: input.jenisKoko,
+        unitLama,
+        unitBaru: input.unitBaru ?? "(dikosongkan)",
+        sebab,
+        status: "Approved",
+        tarikhLulus: new Date(),
+        komenGuru: sebab,
+      },
+    }),
+    prisma.kokurikulum.upsert({
+      where: { pelajarId_jenisKoko: { pelajarId: input.pelajarId, jenisKoko: input.jenisKoko } },
+      update: {
+        namaUnitT6: input.unitBaru,
+        jawatanT6: input.unitBaru ? "Ahli Aktif" : null,
+        peringkatT6: input.unitBaru ? "Sekolah" : null,
+        statusPertukaran: input.unitBaru ? "Approved" : "None",
+        tarikhKemaskini: new Date(),
+        guruLulusId: null,
+      },
+      create: {
+        pelajarId: input.pelajarId,
+        jenisKoko: input.jenisKoko,
+        namaUnitT6: input.unitBaru,
+        jawatanT6: "Ahli Aktif",
+        peringkatT6: "Sekolah",
+        statusPertukaran: "Approved",
+      },
+    }),
+  ]);
+  await kiraSemulaT6(input.pelajarId);
+
+  await notifyPelajar(input.pelajarId, {
+    tajuk: "Penempatan unit dikemas kini",
+    mesej: `${input.jenisKoko}: ${unitLama ?? "-"} → ${input.unitBaru ?? "(dikosongkan)"} (oleh Admin).`,
+    jenis: "info",
+    pautan: "/pelajar",
+  });
+  if (input.unitBaru) {
+    const pelajar = await prisma.pelajar.findUnique({ where: { id: input.pelajarId }, select: { nama: true } });
+    await notifyGuruUntukUnit(input.unitBaru, {
+      tajuk: "Ahli baharu (penempatan Admin)",
+      mesej: `${pelajar?.nama ?? "Pelajar"} ditempatkan ke ${input.unitBaru} oleh Admin.`,
+      jenis: "info",
+      pautan: "/guru/ahli",
+    });
+  }
+  return { unitLama, unitBaru: input.unitBaru };
 }
 
 // ---------------------------------------------------------------------------
@@ -531,7 +629,10 @@ export async function tetapkanJawatanOlehGuru(input: {
     throw new Error("Pelajar belum berdaftar dalam unit ini untuk T6.");
   }
 
-  const markah = markahJawatan(input.jawatan);
+  const markah =
+    input.jenisKoko === "Perkhidmatan"
+      ? nilaiEkstra(input.jawatan) // Jadual 1 — markah ekstra
+      : markahJawatan(input.jawatan, bidangDariJenisKoko(input.jenisKoko));
   await prisma.kokurikulum.update({
     where: { pelajarId_jenisKoko: { pelajarId: input.pelajarId, jenisKoko: input.jenisKoko } },
     data: {

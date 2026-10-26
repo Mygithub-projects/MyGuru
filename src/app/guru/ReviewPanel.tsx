@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { urlFail } from "@/lib/fail-url";
 
 interface ItemPelajar {
   pelajar: { nama: string; kelasT6: string | null };
@@ -504,7 +505,7 @@ function EvidenLink({
 }) {
   return (
     <a
-      href={href}
+      href={urlFail(href) ?? href}
       target="_blank"
       rel="noopener noreferrer"
       onClick={onLihat}
