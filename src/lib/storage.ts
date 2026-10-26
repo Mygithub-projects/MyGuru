@@ -1,34 +1,45 @@
 // ===========================================================================
 //  Abstraksi storan fail — adapter dipilih melalui env STORAGE_DRIVER.
-//    - "local" (lalai): simpan ke public/uploads (untuk pembangunan)
-//    - "s3": simpan ke bucket S3 (produksi) — perlu env S3_*
-//  Antaramuka: simpan(buffer, namaFail, contentType) -> URL/path awam.
+//    - "local" (lalai): simpan ke storage/uploads (DI LUAR public/ — tidak
+//      boleh dicapai terus melalui URL). Boleh tukar lokasi via UPLOAD_DIR.
+//    - "s3": simpan ke bucket S3/R2 PERIBADI (produksi) — perlu env S3_*
+//  Fail eviden pelajar adalah PERIBADI: hanya boleh dibaca melalui route
+//  /api/fail/[nama] yang menyemak skop guru penasihat / admin.
+//  Antaramuka: simpan(buffer, namaFail, contentType) -> URL route peribadi,
+//              baca(namaFail) -> kandungan fail atau null.
 // ===========================================================================
-import { writeFile, mkdir } from "node:fs/promises";
+import { writeFile, readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { urlFail } from "./fail-url";
 
 export interface StorageAdapter {
   simpan(data: Buffer, namaFail: string, contentType: string): Promise<string>;
+  baca(namaFail: string): Promise<Buffer | null>;
 }
 
 // --- Adapter Local ---
 class LocalStorage implements StorageAdapter {
-  private dir = path.join(process.cwd(), "public", "uploads");
+  private dir = process.env.UPLOAD_DIR || path.join(process.cwd(), "storage", "uploads");
   async simpan(data: Buffer, namaFail: string): Promise<string> {
     await mkdir(this.dir, { recursive: true });
     await writeFile(path.join(this.dir, namaFail), data);
-    return `/uploads/${namaFail}`;
+    return urlFail(namaFail)!;
+  }
+  async baca(namaFail: string): Promise<Buffer | null> {
+    try {
+      return await readFile(path.join(this.dir, namaFail));
+    } catch {
+      return null;
+    }
   }
 }
 
 // --- Adapter S3 (dimuat secara dinamik supaya build tidak terikat) ---
 class S3Storage implements StorageAdapter {
-  async simpan(data: Buffer, namaFail: string, contentType: string): Promise<string> {
-    const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
-    const bucket = process.env.S3_BUCKET!;
-    const region = process.env.S3_REGION || "ap-southeast-1";
-    const client = new S3Client({
-      region,
+  private async client() {
+    const { S3Client } = await import("@aws-sdk/client-s3");
+    return new S3Client({
+      region: process.env.S3_REGION || "ap-southeast-1",
       ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT, forcePathStyle: true } : {}),
       ...(process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY
         ? {
@@ -39,12 +50,32 @@ class S3Storage implements StorageAdapter {
           }
         : {}),
     });
-    const key = `uploads/${namaFail}`;
+  }
+  async simpan(data: Buffer, namaFail: string, contentType: string): Promise<string> {
+    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
+    const client = await this.client();
     await client.send(
-      new PutObjectCommand({ Bucket: bucket, Key: key, Body: data, ContentType: contentType })
+      new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET!,
+        Key: `uploads/${namaFail}`,
+        Body: data,
+        ContentType: contentType,
+      })
     );
-    const base = process.env.S3_PUBLIC_BASE_URL || `https://${bucket}.s3.${region}.amazonaws.com`;
-    return `${base}/${key}`;
+    return urlFail(namaFail)!;
+  }
+  async baca(namaFail: string): Promise<Buffer | null> {
+    const { GetObjectCommand } = await import("@aws-sdk/client-s3");
+    const client = await this.client();
+    try {
+      const res = await client.send(
+        new GetObjectCommand({ Bucket: process.env.S3_BUCKET!, Key: `uploads/${namaFail}` })
+      );
+      if (!res.Body) return null;
+      return Buffer.from(await res.Body.transformToByteArray());
+    } catch {
+      return null;
+    }
   }
 }
 

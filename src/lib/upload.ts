@@ -8,7 +8,7 @@ import { storage } from "./storage";
 
 const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
 const DIBENAR = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".doc", ".docx"];
-const MIME: Record<string, string> = {
+export const MIME: Record<string, string> = {
   ".pdf": "application/pdf",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",

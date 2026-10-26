@@ -28,7 +28,7 @@ interface Labels {
   members: string;
 }
 interface TabsDict {
-  tabsAriaLabel: string; marksComputed: string; marksNotYet: string;
+  tabsAriaLabel: string; marksComputed: string; marksNotYet: string; downloadForm: string;
   jawatanAssign: { placeholder: string; assignTitle: string; networkError: string };
   butiranPelajar: {
     colLabel: string; statusPending: string; statusApproved: string;
@@ -167,6 +167,12 @@ export function SenaraiAhliTabs({
             ⏳ {belum} {t.marksNotYet}
           </span>
         )}
+        <a
+          href={`/api/borang-rumusan?unit=${encodeURIComponent(unit.namaUnit)}`}
+          className="ml-auto rounded-md bg-ink px-3 py-1.5 font-semibold text-white hover:bg-ink-2"
+        >
+          {t.downloadForm}
+        </a>
       </div>
 
       {/* Jadual ahli unit aktif */}

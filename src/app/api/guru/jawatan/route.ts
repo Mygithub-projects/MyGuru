@@ -3,13 +3,20 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
 import { tetapkanJawatanOlehGuru, guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
-import { JENIS_KOKO, JAWATAN_PELAJAR } from "@/lib/enums";
+import { JENIS_KOKO, JAWATAN_PELAJAR, JAWATAN_PERKHIDMATAN } from "@/lib/enums";
 
-const schema = z.object({
-  pelajarId: z.string(),
-  jenisKoko: z.enum(JENIS_KOKO),
-  jawatan: z.enum(JAWATAN_PELAJAR),
-});
+// Unit Perkhidmatan guna senarai Jadual 1 (ekstra); bidang lain guna JAWATAN_PELAJAR.
+const schema = z
+  .object({
+    pelajarId: z.string(),
+    jenisKoko: z.enum(JENIS_KOKO),
+    jawatan: z.string(),
+  })
+  .refine(
+    (d) =>
+      ((d.jenisKoko === "Perkhidmatan" ? JAWATAN_PERKHIDMATAN : JAWATAN_PELAJAR) as readonly string[]).includes(d.jawatan),
+    { message: "Jawatan tidak sah untuk bahagian ini", path: ["jawatan"] },
+  );
 
 /** Guru penasihat menetapkan terus jawatan pelajar untuk unit seliaannya. */
 export async function POST(request: NextRequest) {

@@ -20,10 +20,12 @@ const BASELINE: Record<string, string[]> = {
     "Kelab Informasi", "Kelab Koperasi",
   ],
   Uniform: ["Pengakap Kelana", "St. John Ambulans Malaysia", "Briged Bomba", "PISPA"],
+  // Tanpa kurungan dalam nama — senaraiUnitBerpenasihat() membuang kurungan,
+  // yang akan memecahkan padanan namaUnitT6 ↔ GuruPenasihatKelab.namaUnit.
   Perkhidmatan: [
-    "Unit Perwakilan Pelajar", "Sidang Redaksi", "Unit Koko & QM",
-    "Unit Lembaga Pusat Sumber", "Unit Koperator Koperasi", "Unit PRS",
-    "Unit Ketua Tingkatan",
+    "Unit Kokurikulum", "Unit Pengurusan Sukan / Kuarter Master", "Unit Sidang Redaksi",
+    "Unit Perwakilan Pelajar", "Unit Pusat Sumber", "Pembimbing Rakan Sebaya",
+    "Unit Ketua Tingkatan", "Koperator Koperasi",
   ],
 };
 

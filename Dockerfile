@@ -71,8 +71,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
-# STORAGE_DRIVER="local" menulis ke public/uploads — lekapkan volume di sini.
-RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public/uploads
+# STORAGE_DRIVER="local" menulis ke storage/uploads (peribadi) — lekapkan volume di sini.
+RUN mkdir -p /app/storage/uploads && chown -R nextjs:nodejs /app/storage
 
 USER nextjs
 EXPOSE 3000

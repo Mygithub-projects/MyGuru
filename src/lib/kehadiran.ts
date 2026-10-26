@@ -1,6 +1,6 @@
 // ===========================================================================
 //  Modul Kehadiran — sesi perjumpaan, tanda kehadiran (senarai / QR), kira
-//  markah kehadiran (§1.2, skala 50, bundar ke BAWAH) & kemas kini
+//  markah kehadiran (§1.2, skala 50, kaedah KTE Desa Mahkota) & kemas kini
 //  Pelajar.markahKehadiran.
 // ===========================================================================
 import { randomBytes } from "node:crypto";
@@ -150,8 +150,8 @@ export async function sahkanSesi(sesiId: string, guruId: string | null) {
 }
 
 /**
- * Kira semula markah kehadiran pelajar (§1.2): peratus = FLOOR(hadir/30×100),
- * markah = FLOOR(peratus × 0.5) — skala 50, sentiasa bundar ke BAWAH.
+ * Kira semula markah kehadiran pelajar (§1.2, kaedah KTE Desa Mahkota):
+ * 2 aktiviti = 1 perjumpaan PAJSK (maks 15), markah = perjumpaan/15 × 50.
  * Berdasarkan jumlah perjumpaan wajib yang tetap (30 kali). Hanya menulis
  * ganti jika ada sekurang-kurangnya satu rekod (jika tiada, kekalkan import).
  */

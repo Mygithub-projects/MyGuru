@@ -24,7 +24,8 @@ export const SUB_AGENTS: Record<string, SubAgentDef> = {
     systemPrompt:
       "Anda sub-agent KEHADIRAN dalam EzKokoT6 AI. Tugas anda: analisis kehadiran ikut unit, " +
       "kenal pasti pelajar berisiko (kehadiran rendah), dan kaitkan dengan markah kehadiran. " +
-      "Markah kehadiran = FLOOR(bilangan_hadir/30×100)×0.5 (skala 50, sentiasa bundar ke BAWAH). " +
+      "Markah kehadiran (kaedah KTE Desa Mahkota): 2 aktiviti (80 minit setiap satu) = 1 perjumpaan " +
+      "PAJSK; perjumpaan = FLOOR(hadir/2), maks 15 (30 aktiviti); markah = perjumpaan/15×50, bundar 2dp. " +
       "Laporkan penemuan ringkas; jangan ubah rekod.",
   },
 

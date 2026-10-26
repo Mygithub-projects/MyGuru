@@ -67,6 +67,39 @@ export const JAWATAN_PELAJAR = [
 ] as const;
 export type JawatanPelajar = (typeof JAWATAN_PELAJAR)[number];
 
+/**
+ * Pilihan jawatan Unit Perkhidmatan — ikut "Perkara" Jadual 1 Panduan KPM
+ * (skor ekstra dalam kurungan pada label UI). Guru memilih baris yang tepat,
+ * cth. Pengerusi Majlis/Ketua Murid (10) vs Pengerusi Badan Perkhidmatan (7).
+ */
+export const JAWATAN_PERKHIDMATAN = [
+  "Ketua Murid",
+  "Pengerusi",
+  "Penolong Ketua Murid",
+  "Timbalan Pengerusi",
+  "Pengerusi Badan Perkhidmatan",
+  "Pengurusan Utama",
+  "Pengawas",
+  "Ketua Asrama",
+  "Ketua PRS",
+  "Penolong Ketua Asrama",
+  "Pengawas Pusat Sumber",
+  "Ahli Lembaga Pengarah Koperasi",
+  "AJK Utama",
+  "Setiausaha",
+  "Bendahari",
+  "Ketua Biro",
+  "Pengawas Koperasi",
+  "Ketua Kelas",
+  "Ketua Tingkatan",
+  "AJK Kecil Biro",
+  "Ketua Bilik",
+  "Ketua Dorm",
+  "Penolong Ketua Kelas",
+  "Penolong Ketua Bilik",
+  "Ahli",
+] as const;
+
 /** Nama lama → nama semasa, supaya rekod lama dipapar sebagai pilihan yang setara. */
 export const JAWATAN_PELAJAR_LAMA: Record<string, JawatanPelajar> = {
   Ketua: "Pengerusi",

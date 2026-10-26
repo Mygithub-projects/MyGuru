@@ -48,7 +48,7 @@ jadi build Vercel kekal tidak berubah.
 - **Pemboleh ubah `NEXT_PUBLIC_*` ditanam masa build.** Menukar
   `NEXT_PUBLIC_BASE_URL` memerlukan `docker compose build app` semula, bukan
   sekadar restart.
-- **Muat naik fail.** `STORAGE_DRIVER="local"` menulis ke `public/uploads`,
+- **Muat naik fail.** `STORAGE_DRIVER="local"` menulis ke `storage/uploads` (peribadi, di luar `public/`),
   yang dilekapkan sebagai volume `uploads`. Untuk lebih daripada satu replika,
   tukar ke `STORAGE_DRIVER="s3"` — volume tidak dikongsi antara nod.
 - **`.env` tidak masuk ke dalam imej** (disekat oleh `.dockerignore`); ia
@@ -63,7 +63,7 @@ docker build -t ekokot6 \
   --build-arg NEXT_PUBLIC_BASE_URL=https://koko.sekolah.edu.my .
 
 docker run -d -p 3000:3000 --env-file .env \
-  -v ekokot6-uploads:/app/public/uploads ekokot6
+  -v ekokot6-uploads:/app/storage/uploads ekokot6
 ```
 
 Jalankan `prisma migrate deploy` secara berasingan:
