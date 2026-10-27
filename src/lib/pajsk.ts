@@ -55,6 +55,11 @@ export function floorTo(nilai: number, dp = 2): number {
  * 14/15 × 50 = 46.666… → 46.67. Epsilon sama seperti floorTo (85.335 dalam
  * binari = 85.33499…).
  */
+/** Markah PAJSK T6 untuk PAPARAN pada skala 50 (nilai tersimpan, peratus & gred kekal /100). */
+export function markahT6Skala50(markah: number | null | undefined): number | null {
+  return markah == null ? null : bundarTo(markah / 2, 2);
+}
+
 export function bundarTo(nilai: number, dp = 2): number {
   if (!Number.isFinite(nilai)) return 0;
   const f = 10 ** dp;

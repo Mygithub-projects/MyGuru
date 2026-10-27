@@ -65,7 +65,7 @@ export interface Dict {
   pelajar: {
     welcome: string; icNo: string;
     linkAktiviti: string; linkKehadiran: string; linkLaporan: string; linkJawatan: string; linkButiran: string;
-    scoreT6: string; systemComputed: string; pctT6: string; fullMarks100: string;
+    scoreT6: string; systemComputed: string; pctT6: string; fullMarks100: string; fullMarks50: string;
     gred: string; finalGrade: string;
     scoreT5: string; importedRecord: string; change: string; t5ToT6: string;
     marksByUnit: string; participationTotal: string; unitNote: string;
@@ -413,7 +413,7 @@ const ms: Dict = {
   pelajar: {
     welcome: "Selamat Datang,", icNo: "No. IC:",
     linkAktiviti: "Pencapaian & Aktiviti", linkKehadiran: "Kehadiran", linkLaporan: "Laporan", linkJawatan: "Jawatan Ahli", linkButiran: "⬇ Butiran Diri (PDF)",
-    scoreT6: "Markah PAJSK T6", systemComputed: "dikira sistem", pctT6: "Peratus T6", fullMarks100: "/ 100 markah penuh",
+    scoreT6: "Markah PAJSK T6", systemComputed: "dikira sistem", pctT6: "Peratus T6", fullMarks100: "/ 100 markah penuh", fullMarks50: "/ 50 markah penuh",
     gred: "Gred", finalGrade: "gred akhir (A–E)",
     scoreT5: "Markah PAJSK T5", importedRecord: "rekod import", change: "Perubahan", t5ToT6: "T5 → T6",
     marksByUnit: "Markah Mengikut Penyertaan (T6)", participationTotal: "Jumlah Skor Bidang",
@@ -832,7 +832,7 @@ const en: Dict = {
   pelajar: {
     welcome: "Welcome,", icNo: "IC No.:",
     linkAktiviti: "Achievements & Activities", linkKehadiran: "Attendance", linkLaporan: "Reports", linkJawatan: "Member Positions", linkButiran: "⬇ Personal Details (PDF)",
-    scoreT6: "PAJSK Score (F6)", systemComputed: "system-computed", pctT6: "Percentage (F6)", fullMarks100: "/ 100 full marks",
+    scoreT6: "PAJSK Score (F6)", systemComputed: "system-computed", pctT6: "Percentage (F6)", fullMarks100: "/ 100 full marks", fullMarks50: "/ 50 full marks",
     gred: "Grade", finalGrade: "final grade (A–E)",
     scoreT5: "PAJSK Score (F5)", importedRecord: "imported record", change: "Change", t5ToT6: "F5 → F6",
     marksByUnit: "Marks by Participation (F6)", participationTotal: "Division Score",
