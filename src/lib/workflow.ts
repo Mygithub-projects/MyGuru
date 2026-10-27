@@ -220,7 +220,7 @@ export async function kiraSemulaT6(pelajarId: string) {
   // --- EKSTRA KURIKULUM (§1.8): MAX antara jawatan Unit Perkhidmatan & anugerah
   // khas yang diluluskan (bonus, maks 10).
   const rekod: RekodPelajar = {
-    kehadiran: pelajar.kehadiran.filter((h) => h.statusHadir),
+    kehadiran: pelajar.kehadiran.filter((h) => h.statusHadir && h.disahkan),
     pencapaian: pencapaianLulus,
     aktivitiLuar: luarLulus,
     laporanProjek: projekLulus,

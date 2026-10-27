@@ -57,7 +57,7 @@ export async function getPelajarProfil(pelajarId: string) {
       kokurikulum: true,
       pencapaian: { orderBy: { createdAt: "desc" } },
       aktivitiLuar: { orderBy: { createdAt: "desc" } },
-      kehadiran: { where: { statusHadir: true }, select: { jenisKoko: true } },
+      kehadiran: { where: { statusHadir: true, disahkan: true }, select: { jenisKoko: true } },
       laporanProjek: { where: { statusPengesahan: "Approved" } },
     },
   });

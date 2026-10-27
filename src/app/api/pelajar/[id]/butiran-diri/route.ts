@@ -24,13 +24,13 @@ export async function GET(
   // Kehadiran mengikut bidang (rujukan §9) — dikira dari rekod kehadiran.
   const recs = await prisma.kehadiran.findMany({
     where: { pelajarId: id },
-    select: { jenisKoko: true, statusHadir: true },
+    select: { jenisKoko: true, statusHadir: true, disahkan: true },
   });
   const bidangMap = new Map<string, { hadir: number; jumlah: number }>();
   for (const r of recs) {
     const m = bidangMap.get(r.jenisKoko) ?? { hadir: 0, jumlah: 0 };
     m.jumlah++;
-    if (r.statusHadir) m.hadir++;
+    if (r.statusHadir && r.disahkan) m.hadir++; // hanya sesi disahkan
     bidangMap.set(r.jenisKoko, m);
   }
   const kehadiranBidang = [...bidangMap.entries()].map(([bidang, m]) => ({ bidang, ...m }));
