@@ -111,6 +111,10 @@ export interface Dict {
     reportSubmitReview: string; reportSubmit: string; reportNoRecords: string; reportAttendanceLabel: string; reportViewSession: string; reportAttachmentLabel: string;
     suNsuOnly: string; sessionLabel: string;
     transferTitle: string; transferSubtitle: string; transferCurrentUnits: string; transferHistory: string;
+    daftarUnit: {
+      formTitle: string; info: string; lockedTitle: string; lockedBody: string; full: string; closed: string;
+      noLimit: string; registered: string; confirm: string; submit: string; submitting: string; networkError: string;
+    };
     transferFormTitle: string; transferTypeLabel: string; transferNewUnitLabel: string; transferReasonLabel: string;
     transferReasonPlaceholder: string; transferSubmit: string; transferPending: string; transferPendingNotice: string; transferNetworkError: string;
     transferCurrentUnit: string; transferRegister: string; transferChange: string; transferNoRequest: string;
@@ -291,6 +295,10 @@ export interface Dict {
       previewIc: string; previewLevel: string; previewDate: string; previewSerial: string;
     };
     tetapanPage: { title: string; subtitle: string };
+    hadUnit: {
+      title: string; sub: string; kohort: string; show: string; unit: string; members: string; limit: string;
+      save: string; saving: string; noLimit: string; networkError: string;
+    };
     tetapanClient: { saveSettings: string; saving: string };
   };
   laporan: {
@@ -458,7 +466,13 @@ const ms: Dict = {
     reportTabs: { weekly: "Laporan Mingguan", project: "Laporan Projek" }, reportLinkSession: "Lihat sesi →", reportUploadPrompt: "Pra-program: muat naik Kertas Kerja. Pasca-program: pilih projek di atas + muat naik Laporan Impak & isi maklumat.", reportNoAttachment: "Tiada rekod lagi.",
     reportSelectSessionPlaceholder: "— Paut sesi kehadiran (pilihan) —", reportProjectOptionPrefix: "Pasca: ", reportNewProjectPlaceholder: "— Projek baharu (pra-program) —",
     reportTimePlaceholder: "Masa (cth 2.30-4.30 ptg)", reportActivityPlaceholder: "Aktiviti / laporan ringkas", reportPaperLabel: "Kertas Kerja (pra)", reportImpactLabel: "Laporan Impak (pasca)", reportFinancePlaceholder: "Ringkasan kewangan (RM)", reportStrengthPlaceholder: "Kekuatan", reportWeaknessPlaceholder: "Kelemahan / penambahbaikan", reportSubmitReview: "Hantar untuk Semakan", reportSubmit: "Hantar", reportNoRecords: "Tiada rekod lagi.", reportAttendanceLabel: "Kehadiran", reportViewSession: "Lihat sesi →", reportAttachmentLabel: "· 📎 lampiran", loading: "Sedang memuat...", suNsuOnly: "Hanya untuk SU / NSU.", sessionLabel: "Perjumpaan",
-    transferTitle: "Pertukaran Unit Kokurikulum", transferSubtitle: "Mohon tukar Kelab/Sukan/Badan Beruniform. Unit dikemas kini selepas guru meluluskan.", transferCurrentUnits: "Unit Semasa (T6)", transferHistory: "Sejarah Permohonan",
+    transferTitle: "Pendaftaran Unit Kokurikulum", transferSubtitle: "Daftar satu unit bagi setiap bahagian: Sukan/Permainan (SP), Kelab/Persatuan (KP) dan Badan Beruniform (BU).",
+    daftarUnit: {
+      formTitle: "Borang Pendaftaran Unit", info: "Pilih satu unit bagi setiap bahagian. Pendaftaran terus berkuat kuasa selagi unit belum penuh. Selepas didaftar, pendaftaran ditutup.",
+      lockedTitle: "Anda telah berdaftar", lockedBody: "Pendaftaran unit ditutup. Hubungi pentadbir jika perlu membuat perubahan.",
+      full: "penuh", closed: "ditutup", noLimit: "tiada had", registered: "Sudah berdaftar",
+      confirm: "Saya sahkan pilihan ini. Selepas dihantar, unit tidak boleh ditukar.", submit: "Daftar", submitting: "Mendaftar…", networkError: "Ralat rangkaian",
+    }, transferCurrentUnits: "Unit Semasa (T6)", transferHistory: "Sejarah Permohonan",
     transferFormTitle: "Borang Permohonan Pertukaran", transferTypeLabel: "Jenis Kokurikulum", transferNewUnitLabel: "Unit Baru", transferReasonLabel: "Sebab (pilihan)",
     transferReasonPlaceholder: "cth: konflik jadual", transferSubmit: "Hantar Permohonan", transferPending: "Permohonan sedang menunggu kelulusan", transferPendingNotice: "Anda perlu menunggu keputusan permohonan semasa sebelum menghantar lagi.", transferNetworkError: "Ralat rangkaian.",
     transferCurrentUnit: "Unit semasa:", transferRegister: "Daftar", transferChange: "Tukar", transferNoRequest: "Tiada permohonan lagi.", transferNoAdvisor: "Tiada penasihat ditetapkan untuk kategori ini. Sila hubungi pentadbir.", transferExample: "cth: konflik jadual", transferWaitingNotice: "Sila tunggu kelulusan guru sebelum memohon lagi.", transferConfirmReplace: "Saya faham unit semasa akan diganti dan jawatan akan diset semula kepada 'Ahli Aktif' selepas diluluskan.", transferApplyInfo: "Mohon pertukaran unit anda dan tunggu kelulusan guru.", transferUnitsOnlyWithAdvisor: "Hanya unit dengan guru penasihat disenaraikan.", transferSelectUnitPlaceholder: "— Pilih unit —", transferUnitNotRegistered: "Belum berdaftar",
@@ -681,6 +695,11 @@ const ms: Dict = {
       previewIc: "[ No. KP · Kelas ]", previewLevel: "[ Peringkat · Markah PAJSK ]", previewDate: "[ Tarikh ]", previewSerial: "[ No. Siri ]",
     },
     tetapanPage: { title: "Tetapan Formula Markah", subtitle: "Konfigur nilai markah jawatan & peringkat supaya selaras pekeliling PAJSK semasa." },
+    hadUnit: {
+      title: "Had Ahli Unit (SP / KP / BU)", sub: "Tetapkan bilangan ahli maksimum setiap unit bagi satu kohort. Kosong = tiada had; 0 = unit ditutup.",
+      kohort: "Kohort", show: "Papar", unit: "Unit", members: "Ahli", limit: "Had", save: "Simpan Had", saving: "Menyimpan…",
+      noLimit: "tiada had", networkError: "Ralat rangkaian",
+    },
     tetapanClient: { saveSettings: "Simpan Tetapan", saving: "Menyimpan..." },
   },
   laporan: {
@@ -881,7 +900,13 @@ const en: Dict = {
     reportNoAttachment: "No records yet.",
     reportSelectSessionPlaceholder: "— Link attendance session (optional) —", reportProjectOptionPrefix: "Post: ", reportNewProjectPlaceholder: "— New project (pre-program) —",
     reportTimePlaceholder: "Time (e.g. 2.30-4.30 PM)", reportActivityPlaceholder: "Activity / short report", reportPaperLabel: "Work Plan (pre)", reportImpactLabel: "Impact Report (post)", reportFinancePlaceholder: "Financial summary (RM)", reportStrengthPlaceholder: "Strengths", reportWeaknessPlaceholder: "Weaknesses / improvements", reportSubmitReview: "Submit for Review", reportSubmit: "Submit", reportNoRecords: "No records yet.", reportAttendanceLabel: "Attendance", reportViewSession: "View session →", reportAttachmentLabel: "· 📎 attachment", loading: "Loading...", suNsuOnly: "For Secretary / Deputy Secretary only.", sessionLabel: "Meeting",
-    transferTitle: "Co-curriculum Unit Transfer", transferSubtitle: "Apply to change Club/Sport/Uniformed Body. Units update after teacher approval.",
+    transferTitle: "Co-curriculum Unit Registration", transferSubtitle: "Register one unit for each division: Sports/Games (SP), Clubs/Societies (KP) and Uniformed Bodies (BU).",
+    daftarUnit: {
+      formTitle: "Unit Registration Form", info: "Choose one unit per division. Registration takes effect immediately while the unit has space. Once registered, registration closes.",
+      lockedTitle: "You are registered", lockedBody: "Unit registration is closed. Contact the administrator if changes are needed.",
+      full: "full", closed: "closed", noLimit: "no limit", registered: "Registered",
+      confirm: "I confirm these choices. Once submitted, units cannot be changed.", submit: "Register", submitting: "Registering…", networkError: "Network error",
+    },
     transferCurrentUnits: "Current Units (F6)", transferHistory: "Application History",
     transferFormTitle: "Transfer Request Form", transferTypeLabel: "Co-curriculum Type", transferNewUnitLabel: "New Unit", transferReasonLabel: "Reason (optional)",
     transferReasonPlaceholder: "e.g. scheduling conflict", transferSubmit: "Submit Request", transferPending: "A request is pending approval", transferPendingNotice: "You must wait for the current request to be decided before submitting another.", transferNetworkError: "Network error.",
@@ -1107,6 +1132,11 @@ const en: Dict = {
       previewIc: "[ IC No. · Class ]", previewLevel: "[ Level · PAJSK Marks ]", previewDate: "[ Date ]", previewSerial: "[ Serial No. ]",
     },
     tetapanPage: { title: "Mark Formula Settings", subtitle: "Configure position & level mark values in line with current PAJSK circular." },
+    hadUnit: {
+      title: "Unit Member Limits (SP / KP / BU)", sub: "Set the maximum members per unit for a cohort. Blank = no limit; 0 = unit closed.",
+      kohort: "Cohort", show: "Show", unit: "Unit", members: "Members", limit: "Limit", save: "Save Limits", saving: "Saving…",
+      noLimit: "no limit", networkError: "Network error",
+    },
     tetapanClient: { saveSettings: "Save Settings", saving: "Saving..." },
   },
   laporan: {

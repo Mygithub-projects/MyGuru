@@ -4,7 +4,8 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getT } from "@/lib/locale";
 import { StatusBadge } from "@/components/StatusBadge";
-import { TukarUnitForm } from "./TukarUnitForm";
+import { DaftarUnitForm } from "./DaftarUnitForm";
+import { JENIS_DAFTAR, kuotaUnit, type JenisDaftar } from "@/lib/had-unit";
 
 export default async function TukarUnitPage() {
   const session = await getSession();
@@ -14,14 +15,21 @@ export default async function TukarUnitPage() {
     Sukan: t.common.sukan, Kelab: t.common.kelab, Uniform: t.common.uniform, Perkhidmatan: t.common.perkhidmatan,
   };
 
-  const [koko, sejarah] = await Promise.all([
+  const pelajar = await prisma.pelajar.findUnique({ where: { id: session.pelajarId }, select: { kohort: true } });
+  const [koko, sejarah, kuota] = await Promise.all([
     prisma.kokurikulum.findMany({ where: { pelajarId: session.pelajarId } }),
     prisma.logPertukaran.findMany({
       where: { pelajarId: session.pelajarId },
       orderBy: { tarikhMohon: "desc" },
       take: 10,
     }),
+    kuotaUnit(pelajar?.kohort ?? null),
   ]);
+  const berdaftar = Object.fromEntries(
+    koko
+      .filter((k) => (JENIS_DAFTAR as readonly string[]).includes(k.jenisKoko) && k.namaUnitT6)
+      .map((k) => [k.jenisKoko, k.namaUnitT6!]),
+  ) as Partial<Record<JenisDaftar, string>>;
 
   return (
     <div className="space-y-6">
@@ -36,13 +44,12 @@ export default async function TukarUnitPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <TukarUnitForm
+        <DaftarUnitForm
           pelajarId={session.pelajarId}
-          unitSemasa={koko.map((k) => ({
-            jenisKoko: k.jenisKoko,
-            namaUnitT6: k.namaUnitT6,
-            statusPertukaran: k.statusPertukaran,
-          }))}
+          kuota={kuota}
+          berdaftar={berdaftar}
+          label={{ Sukan: `${t.common.sukan} (SP)`, Kelab: `${t.common.kelab} (KP)`, Uniform: `${t.common.uniform} (BU)` }}
+          t={{ ...t.pelajar.daftarUnit, selectPlaceholder: t.pelajar.unitSelectPlaceholder }}
         />
 
         <div className="space-y-4">
@@ -60,7 +67,6 @@ export default async function TukarUnitPage() {
                     <span className="font-semibold text-brand-dark">{jenisLabel[k.jenisKoko] ?? k.jenisKoko}:</span>{" "}
                     {k.namaUnitT6 ?? "-"}
                   </span>
-                  <StatusBadge status={k.statusPertukaran} />
                 </div>
               ))}
             </div>
