@@ -133,6 +133,11 @@ export const PERINGKAT = [
 ] as const;
 export type Peringkat = (typeof PERINGKAT)[number];
 
+// Borang pelajar: Aktiviti Peringkat Kolej dikunci pada "Sekolah"; Aktiviti Luar
+// ikut senarai peringkat KPM di luar sekolah.
+export const PERINGKAT_KOLEJ = "Sekolah";
+export const PERINGKAT_LUAR = ["Zon/Daerah", "Daerah", "Negeri", "Kebangsaan", "Antarabangsa"] as const;
+
 export const JANTINA = ["L", "P"] as const;
 export const KAUM = ["Melayu", "Cina", "India", "Lain-lain"] as const;
 export const AGAMA = ["Islam", "Buddha", "Hindu", "Kristian", "Lain-lain"] as const;

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getT } from "@/lib/locale";
 import { ImportClient } from "./ImportClient";
+import { senaraiKohort } from "@/lib/kohort";
 
 export default async function ImportPage() {
-  const { t } = await getT();
+  const [{ t }, kohortList] = await Promise.all([getT(), senaraiKohort()]);
   return (
     <div className="space-y-6">
       <div>
@@ -13,7 +14,11 @@ export default async function ImportPage() {
           {t.admin.importPage.subtitle}
         </p>
       </div>
-      <ImportClient t={{ ...t.admin.importClient, networkError: t.common.ralatRangkaian }} />
+      <ImportClient
+        t={{ ...t.admin.importClient, networkError: t.common.ralatRangkaian }}
+        kohortList={kohortList}
+        kohortLalai={kohortList[0] ?? "STPM 2027"}
+      />
     </div>
   );
 }

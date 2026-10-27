@@ -6,8 +6,13 @@ interface PelajarRingkas {
   id: string;
   nama: string;
   kelasT6: string | null;
-  sukan: string | null;
+  /** Unit pelajar ikut jenisKoko (Kelab/Uniform/Sukan/Perkhidmatan), sudah ditapis ikut skop guru. */
+  unit: Record<string, string>;
 }
+
+// Empat bahagian PAJSK: KP, BU, SP, UP.
+const BAHAGIAN = ["Kelab", "Uniform", "Sukan", "Perkhidmatan"] as const;
+type Bahagian = (typeof BAHAGIAN)[number];
 interface PemilihanDict {
   detailsTitle: string; competitionName: string; competitionNamePlaceholder: string;
   level: string; dateOptional: string;
@@ -15,6 +20,8 @@ interface PemilihanDict {
   selectAll: string; noMatch: string; submitBtnTpl: string; submittingBtn: string;
   footerNote: string; errNameRequired: string; errNoSelection: string; errGeneric: string; networkError: string;
   levels: { zonDaerah: string; daerah: string; negeri: string; kebangsaan: string; antarabangsa: string };
+  bahagian: Record<Bahagian, string>;
+  allUnits: string; noUnitInSection: string;
 }
 
 export function PemilihanForm({ pelajar, t }: { pelajar: PelajarRingkas[]; t: PemilihanDict }) {
@@ -32,20 +39,42 @@ export function PemilihanForm({ pelajar, t }: { pelajar: PelajarRingkas[]; t: Pe
   const [peringkat, setPeringkat] = useState<string>("Negeri");
   const [tarikh, setTarikh] = useState("");
   const [carian, setCarian] = useState("");
+  const [bahagian, setBahagian] = useState<Bahagian>(
+    () => BAHAGIAN.find((b) => pelajar.some((p) => p.unit[b])) ?? "Kelab"
+  );
+  const [unitPilih, setUnitPilih] = useState("");
   const [dipilih, setDipilih] = useState<Set<string>>(new Set());
   const [hantar, setHantar] = useState(false);
   const [mesej, setMesej] = useState<{ ok: boolean; teks: string } | null>(null);
 
+  const bilangan = useMemo(() => {
+    const out = {} as Record<Bahagian, number>;
+    for (const b of BAHAGIAN) out[b] = pelajar.filter((p) => p.unit[b]).length;
+    return out;
+  }, [pelajar]);
+
+  const dalamBahagian = useMemo(() => pelajar.filter((p) => p.unit[bahagian]), [pelajar, bahagian]);
+  const senaraiUnit = useMemo(
+    () => [...new Set(dalamBahagian.map((p) => p.unit[bahagian]))].sort((a, b) => a.localeCompare(b)),
+    [dalamBahagian, bahagian]
+  );
+
   const ditapis = useMemo(() => {
     const q = carian.trim().toLowerCase();
-    if (!q) return pelajar;
-    return pelajar.filter(
+    return dalamBahagian.filter(
       (p) =>
-        p.nama.toLowerCase().includes(q) ||
-        (p.kelasT6 ?? "").toLowerCase().includes(q) ||
-        (p.sukan ?? "").toLowerCase().includes(q)
+        (!unitPilih || p.unit[bahagian] === unitPilih) &&
+        (!q ||
+          p.nama.toLowerCase().includes(q) ||
+          (p.kelasT6 ?? "").toLowerCase().includes(q) ||
+          p.unit[bahagian].toLowerCase().includes(q))
     );
-  }, [pelajar, carian]);
+  }, [dalamBahagian, bahagian, unitPilih, carian]);
+
+  function tukarBahagian(b: Bahagian) {
+    setBahagian(b);
+    setUnitPilih("");
+  }
 
   function toggle(id: string) {
     setDipilih((prev) => {
@@ -152,12 +181,42 @@ export function PemilihanForm({ pelajar, t }: { pelajar: PelajarRingkas[]; t: Pe
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">
             {t.selectStudents} <span className="text-slate-400">({dipilih.size} {t.selectedSuffix})</span>
           </h2>
-          <input
-            value={carian}
-            onChange={(e) => setCarian(e.target.value)}
-            placeholder={t.searchPlaceholder}
-            className="w-56 rounded-md border border-slate-300 px-3 py-1.5 text-sm"
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={unitPilih}
+              onChange={(e) => setUnitPilih(e.target.value)}
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+            >
+              <option value="">{t.allUnits}</option>
+              {senaraiUnit.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+            <input
+              value={carian}
+              onChange={(e) => setCarian(e.target.value)}
+              placeholder={t.searchPlaceholder}
+              className="w-56 rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Tab bahagian KP / BU / SP / UP */}
+        <div className="mb-3 flex flex-wrap gap-2">
+          {BAHAGIAN.map((b) => (
+            <button
+              key={b}
+              type="button"
+              onClick={() => tukarBahagian(b)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${
+                bahagian === b
+                  ? "bg-blue-600 text-white ring-blue-600"
+                  : "bg-white text-slate-600 ring-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              {t.bahagian[b]} <span className="opacity-70">({bilangan[b]})</span>
+            </button>
+          ))}
         </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-200">
@@ -172,12 +231,14 @@ export function PemilihanForm({ pelajar, t }: { pelajar: PelajarRingkas[]; t: Pe
                   <input type="checkbox" checked={dipilih.has(p.id)} onChange={() => toggle(p.id)} className="h-4 w-4" />
                   <span className="font-medium text-slate-700">{p.nama}</span>
                   <span className="text-xs text-slate-400">{p.kelasT6 ?? "-"}</span>
-                  {p.sukan && <span className="ml-auto text-xs text-slate-500">{p.sukan}</span>}
+                  <span className="ml-auto text-xs text-slate-500">{p.unit[bahagian]}</span>
                 </label>
               </li>
             ))}
             {ditapis.length === 0 && (
-              <li className="px-3 py-4 text-center text-sm text-slate-400">{t.noMatch}</li>
+              <li className="px-3 py-4 text-center text-sm text-slate-400">
+                {dalamBahagian.length === 0 ? t.noUnitInSection : t.noMatch}
+              </li>
             )}
           </ul>
         </div>

@@ -25,6 +25,11 @@ export function jalankanImportPajsk(wb: ExcelJS.Workbook): Promise<HasilImport> 
 
 /** Tulis baris PAJSK yang telah diparse ke DB. Dikongsi oleh import terus &
  *  pengesahan import berperingkat (§6). */
+/** Pelajar sedia ada KEKAL dalam kohort asalnya; hanya rekod tanpa kohort ditag. */
+async function tagKohortJikaKosong(pelajarId: string, kohort?: string) {
+  if (kohort) await prisma.pelajar.updateMany({ where: { id: pelajarId, kohort: null }, data: { kohort } });
+}
+
 export async function applyPajskRows(rows: PajskRow[]): Promise<HasilImport> {
   const ralat: string[] = [];
   const pelajarIds: string[] = [];
@@ -64,6 +69,7 @@ export async function applyPajskRows(rows: PajskRow[]): Promise<HasilImport> {
         nama: r.nama,
         noIc: r.noIc,
         kelasT6: "T6 (Sesi 2026)",
+        kohort: r.kohort ?? null,
         markahPajskT6: skor.jumlahTeras,
         peratusPajskT6: skor.peratus,
         gredPajskT6: skor.gred,
@@ -73,6 +79,7 @@ export async function applyPajskRows(rows: PajskRow[]): Promise<HasilImport> {
         markahPenglibatan: skor.penglibatan,
       },
     });
+    await tagKohortJikaKosong(pelajar.id, r.kohort);
 
     for (const k of r.koko) {
       await prisma.kokurikulum.upsert({
@@ -260,8 +267,9 @@ export async function applyPelajarBaruRows(rows: PelajarBaruRow[]): Promise<Hasi
     const pelajar = await prisma.pelajar.upsert({
       where: { noIc: r.noIc },
       update: { nama: r.nama, kelasT6: r.kelasT6 || undefined },
-      create: { nama: r.nama, noIc: r.noIc, kelasT6: r.kelasT6 || null },
+      create: { nama: r.nama, noIc: r.noIc, kelasT6: r.kelasT6 || null, kohort: r.kohort ?? null },
     });
+    await tagKohortJikaKosong(pelajar.id, r.kohort);
 
     const passwordHash = await hashPassword(r.noIc);
     await prisma.user.upsert({

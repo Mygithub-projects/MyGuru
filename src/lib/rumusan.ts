@@ -30,6 +30,7 @@ export interface BarisRumusan extends SkorUnit {
   nama: string;
   noIc: string;
   kelas: string;
+  kohort: string;
   bahagian: Bahagian;
   // Unit Perkhidmatan sahaja
   anugerah: string;
@@ -42,6 +43,7 @@ export interface FilterRumusan {
   units?: string[];
   bahagian?: Bahagian;
   kelas?: string;
+  kohort?: string;
 }
 
 const terbaik = <T>(arr: T[], skor: (x: T) => number) =>
@@ -58,6 +60,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
       kokurikulum: { some: whereKoko },
       ...(f.pelajarId ? { id: f.pelajarId } : {}),
       ...(f.kelas ? { kelasT6: f.kelas } : {}),
+      ...(f.kohort ? { kohort: f.kohort } : {}),
     },
     include: {
       kokurikulum: { where: whereKoko },
@@ -85,6 +88,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
         nama: p.nama,
         noIc: p.noIc,
         kelas: p.kelasT6?.trim() ?? "",
+        kohort: p.kohort ?? "",
         bahagian: k.jenisKoko,
         anugerah: ekstra?.namaPencapaian ?? "",
         mAnugerah,
@@ -120,9 +124,20 @@ export interface StatKumpulan {
   ahli: number;
   purata: number | null;
   gred: Record<Gred, number>;
+  gps: number | null;
 }
 
 const GRED: Gred[] = ["A", "B", "C", "D", "E"];
+
+// Gred Purata Sekolah (GPS): A=1 … E=5; GPS = Σ(bil gred × nilai) / jumlah bergred.
+// Makin RENDAH makin baik (1.00 = semua A).
+const NILAI_GPS: Record<Gred, number> = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+
+export function kiraGps(gred: Record<Gred, number>): number | null {
+  const n = GRED.reduce((s, g) => s + gred[g], 0);
+  if (!n) return null;
+  return Math.round((GRED.reduce((s, g) => s + gred[g] * NILAI_GPS[g], 0) / n) * 100) / 100;
+}
 
 function stat(nama: string, rows: BarisRumusan[], bahagian?: Bahagian): StatKumpulan {
   const bermarkah = rows.filter((r) => r.jumlah !== null);
@@ -131,7 +146,7 @@ function stat(nama: string, rows: BarisRumusan[], bahagian?: Bahagian): StatKump
   const purata = bermarkah.length
     ? Math.round((bermarkah.reduce((s, r) => s + r.jumlah!, 0) / bermarkah.length) * 100) / 100
     : null;
-  return { nama, bahagian, ahli: rows.length, purata, gred: g };
+  return { nama, bahagian, ahli: rows.length, purata, gred: g, gps: kiraGps(g) };
 }
 
 function kumpul<K>(rows: BarisRumusan[], kunci: (r: BarisRumusan) => K): Map<K, BarisRumusan[]> {
@@ -150,6 +165,18 @@ export function analitikRumusan(rows: BarisRumusan[]) {
       .sort((a, b) => BAHAGIAN.indexOf(a.bahagian!) - BAHAGIAN.indexOf(b.bahagian!) || ikutNama(a, b)),
     kelas: [...kumpul(rows, (r) => r.kelas || "TIADA KELAS").entries()].map(([k, rs]) => stat(k, rs)).sort(ikutNama),
   };
+}
+
+/** GPS setiap kohort — keseluruhan + setiap bahagian (terkini dahulu). */
+export function gpsIkutKohort(rows: BarisRumusan[]) {
+  return [...kumpul(rows, (r) => r.kohort || "—").entries()]
+    .map(([kohort, rs]) => ({
+      kohort,
+      pelajar: new Set(rs.map((r) => r.noIc)).size,
+      keseluruhan: stat(kohort, rs),
+      bahagian: BAHAGIAN.map((b) => stat(b, rs.filter((r) => r.bahagian === b), b)),
+    }))
+    .sort((a, b) => b.kohort.localeCompare(a.kohort, "ms", { numeric: true }));
 }
 
 /** Senarai kelas yang ada (untuk penapis Admin). */

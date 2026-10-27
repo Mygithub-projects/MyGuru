@@ -92,6 +92,7 @@ export interface Dict {
       submit: string; submitToReview: string; reportPlaceholder: string; networkError: string; fileTooLarge: string;
       uploadSizeLimit: string; fetchError: string; noToken: string; cancel: string; loading: string;
       unitPlaceholder: string;
+      programName: string; collegeLevel: string; reportLabel: string; levelLabel: string; unitLabel: string;
     };
     attendancePageTitle: string; attendanceSubtitle: string; attendanceRestricted: string;
     attendancePanel: {
@@ -173,6 +174,8 @@ export interface Dict {
       selectAll: string; noMatch: string; submitBtnTpl: string; submittingBtn: string;
       footerNote: string; errNameRequired: string; errNoSelection: string; errGeneric: string; networkError: string;
       levels: { zonDaerah: string; daerah: string; negeri: string; kebangsaan: string; antarabangsa: string };
+      bahagian: { Kelab: string; Uniform: string; Sukan: string; Perkhidmatan: string };
+      allUnits: string; noUnitInSection: string;
     };
   };
   admin: {
@@ -189,6 +192,8 @@ export interface Dict {
       title: string; subtitle: string; bahagian: string; kelas: string; all: string; filter: string;
       download: string; byBahagian: string; byUnit: string; byKelas: string; overall: string;
       members: string; average: string; unit: string; form: string; noData: string; bonusNote: string;
+      kohort: string; allKohort: string; current: string; gps: string; gpsCurrent: string; gpsByYear: string;
+      gpsNote: string; students: string;
     };
     rawData: {
       title: string; subtitle: string; button: string; contentsTitle: string; formatNote: string;
@@ -231,6 +236,7 @@ export interface Dict {
       cancel: string; confirmImport: string; confirming: string;
       importDoneTpl: string; recalcedTpl: string;
       warningsCountTpl: string; historyTitle: string; noHistory: string;
+      kohortLabel: string; kohortHint: string;
       dateCol: string; fileCol: string; typeCol: string; recordsCol: string; newChangedCol: string;
       pelajarBaruTab: string; pelajarBaruInfo: string; pelajarBaruWarningTpl: string;
       noFileSelected: string;
@@ -239,6 +245,8 @@ export interface Dict {
       title: string; subtitle: string; totalMeetings: string; avgAttendance: string; notVerified: string;
       unitLabel: string; allUnits: string; typeLabel: string; allTypes: string; filterBtn: string;
       resetBtn: string; listTitle: string; noSessions: string; clickToFilter: string; showAllBtn: string;
+      dailyTitle: string; dailyDate: string; dailyShow: string; dailyToday: string; dailyNone: string;
+      dailySessions: string; dailyPresent: string; dailyNoMeeting: string;
     };
     kehadiranTable: {
       colUnit: string; colType: string; colMeeting: string; colDate: string; colPresent: string;
@@ -292,6 +300,12 @@ export interface Dict {
     submitForReview: string; networkError: string; loading: string; attachmentWorkPlan: string; attachmentImpactReport: string;
     reportTimePlaceholder: string; reportActivityPlaceholder: string; reportProjectOptionPrefix: string; reportUploadPrompt: string;
     sessionLabel: string; attachmentLabel: string; reportAttendanceLabel: string; reportViewSession: string; suNsuOnly: string;
+    positionLabel: string; sessionLinkLabel: string;
+    semakan: {
+      title: string; sub: string; all: string; pending: string; approved: string; query: string;
+      by: string; evidence: string; workPlan: string; approve: string; queryBtn: string; queryPrompt: string;
+      empty: string; notAllowed: string; networkError: string; position: string; filterBtn: string; statusLabel: string; typeLabel: string;
+    };
   };
   insights: {
     title: string; badge: string; footerNote: string; aiLabel: string; aiLoading: string;
@@ -342,7 +356,7 @@ const ms: Dict = {
     agama: { islam: "Islam", buddha: "Buddha", hindu: "Hindu", kristian: "Kristian", lainLain: "Lain-lain" },
     jawatanKoko: {
       guruPenasihat: "Guru Penasihat", penolongKetuaGP: "Penolong Guru Penasihat", ketuaGP: "Ketua Guru Penasihat",
-      penolongSU: "Penolong SU Kokurikulum", pemantauKUPP: "Pemantau (KUPP)", penyelaras: "Penyelaras Kokurikulum",
+      penolongSU: "Penolong SU Kokurikulum", pemantauKUPP: "KUPP/Pemantau", penyelaras: "Penyelaras Kokurikulum",
       ketuaUnitKoko: "Ketua Unit Kokurikulum",
     },
     subRolePelajar: { pelajar: "Pelajar biasa", su: "Setiausaha (SU)", nsu: "Naib Setiausaha (NSU)" },
@@ -419,16 +433,17 @@ const ms: Dict = {
     comparison: "Perbandingan T5 vs T6", detail: "Butiran", marksByCategory: "Markah Mengikut Kategori",
     currentUnits: "Unit Kokurikulum Semasa (T6)", history: "Sejarah", achievements: "Pencapaian & Ekstra Kurikulum",
     backToDashboard: "← Kembali ke Dashboard",
-    activityTitle: "Pencapaian & Aktiviti Luar", activitySubtitle: "Hantar pencapaian & aktiviti luar, muat naik bukti (surat/sijil), kemudian tunggu kelulusan guru.",
-    activityTabs: { achievements: "Pencapaian", externalActivities: "Aktiviti Luar" },
-    achievementSection: "Pencapaian", externalActivitiesSection: "Aktiviti Luar",
+    activityTitle: "Aktiviti Peringkat Kolej & Aktiviti Luar", activitySubtitle: "Hantar aktiviti peringkat kolej & aktiviti luar bersama laporan ringkas dan eviden, kemudian tunggu kelulusan guru.",
+    activityTabs: { achievements: "Aktiviti Peringkat Kolej", externalActivities: "Aktiviti Luar" },
+    achievementSection: "Aktiviti Peringkat Kolej", externalActivitiesSection: "Aktiviti Luar",
     noRecords: "Tiada rekod lagi.", commentLabel: "Komen", generateECert: "⬇ Terbitkan e-Sijil (PDF)",
     activityForm: {
-      achievementName: "Nama pencapaian", activityName: "Nama aktiviti luar", levelPlaceholder: "— Peringkat —", dateLabel: "Tarikh",
-      evidenceLabel: "Bukti (sijil/surat)", letterLabel: "Surat", certificateLabel: "Sijil", uploadEvidence: "⬆ Muat naik bukti (surat & sijil)",
+      achievementName: "Nama pencapaian", activityName: "Nama aktiviti luar", levelPlaceholder: "— Peringkat —", dateLabel: "Tarikh Program/Aktiviti",
+      evidenceLabel: "Eviden", letterLabel: "Surat", certificateLabel: "Sijil", uploadEvidence: "⬆ Muat naik eviden",
       submit: "Hantar", submitToReview: "Hantar untuk Semakan", reportPlaceholder: "Aktiviti / laporan ringkas", networkError: "Ralat rangkaian", fileTooLarge: "Fail terlalu besar. Had muat naik 4MB — sila mampatkan atau kecilkan saiz.",
       uploadSizeLimit: "Fail terlalu besar untuk pelayan (had 4.5MB). Sila kecilkan fail.", fetchError: "Ralat pelayan. Sila cuba lagi atau hubungi guru anda.", noToken: "Tiada token. Sila imbas QR sah.", cancel: "Batal", loading: "Memuatkan...",
       unitPlaceholder: "— Unit berkaitan —",
+      programName: "Nama Program/Aktiviti", collegeLevel: "Sekolah / Kolej", reportLabel: "Laporan ringkas", levelLabel: "Peringkat", unitLabel: "Unit berkaitan",
     },
     attendancePageTitle: "Kehadiran Ahli", attendanceSubtitle: "Buka sesi perjumpaan, tanda kehadiran ahli melalui senarai, atau paparkan QR untuk imbas sendiri.", attendanceRestricted: "Modul kehadiran hanya untuk Setiausaha (SU) / Naib Setiausaha (NSU). Sila hubungi guru penasihat anda jika anda sepatutnya mempunyai akses.",
     attendancePanel: {
@@ -512,6 +527,8 @@ const ms: Dict = {
       errNameRequired: "Masukkan nama pertandingan.", errNoSelection: "Pilih sekurang-kurangnya seorang pelajar.",
       errGeneric: "Ralat memproses.", networkError: "Ralat rangkaian.",
       levels: { zonDaerah: "Zon/Daerah", daerah: "Daerah", negeri: "Negeri", kebangsaan: "Kebangsaan", antarabangsa: "Antarabangsa" },
+      bahagian: { Kelab: "KP — Kelab/Persatuan", Uniform: "BU — Badan Beruniform", Sukan: "SP — Sukan/Permainan", Perkhidmatan: "UP — Unit Perkhidmatan" },
+      allUnits: "Semua unit", noUnitInSection: "Tiada pelajar dalam bahagian ini bagi skop anda.",
     },
   },
   admin: {
@@ -531,6 +548,10 @@ const ms: Dict = {
       download: "⬇ Muat turun Excel", byBahagian: "Ikut Bahagian", byUnit: "Ikut Unit", byKelas: "Ikut Kelas", overall: "Keseluruhan",
       members: "Bil Ahli", average: "Purata", unit: "Unit", form: "Borang", noData: "Tiada data untuk penapis ini.",
       bonusNote: "Unit Perkhidmatan ialah markah bonus (ekstra) — tidak dikira dalam purata & taburan gred.",
+      kohort: "Kohort", allKohort: "Semua kohort", current: "semasa", gps: "GPS",
+      gpsCurrent: "GPS Semasa", gpsByYear: "GPS Mengikut Tahun (Kohort)",
+      gpsNote: "GPS (Gred Purata Sekolah) = Σ(bilangan gred × nilai) ÷ jumlah bergred, dengan A=1, B=2, C=3, D=4, E=5. Makin rendah makin baik (1.00 = semua A).",
+      students: "pelajar",
     },
     rawData: {
       title: "Muat Turun Raw Data (Excel)",
@@ -569,6 +590,7 @@ const ms: Dict = {
     },
     importPage: { title: "Import Data (CSV/Excel)", subtitle: "Muat naik fail PAJSK (pelajar) atau borang pendaftaran Guru. No. IC dibaca sebagai teks (digit penuh dikekalkan). Rekod sedia ada dikemas kini (upsert)." },
     importClient: {
+      kohortLabel: "Kohort", kohortHint: "Pelajar baharu dalam fail ini ditag dengan kohort ini (cth STPM 2028). Pelajar sedia ada kekal dalam kohort asal.",
       pajskTab: "PAJSK (Pelajar)", guruTab: "Pendaftaran Guru",
       choosePajskInfo: "Fail PAJSK dipratonton dahulu — perbezaan dipaparkan sebelum apa-apa markah berubah.",
       guruUpsertInfo: "Rekod guru dikemas kini terus (upsert).",
@@ -592,6 +614,9 @@ const ms: Dict = {
       unitLabel: "Unit", allUnits: "Semua unit", typeLabel: "Jenis", allTypes: "Semua", filterBtn: "Tapis",
       resetBtn: "Reset", listTitle: "Senarai Perjumpaan", noSessions: "Tiada sesi kehadiran untuk tapisan ini.",
       clickToFilter: "Klik untuk papar sesi belum disahkan sahaja", showAllBtn: "← Papar Semua",
+      dailyTitle: "Ringkasan Kehadiran Harian", dailyDate: "Tarikh", dailyShow: "Papar", dailyToday: "Hari ini",
+      dailyNone: "Tiada perjumpaan direkod pada tarikh ini.", dailySessions: "sesi", dailyPresent: "hadir",
+      dailyNoMeeting: "Tiada perjumpaan",
     },
     kehadiranTable: {
       colUnit: "Unit", colType: "Jenis", colMeeting: "Perjumpaan", colDate: "Tarikh", colPresent: "Hadir",
@@ -664,6 +689,14 @@ const ms: Dict = {
     submitForReview: "Hantar untuk Semakan", networkError: "Ralat rangkaian", loading: "Sedang memuat...", attachmentWorkPlan: "📋 kertas kerja", attachmentImpactReport: "📊 laporan impak",
     reportTimePlaceholder: "Masa (cth 2.30-4.30 ptg)", reportActivityPlaceholder: "Aktiviti / laporan ringkas", reportProjectOptionPrefix: "Pasca: ", reportUploadPrompt: "Pra-program: muat naik Kertas Kerja. Pasca-program: pilih projek di atas + muat naik Laporan Impak & isi maklumat.",
     sessionLabel: "Perjumpaan", attachmentLabel: "· 📎 lampiran", reportAttendanceLabel: "Kehadiran", reportViewSession: "Lihat sesi →", suNsuOnly: "Hanya untuk SU / NSU.",
+    positionLabel: "Jawatan dalam projek", sessionLinkLabel: "Sesi kehadiran berkaitan (pilihan)",
+    semakan: {
+      title: "Laporan SU/NSU", sub: "Semua laporan mingguan & projek yang dihantar SU/NSU — lihat butiran, eviden dan sahkan atau kuiri.",
+      all: "Semua", pending: "Menunggu", approved: "Disahkan", query: "Kuiri",
+      by: "oleh", evidence: "Lihat eviden", workPlan: "Kertas kerja", approve: "Sahkan", queryBtn: "Kuiri", queryPrompt: "Komen kuiri:",
+      empty: "Tiada laporan untuk tapisan ini.", notAllowed: "Tidak dibenarkan.", networkError: "Ralat rangkaian",
+      position: "Jawatan", filterBtn: "Tapis", statusLabel: "Status", typeLabel: "Jenis laporan",
+    },
   },
   insights: {
     title: "Analitik Pintar", badge: "AI · BERASASKAN DATA", footerNote: "Cerapan dijana automatik daripada data semasa (analitik berasaskan peraturan).",
@@ -694,7 +727,7 @@ const ms: Dict = {
       title: "Bantuan — Pelajar", back: "/pelajar",
       sections: [
         { h: "Dashboard", isi: ["Lihat markah PAJSK T6, gred, pecahan komponen (Kehadiran, Jawatan, Penglibatan, Pencapaian, Projek), dan carta markah."] },
-        { h: "Pencapaian & Aktiviti", isi: ["Isi pencapaian/aktiviti luar + muat naik eviden.", "Aktiviti luar perlu surat & sijil untuk menjana e-Cert selepas guru sahkan."] },
+        { h: "Pencapaian & Aktiviti", isi: ["Isi aktiviti peringkat kolej/aktiviti luar: nama, peringkat, tarikh, laporan ringkas + eviden.", "Aktiviti luar boleh menjana e-Cert selepas guru sahkan."] },
         { h: "Pertukaran Unit", isi: ["Mohon tukar unit; unit dikemas kini selepas guru lulus."] },
         { h: "e-Cert & Butiran Diri", isi: ["Jana e-Cert PDF untuk aktiviti yang diluluskan.", "Cetak Butiran Diri PDF dari dashboard."] },
         { h: "SU/NSU", isi: ["Menu Kehadiran (sesi + QR) dan Laporan (mingguan/projek) jika anda Setiausaha."] },
@@ -741,7 +774,7 @@ const en: Dict = {
     agama: { islam: "Islam", buddha: "Buddhist", hindu: "Hindu", kristian: "Christian", lainLain: "Other" },
     jawatanKoko: {
       guruPenasihat: "Adviser Teacher", penolongKetuaGP: "Assistant Adviser Teacher", ketuaGP: "Head Adviser Teacher",
-      penolongSU: "Deputy Co-curriculum Secretary", pemantauKUPP: "Monitor (KUPP)", penyelaras: "Co-curriculum Coordinator",
+      penolongSU: "Deputy Co-curriculum Secretary", pemantauKUPP: "KUPP/Monitor", penyelaras: "Co-curriculum Coordinator",
       ketuaUnitKoko: "Head of Co-curriculum Unit",
     },
     subRolePelajar: { pelajar: "Regular student", su: "Secretary (SU)", nsu: "Deputy Secretary (NSU)" },
@@ -818,18 +851,19 @@ const en: Dict = {
     comparison: "F5 vs F6 Comparison", detail: "Detail", marksByCategory: "Marks by Category",
     currentUnits: "Current Co-curriculum Units (F6)", history: "History", achievements: "Achievements & Extra-curricular",
     backToDashboard: "← Back to Dashboard",
-    activityTitle: "Achievements & External Activities", activitySubtitle: "Submit achievements & activities, upload evidence (letter/certificate), then wait for teacher approval.",
-    activityTabs: { achievements: "Achievements", externalActivities: "External Activities" },
-    achievementSection: "Achievements", externalActivitiesSection: "External Activities",
+    activityTitle: "College-Level & External Activities", activitySubtitle: "Submit college-level and external activities with a short report and evidence, then wait for teacher approval.",
+    activityTabs: { achievements: "College-Level Activities", externalActivities: "External Activities" },
+    achievementSection: "College-Level Activities", externalActivitiesSection: "External Activities",
     noRecords: "No records.", commentLabel: "Comment", generateECert: "⬇ Generate e-Cert (PDF)",
     activityForm: {
-      achievementName: "Achievement name", activityName: "External activity name", levelPlaceholder: "— Level —", dateLabel: "Date", evidenceLabel: "Evidence (certificate/letter)",
-      letterLabel: "Letter", certificateLabel: "Certificate", uploadEvidence: "⬆ Upload evidence (letter & certificate)",
+      achievementName: "Achievement name", activityName: "External activity name", levelPlaceholder: "— Level —", dateLabel: "Programme/Activity Date", evidenceLabel: "Evidence",
+      letterLabel: "Letter", certificateLabel: "Certificate", uploadEvidence: "⬆ Upload evidence",
       submit: "Submit", submitToReview: "Submit for Review", reportPlaceholder: "Activity / short report",
       networkError: "Network error", fileTooLarge: "File too large. Upload limit is 4MB — please compress or reduce file size.",
       uploadSizeLimit: "File too large for server (limit 4.5MB). Please shrink the file.", fetchError: "Server error. Please try again or contact your teacher.", noToken: "No token. Please scan a valid QR code.", cancel: "Cancel",
       loading: "Loading...",
       unitPlaceholder: "— Related unit —",
+      programName: "Programme/Activity Name", collegeLevel: "School / College", reportLabel: "Short report", levelLabel: "Level", unitLabel: "Related unit",
     },
     attendancePageTitle: "Member Attendance", attendanceSubtitle: "Open a meeting session, mark member attendance by list, or show a QR code for self check-in.",
     attendanceRestricted: "Attendance module is only for Secretary (SU) / Deputy Secretary (NSU). Contact your advisor if you should have access.",
@@ -918,6 +952,8 @@ const en: Dict = {
       errNameRequired: "Enter the competition name.", errNoSelection: "Select at least one student.",
       errGeneric: "Error processing.", networkError: "Network error.",
       levels: { zonDaerah: "Zone/District", daerah: "District", negeri: "State", kebangsaan: "National", antarabangsa: "International" },
+      bahagian: { Kelab: "KP — Clubs/Societies", Uniform: "BU — Uniformed Bodies", Sukan: "SP — Sports/Games", Perkhidmatan: "UP — Service Units" },
+      allUnits: "All units", noUnitInSection: "No students in this section for your scope.",
     },
   },
   admin: {
@@ -936,6 +972,10 @@ const en: Dict = {
       bahagian: "Division", kelas: "Class", all: "All", filter: "Filter",
       download: "⬇ Download Excel", byBahagian: "By Division", byUnit: "By Unit", byKelas: "By Class", overall: "Overall",
       members: "Members", average: "Average", unit: "Unit", form: "Form", noData: "No data for this filter.",
+      kohort: "Cohort", allKohort: "All cohorts", current: "current", gps: "GPS",
+      gpsCurrent: "Current GPS", gpsByYear: "GPS by Year (Cohort)",
+      gpsNote: "GPS (School Grade Average) = Σ(grade count × value) ÷ total graded, where A=1, B=2, C=3, D=4, E=5. Lower is better (1.00 = all A).",
+      students: "students",
       bonusNote: "Service Units carry bonus (extra) marks — excluded from the average & grade distribution.",
     },
     rawData: {
@@ -975,6 +1015,7 @@ const en: Dict = {
     },
     importPage: { title: "Import Data (CSV/Excel)", subtitle: "Upload a PAJSK file (students) or teacher registration form. IC numbers are read as text (full digits preserved). Existing records are updated (upsert)." },
     importClient: {
+      kohortLabel: "Cohort", kohortHint: "New students in this file are tagged with this cohort (e.g. STPM 2028). Existing students keep their original cohort.",
       pajskTab: "PAJSK (Students)", guruTab: "Teacher Registration",
       choosePajskInfo: "The PAJSK file is previewed first — differences are shown before any marks change.",
       guruUpsertInfo: "Teacher records are updated directly (upsert).",
@@ -998,6 +1039,9 @@ const en: Dict = {
       unitLabel: "Unit", allUnits: "All units", typeLabel: "Type", allTypes: "All", filterBtn: "Filter",
       resetBtn: "Reset", listTitle: "Meeting List", noSessions: "No attendance sessions for this filter.",
       clickToFilter: "Click to show only unverified sessions", showAllBtn: "← Show All",
+      dailyTitle: "Daily Attendance Summary", dailyDate: "Date", dailyShow: "Show", dailyToday: "Today",
+      dailyNone: "No meetings recorded on this date.", dailySessions: "sessions", dailyPresent: "present",
+      dailyNoMeeting: "No meetings",
     },
     kehadiranTable: {
       colUnit: "Unit", colType: "Type", colMeeting: "Meeting", colDate: "Date", colPresent: "Present",
@@ -1070,6 +1114,14 @@ const en: Dict = {
     submitForReview: "Submit for Review", networkError: "Network error", loading: "Loading...", attachmentWorkPlan: "📋 work plan", attachmentImpactReport: "📊 impact report",
     reportTimePlaceholder: "Time (e.g. 2.30-4.30 PM)", reportActivityPlaceholder: "Activity / short report", reportProjectOptionPrefix: "Post: ", reportUploadPrompt: "Pre-program: upload a Work Plan. Post-program: choose a project above + upload Impact Report & fill in details.",
     sessionLabel: "Meeting", attachmentLabel: "· 📎 attachment", reportAttendanceLabel: "Attendance", reportViewSession: "View session →", suNsuOnly: "For Secretary / Deputy Secretary only.",
+    positionLabel: "Position in project", sessionLinkLabel: "Related attendance session (optional)",
+    semakan: {
+      title: "SU/NSU Reports", sub: "All weekly & project reports submitted by SU/NSU — view details and evidence, then approve or query.",
+      all: "All", pending: "Pending", approved: "Approved", query: "Query",
+      by: "by", evidence: "View evidence", workPlan: "Work plan", approve: "Approve", queryBtn: "Query", queryPrompt: "Query comment:",
+      empty: "No reports for this filter.", notAllowed: "Not allowed.", networkError: "Network error",
+      position: "Position", filterBtn: "Filter", statusLabel: "Status", typeLabel: "Report type",
+    },
   },
   insights: {
     title: "Smart Analytics", badge: "AI · DATA-DRIVEN", footerNote: "Insights are generated automatically from current data (rule-based analytics).",
@@ -1100,7 +1152,7 @@ const en: Dict = {
       title: "Help — Student", back: "/pelajar",
       sections: [
         { h: "Dashboard", isi: ["View your PAJSK F6 score, grade, component breakdown (Attendance, Position, Participation, Achievement, Project), and score chart."] },
-        { h: "Achievements & Activities", isi: ["Submit achievements/external activities + upload evidence.", "External activities need a letter & certificate to generate an e-Cert after teacher approval."] },
+        { h: "Achievements & Activities", isi: ["Submit college-level/external activities: name, level, date, short report + evidence.", "External activities can generate an e-Cert after teacher approval."] },
         { h: "Unit Transfer", isi: ["Apply to change unit; the unit updates after teacher approval."] },
         { h: "e-Cert & Personal Details", isi: ["Generate a PDF e-Cert for approved activities.", "Print your Personal Details PDF from the dashboard."] },
         { h: "SU/NSU", isi: ["Attendance menu (session + QR) and Reports (weekly/project) if you are a Secretary."] },

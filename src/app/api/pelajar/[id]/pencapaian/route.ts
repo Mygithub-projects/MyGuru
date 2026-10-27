@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSession, ok, fail } from "@/lib/api";
 import { simpanFailDariForm } from "@/lib/upload";
+import { PERINGKAT_KOLEJ } from "@/lib/enums";
 
 export async function POST(
   request: NextRequest,
@@ -17,9 +18,12 @@ export async function POST(
 
   const form = await request.formData();
   const namaPencapaian = String(form.get("namaPencapaian") ?? "").trim();
-  const peringkat = String(form.get("peringkat") ?? "");
   const namaUnit = String(form.get("namaUnit") ?? "");
-  if (!namaPencapaian) return fail("Nama pencapaian diperlukan", 422);
+  const tarikh = String(form.get("tarikh") ?? "");
+  const laporan = String(form.get("laporan") ?? "").trim();
+  if (!namaPencapaian) return fail("Nama program/aktiviti diperlukan", 422);
+  if (!tarikh) return fail("Tarikh program/aktiviti diperlukan", 422);
+  if (!laporan) return fail("Laporan ringkas diperlukan", 422);
 
   // Sahkan namaUnit terus dari Kokurikulum pelajar (skop pengesahan guru bergantung pada ini).
   const unitSah = await prisma.kokurikulum.findFirst({
@@ -42,10 +46,13 @@ export async function POST(
       namaPencapaian,
       kategori: "biasa",
       namaUnit,
-      peringkat: peringkat || null,
+      // Aktiviti Peringkat Kolej — peringkat sentiasa Sekolah.
+      peringkat: PERINGKAT_KOLEJ,
+      tarikh: new Date(tarikh),
+      laporan,
       lampiranEviden: eviden,
       statusSemakan: "Pending",
     },
   });
-  return ok(rec, "Pencapaian dihantar untuk pengesahan guru", 201);
+  return ok(rec, "Aktiviti peringkat kolej dihantar untuk pengesahan guru", 201);
 }

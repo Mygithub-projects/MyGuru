@@ -144,6 +144,7 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
     { v: "GuruPenasihat", l: t.jawatanKoko.guruPenasihat },
     { v: "PenolongKetuaGP", l: t.jawatanKoko.penolongKetuaGP },
     { v: "KetuaGP", l: t.jawatanKoko.ketuaGP },
+    { v: "PemantauKUPP", l: t.jawatanKoko.pemantauKUPP },
     { v: "Penyelaras", l: t.jawatanKoko.penyelaras },
     { v: "KetuaUnitKoko", l: t.jawatanKoko.ketuaUnitKoko },
   ];

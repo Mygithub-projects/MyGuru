@@ -4,7 +4,7 @@ import { requireSession, ok, fail } from "@/lib/api";
 import { simpanFailDariForm } from "@/lib/upload";
 
 // PATCH /api/pelajar/[id]/aktiviti-luar/[aktivitiId]
-// Lampirkan eviden (surat & sijil) pada rekod aktiviti luar sedia ada —
+// Lampirkan eviden (dan laporan ringkas) pada rekod aktiviti luar sedia ada —
 // digunakan apabila guru telah memilih pelajar (rekod Pending tanpa eviden)
 // dan pelajar memuat naik dokumen selepas pertandingan.
 export async function PATCH(
@@ -27,10 +27,13 @@ export async function PATCH(
 
   const form = await request.formData();
   const tarikh = String(form.get("tarikh") ?? "");
+  const laporan = String(form.get("laporan") ?? "").trim();
 
   try {
     const surat = await simpanFailDariForm(form, "surat", "surat");
-    const sijil = await simpanFailDariForm(form, "sijil", "sijil");
+    // "eviden" (borang baharu, satu fail) diutamakan; "sijil" kekal untuk serasi.
+    const sijil =
+      (await simpanFailDariForm(form, "eviden", "eviden")) ?? (await simpanFailDariForm(form, "sijil", "sijil"));
     const updated = await prisma.aktivitiLuar.update({
       where: { id: aktivitiId },
       data: {
@@ -38,6 +41,7 @@ export async function PATCH(
         lampiranSurat: surat ?? rec.lampiranSurat,
         lampiranSijil: sijil ?? rec.lampiranSijil,
         tarikh: tarikh ? new Date(tarikh) : rec.tarikh,
+        laporan: laporan || rec.laporan,
         // Hantar semula untuk semakan jika sebelum ini dikuiri
         statusPengesahan: rec.statusPengesahan === "Kuiri" ? "Pending" : rec.statusPengesahan,
       },

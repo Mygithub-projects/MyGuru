@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { requireRole } from "@/lib/api";
 import { eksportBorangRumusan, isBahagian } from "@/lib/rumusan";
+import { normalKohort } from "@/lib/kohort";
 
 /**
  * Borang Rumusan Markah keseluruhan (Admin) — helaian RINGKASAN + satu helaian
@@ -13,13 +14,14 @@ export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams;
   const bahagian = q.get("bahagian");
   const kelas = q.get("kelas")?.trim() || undefined;
+  const kohort = normalKohort(q.get("kohort")) ?? undefined;
   const xlsx = await eksportBorangRumusan(
-    { bahagian: isBahagian(bahagian) ? bahagian : undefined, kelas },
+    { bahagian: isBahagian(bahagian) ? bahagian : undefined, kelas, kohort },
     { ringkasan: true },
   );
 
   const bahagianNama = isBahagian(bahagian) ? bahagian.toLowerCase() : "semua";
-  const kelasNama = kelas ? `-${kelas.replace(/[^A-Za-z0-9]+/g, "")}` : "";
+  const kelasNama = `${kohort ? `-${kohort.replace(" ", "")}` : ""}${kelas ? `-${kelas.replace(/[^A-Za-z0-9]+/g, "")}` : ""}`;
   const tarikh = new Date().toISOString().slice(0, 10);
   return new Response(new Uint8Array(xlsx), {
     headers: {

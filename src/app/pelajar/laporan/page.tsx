@@ -56,7 +56,6 @@ export default async function LaporanPage({
 
       <LaporanForm
         units={koko.filter((k) => k.namaUnitT6).map((k) => ({ jenisKoko: k.jenisKoko, namaUnit: k.namaUnitT6! }))}
-        projek={projek.map((p) => ({ id: p.id, namaProjek: p.namaProjek, status: p.statusPengesahan }))}
         sesiList={sesiList.map((s) => ({ id: s.id, namaUnit: s.namaUnit, bilPerjumpaan: s.bilPerjumpaan }))}
       />
 
@@ -73,13 +72,14 @@ export default async function LaporanPage({
               {mingguan.map((m) => (
                 <div key={m.id} className="rounded-lg border border-slate-100 px-3 py-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-slate-700">{m.aktiviti}</span>
+                    <span className="font-medium text-slate-700">{m.namaProgram ?? m.aktiviti}</span>
                     <StatusBadge status={m.statusSemakan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {new Date(m.tarikh).toLocaleDateString("ms-MY")} {m.masa ? `· ${m.masa}` : ""}
-                    {m.lampiran ? t.laporan.attachmentLabel : ""}
+                    {[m.namaUnit, m.peringkat, new Date(m.tarikh).toLocaleDateString("ms-MY"), m.masa].filter(Boolean).join(" · ")}
+                    {m.lampiran ? ` ${t.laporan.attachmentLabel}` : ""}
                   </p>
+                  {m.namaProgram && <p className="mt-1 line-clamp-3 text-xs text-slate-500">{m.aktiviti}</p>}
                   <Kehadiran sesiId={m.sesiId} r={ringkasan} labelHadir={t.laporan.reportAttendanceLabel} labelLihat={t.laporan.reportViewSession} />
                   {m.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.laporan.comment}: {m.komenGuru}</p>}
                   {m.statusSemakan === "Approved" && (
@@ -102,8 +102,10 @@ export default async function LaporanPage({
                     <StatusBadge status={p.statusPengesahan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {p.failKertasKerja ? t.laporan.attachmentWorkPlan : ""} {p.failLaporanImpak ? `· ${t.laporan.attachmentImpactReport}` : ""}
+                    {[p.namaUnit, p.peringkatProjek, p.jawatanProjek, p.tarikh ? new Date(p.tarikh).toLocaleDateString("ms-MY") : null].filter(Boolean).join(" · ")}
+                    {p.failKertasKerja || p.failLaporanImpak ? ` ${t.laporan.attachmentLabel}` : ""}
                   </p>
+                  {p.laporan && <p className="mt-1 line-clamp-3 text-xs text-slate-500">{p.laporan}</p>}
                   <Kehadiran sesiId={p.sesiId} r={ringkasan} labelHadir={t.laporan.reportAttendanceLabel} labelLihat={t.laporan.reportViewSession} />
                   {p.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.laporan.comment}: {p.komenGuru}</p>}
                   {p.statusPengesahan === "Approved" && (

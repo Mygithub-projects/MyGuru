@@ -18,10 +18,13 @@ export async function Topbar({
   nama,
   role,
   subRole,
+  jawatan,
 }: {
   nama: string;
   role: string;
   subRole?: string | null;
+  /** Label jawatan sebenar (guru) — menggantikan label peranan umum. */
+  jawatan?: string | null;
 }) {
   const { locale, t } = await getT();
   const roleLabel: Record<string, string> = {
@@ -37,7 +40,7 @@ export async function Topbar({
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold leading-tight text-slate-800">{nama}</p>
         <p className="truncate text-[11px] leading-tight text-slate-500">
-          {roleLabel[role] ?? role}
+          {jawatan || (roleLabel[role] ?? role)}
           {subRole && subRole !== "Pelajar" ? ` · ${subRole}` : ""}
         </p>
       </div>

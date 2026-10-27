@@ -3,8 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDict } from "@/lib/i18n";
 import { useLocale } from "@/components/LocaleProvider";
-
-const PERINGKAT = ["Sekolah", "Daerah", "Zon/Daerah", "Negeri", "Kebangsaan", "Antarabangsa"];
+import { PERINGKAT_KOLEJ, PERINGKAT_LUAR } from "@/lib/enums";
 
 // Had platform Vercel untuk badan permintaan ialah 4.5MB. Guna 4MB sebagai had
 // klien (beri margin untuk overhead multipart) supaya fail besar ditolak DI SINI
@@ -82,48 +81,47 @@ export function AktivitiForm({ pelajarId, units }: { pelajarId: string; units: U
         </div>
       )}
 
-      {tab === "pencapaian" ? (
-        <form onSubmit={(e) => submit(e, `/api/pelajar/${pelajarId}/pencapaian`)} className="grid gap-3 sm:grid-cols-2">
-          <input name="namaPencapaian" placeholder={t.activityForm.achievementName} className={inputCls} required />
-          <select name="peringkat" className={inputCls} defaultValue="">
-            <option value="">{t.activityForm.levelPlaceholder}</option>
-            {PERINGKAT.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-          <select name="namaUnit" className={inputCls} required defaultValue="">
+      {/* Kedua-dua tab: Nama Program/Aktiviti, Peringkat, Tarikh, Unit, Laporan ringkas, Eviden.
+          Tab Kolej → jadual Pencapaian (peringkat Sekolah); tab Luar → AktivitiLuar. */}
+      <form
+        key={tab}
+        onSubmit={(e) => submit(e, `/api/pelajar/${pelajarId}/${tab === "pencapaian" ? "pencapaian" : "aktiviti-luar"}`)}
+        className="grid gap-3 sm:grid-cols-2"
+      >
+        <label className="text-sm">{t.activityForm.programName}
+          <input name={tab === "pencapaian" ? "namaPencapaian" : "namaAktiviti"} className={`${inputCls} mt-1`} required />
+        </label>
+        <label className="text-sm">{t.activityForm.levelLabel}
+          {tab === "pencapaian" ? (
+            <select name="peringkat" className={`${inputCls} mt-1`} defaultValue={PERINGKAT_KOLEJ}>
+              <option value={PERINGKAT_KOLEJ}>{t.activityForm.collegeLevel}</option>
+            </select>
+          ) : (
+            <select name="peringkat" className={`${inputCls} mt-1`} required defaultValue="">
+              <option value="" disabled>{t.activityForm.levelPlaceholder}</option>
+              {PERINGKAT_LUAR.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+          )}
+        </label>
+        <label className="text-sm">{t.activityForm.dateLabel}
+          <input type="date" name="tarikh" className={`${inputCls} mt-1`} required />
+        </label>
+        <label className="text-sm">{t.activityForm.unitLabel}
+          <select name="namaUnit" className={`${inputCls} mt-1`} required defaultValue="">
             <option value="" disabled>{t.activityForm.unitPlaceholder}</option>
             {units.map((u, i) => <option key={i} value={u.namaUnit}>{unitLabel[u.jenisKoko] ?? u.jenisKoko}: {u.namaUnit}</option>)}
           </select>
-          <label className="text-sm sm:col-span-2">{t.activityForm.evidenceLabel}
-            <input name="eviden" type="file" className={`${inputCls} mt-1`} required />
-          </label>
-          <button disabled={busy} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50 sm:w-auto">
-            {busy ? "..." : t.activityForm.submit}
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={(e) => submit(e, `/api/pelajar/${pelajarId}/aktiviti-luar`)} className="grid gap-3 sm:grid-cols-2">
-          <input name="namaAktiviti" placeholder={t.activityForm.activityName} className={inputCls} required />
-          <select name="peringkat" className={inputCls} required defaultValue="">
-            <option value="" disabled>{t.activityForm.levelPlaceholder}</option>
-            {PERINGKAT.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-          <select name="namaUnit" className={inputCls} required defaultValue="">
-            <option value="" disabled>{t.activityForm.unitPlaceholder}</option>
-            {units.map((u, i) => <option key={i} value={u.namaUnit}>{unitLabel[u.jenisKoko] ?? u.jenisKoko}: {u.namaUnit}</option>)}
-          </select>
-          <input type="date" name="tarikh" className={inputCls} aria-label={t.activityForm.dateLabel} />
-          <div />
-          <label className="text-sm">{t.activityForm.letterLabel}
-            <input name="surat" type="file" className={`${inputCls} mt-1`} />
-          </label>
-          <label className="text-sm">{t.activityForm.certificateLabel}
-            <input name="sijil" type="file" className={`${inputCls} mt-1`} />
-          </label>
-          <button disabled={busy} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50 sm:col-span-2 sm:w-auto">
-            {busy ? "..." : t.activityForm.submit}
-          </button>
-        </form>
-      )}
+        </label>
+        <label className="text-sm sm:col-span-2">{t.activityForm.reportLabel}
+          <textarea name="laporan" rows={4} maxLength={2000} className={`${inputCls} mt-1`} required />
+        </label>
+        <label className="text-sm sm:col-span-2">{t.activityForm.evidenceLabel}
+          <input name="eviden" type="file" className={`${inputCls} mt-1`} required />
+        </label>
+        <button disabled={busy} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50 sm:w-auto">
+          {busy ? "..." : t.activityForm.submit}
+        </button>
+      </form>
     </section>
   );
 }
