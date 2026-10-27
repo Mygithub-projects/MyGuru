@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
 import { notifyPelajar } from "@/lib/notifikasi";
+import { labelPengesah } from "@/lib/pengesah";
 import { guruSeluruhSekolah, unitSeliaan, bolehGuruAksesPelajar, kiraSemulaT6 } from "@/lib/workflow";
 
 const schema = z.object({
@@ -17,7 +18,7 @@ export async function PATCH(
   const { id } = await params;
   const auth = await requireGuruOrAdmin();
   if ("response" in auth) return auth.response;
-  const { guru } = auth;
+  const { guru, session } = auth;
 
   let body: unknown;
   try { body = await request.json(); } catch { return fail("Format tidak sah", 400); }
@@ -38,7 +39,13 @@ export async function PATCH(
 
   const updated = await prisma.laporanProjek.update({
     where: { id },
-    data: { statusPengesahan: parsed.data.status, komenGuru: parsed.data.komen },
+    data: {
+      statusPengesahan: parsed.data.status,
+      komenGuru: parsed.data.komen,
+      // Rekod siapa mengesahkan (dipapar pada PDF); dikosongkan jika dikuiri.
+      disahkanOleh: parsed.data.status === "Approved" ? labelPengesah(guru, session) : null,
+      tarikhSahkan: parsed.data.status === "Approved" ? new Date() : null,
+    },
   });
   await kiraSemulaT6(rec.setiausahaId);
   await notifyPelajar(rec.setiausahaId, {

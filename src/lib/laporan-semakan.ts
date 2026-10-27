@@ -20,6 +20,7 @@ export interface LaporanSU {
   kelas: string | null;
   status: string;
   komen: string | null;
+  disahkanOleh: string | null;
   eviden: string[];
   kertasKerja: string | null;
   dicipta: number; // ms, untuk susunan terkini dahulu
@@ -71,6 +72,7 @@ export async function senaraiLaporanSU(
       kelas: m.setiausaha.kelasT6,
       status: m.statusSemakan,
       komen: m.komenGuru,
+      disahkanOleh: m.disahkanOleh,
       eviden: (m.lampiran ?? "").split(",").map((x) => urlFail(x.trim())).filter((x): x is string => !!x),
       kertasKerja: null,
       dicipta: m.createdAt.getTime(),
@@ -89,6 +91,7 @@ export async function senaraiLaporanSU(
       kelas: p.setiausaha.kelasT6,
       status: p.statusPengesahan,
       komen: p.komenGuru,
+      disahkanOleh: p.disahkanOleh,
       eviden: [urlFail(p.failLaporanImpak)].filter((x): x is string => !!x),
       kertasKerja: urlFail(p.failKertasKerja),
       dicipta: p.createdAt.getTime(),

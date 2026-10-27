@@ -95,6 +95,9 @@ export function LaporanSemakan({
                 )}
                 {r.status === "Pending" && <LaporanSemakanAksi jenis={r.jenis} id={r.id} t={d} />}
               </div>
+              {r.status === "Approved" && r.disahkanOleh && (
+                <p className="mt-2 text-xs text-emerald-700">{d.approvedBy}: {r.disahkanOleh}</p>
+              )}
               {r.komen && <p className="mt-2 text-xs text-amber-600">{t.laporan.comment}: {r.komen}</p>}
             </article>
           ))
