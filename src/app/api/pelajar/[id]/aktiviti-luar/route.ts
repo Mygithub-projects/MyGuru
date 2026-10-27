@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSession, ok, fail } from "@/lib/api";
 import { simpanFailDariForm } from "@/lib/upload";
-import { PERINGKAT } from "@/lib/enums";
+import { PERINGKAT_LUAR } from "@/lib/enums";
 
 export async function POST(
   request: NextRequest,
@@ -21,10 +21,13 @@ export async function POST(
   const peringkat = String(form.get("peringkat") ?? "");
   const namaUnit = String(form.get("namaUnit") ?? "");
   const tarikh = String(form.get("tarikh") ?? "");
-  if (!namaAktiviti) return fail("Nama aktiviti diperlukan", 422);
-  if (!PERINGKAT.includes(peringkat as (typeof PERINGKAT)[number])) {
+  const laporan = String(form.get("laporan") ?? "").trim();
+  if (!namaAktiviti) return fail("Nama program/aktiviti diperlukan", 422);
+  if (!PERINGKAT_LUAR.includes(peringkat as (typeof PERINGKAT_LUAR)[number])) {
     return fail("Peringkat tidak sah", 422);
   }
+  if (!tarikh) return fail("Tarikh program/aktiviti diperlukan", 422);
+  if (!laporan) return fail("Laporan ringkas diperlukan", 422);
 
   // Sahkan namaUnit terus dari Kokurikulum pelajar (skop pengesahan guru bergantung pada ini).
   const unitSah = await prisma.kokurikulum.findFirst({
@@ -34,17 +37,18 @@ export async function POST(
   if (!unitSah) return fail("Unit berkaitan diperlukan/tidak sah", 422);
 
   try {
-    const surat = await simpanFailDariForm(form, "surat", "surat");
-    const sijil = await simpanFailDariForm(form, "sijil", "sijil");
+    // Satu fail eviden sahaja — disimpan di lampiranSijil.
+    const eviden = await simpanFailDariForm(form, "eviden", "eviden");
+    if (!eviden) return fail("Eviden diperlukan untuk pengesahan guru", 422);
     const rec = await prisma.aktivitiLuar.create({
       data: {
         pelajarId: id,
         namaAktiviti,
         namaUnit,
         peringkat,
-        tarikh: tarikh ? new Date(tarikh) : null,
-        lampiranSurat: surat,
-        lampiranSijil: sijil,
+        tarikh: new Date(tarikh),
+        laporan,
+        lampiranSijil: eviden,
         statusPengesahan: "Pending",
       },
     });

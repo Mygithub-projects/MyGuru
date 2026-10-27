@@ -4,11 +4,13 @@ import {
   BAHAGIAN,
   analitikRumusan,
   dataRumusan,
+  gpsIkutKohort,
   isBahagian,
   senaraiKelas,
   type Bahagian,
   type StatKumpulan,
 } from "@/lib/rumusan";
+import { normalKohort, senaraiKohort } from "@/lib/kohort";
 
 // Dikira semula setiap permintaan — sentiasa ikut markah terkini yang disahkan.
 export const dynamic = "force-dynamic";
@@ -25,20 +27,34 @@ const WARNA_GRED: Record<(typeof GRED)[number], string> = {
 export default async function AdminRumusanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ bahagian?: string; kelas?: string }>;
+  searchParams: Promise<{ bahagian?: string; kelas?: string; kohort?: string }>;
 }) {
   const sp = await searchParams;
   const bahagian = isBahagian(sp.bahagian) ? sp.bahagian : undefined;
   const kelas = sp.kelas?.trim() || undefined;
 
-  const [rows, kelasList, { t }] = await Promise.all([dataRumusan({ bahagian, kelas }), senaraiKelas(), getT()]);
+  // Kohort semasa = kohort terkini; lalai penapis. "semua" = tiada had kohort.
+  const kohortList = await senaraiKohort();
+  const semasa = kohortList[0];
+  const kohort = sp.kohort === "semua" ? undefined : normalKohort(sp.kohort) ?? semasa;
+
+  const [rows, semuaRows, kelasList, { t }] = await Promise.all([
+    dataRumusan({ bahagian, kelas, kohort }),
+    dataRumusan(),
+    senaraiKelas(),
+    getT(),
+  ]);
   const a = analitikRumusan(rows);
+  const gpsTahun = gpsIkutKohort(semuaRows);
+  const gpsSemasa = gpsTahun.find((g) => g.kohort === semasa);
   const r = t.admin.rumusan;
   const labelBahagian: Record<Bahagian, string> = {
     Kelab: t.common.kelab, Sukan: t.common.sukan, Uniform: t.common.uniform, Perkhidmatan: t.common.perkhidmatan,
   };
 
-  const qs = new URLSearchParams({ ...(bahagian ? { bahagian } : {}), ...(kelas ? { kelas } : {}) }).toString();
+  const qs = new URLSearchParams({
+    ...(bahagian ? { bahagian } : {}), ...(kelas ? { kelas } : {}), ...(kohort ? { kohort } : {}),
+  }).toString();
   const pilihCls = "rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm";
 
   return (
@@ -54,7 +70,59 @@ export default async function AdminRumusanPage({
         </a>
       </div>
 
+      {/* GPS semasa + mengikut tahun — tidak terjejas oleh penapis di bawah */}
+      {gpsSemasa && (
+        <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">
+            {r.gpsCurrent} · {gpsSemasa.kohort} <span className="font-normal normal-case text-slate-400">({gpsSemasa.pelajar} {r.students})</span>
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {[{ ...gpsSemasa.keseluruhan, nama: r.overall }, ...gpsSemasa.bahagian.map((s) => ({ ...s, nama: labelBahagian[s.bahagian!] }))].map((s) => (
+              <div key={s.nama} className="rounded-lg border border-slate-100 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{s.nama}</p>
+                <p className="mt-1 text-2xl font-bold text-slate-800">{s.gps?.toFixed(2) ?? "—"}</p>
+                <p className="text-xs text-slate-500">{s.ahli} {t.guru.memberCount}</p>
+              </div>
+            ))}
+          </div>
+
+          <h3 className="mb-2 mt-5 text-xs font-bold uppercase tracking-wide text-slate-600">{r.gpsByYear}</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-500">
+                  <th className="py-2 pr-3">{r.kohort}</th>
+                  <th className="py-2 pr-3 text-right">{r.students}</th>
+                  <th className="py-2 pr-3 text-right">{r.overall}</th>
+                  {BAHAGIAN.map((b) => <th key={b} className="py-2 pr-3 text-right">{labelBahagian[b]}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {gpsTahun.map((g) => (
+                  <tr key={g.kohort} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2 pr-3 font-medium text-slate-800">
+                      {g.kohort}{g.kohort === semasa && <span className="ml-1 text-xs font-normal text-brand-dark">({r.current})</span>}
+                    </td>
+                    <td className="py-2 pr-3 text-right">{g.pelajar}</td>
+                    <td className="py-2 pr-3 text-right font-semibold">{g.keseluruhan.gps?.toFixed(2) ?? "—"}</td>
+                    {g.bahagian.map((s) => <td key={s.bahagian} className="py-2 pr-3 text-right">{s.gps?.toFixed(2) ?? "—"}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-xs italic text-slate-500">{r.gpsNote}</p>
+        </section>
+      )}
+
       <form className="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+        <label className="text-xs font-semibold text-slate-600">
+          {r.kohort}
+          <select name="kohort" defaultValue={kohort ?? "semua"} className={`mt-1 block ${pilihCls}`}>
+            {kohortList.map((k) => <option key={k} value={k}>{k}{k === semasa ? ` (${r.current})` : ""}</option>)}
+            <option value="semua">{r.allKohort}</option>
+          </select>
+        </label>
         <label className="text-xs font-semibold text-slate-600">
           {r.bahagian}
           <select name="bahagian" defaultValue={bahagian ?? ""} className={`mt-1 block ${pilihCls}`}>
@@ -83,7 +151,7 @@ export default async function AdminRumusanPage({
                 <div key={s.nama} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{s.nama}</p>
                   <p className="mt-1 text-2xl font-bold text-slate-800">{s.purata ?? "—"}</p>
-                  <p className="text-xs text-slate-500">{r.average} · {s.ahli} {t.guru.memberCount}</p>
+                  <p className="text-xs text-slate-500">{r.average} · {s.ahli} {t.guru.memberCount}{s.gps !== null ? ` · ${r.gps} ${s.gps.toFixed(2)}` : ""}</p>
                   {s.purata !== null && <TaburanGred s={s} />}
                 </div>
               ))}
@@ -128,7 +196,7 @@ function Jadual({
   tajuk: string;
   kolPertama: string;
   data: StatKumpulan[];
-  r: { members: string; average: string; bahagian: string; form: string };
+  r: { members: string; average: string; bahagian: string; form: string; gps: string };
   bahagianLabel?: (s: StatKumpulan) => string;
   pautan?: (s: StatKumpulan) => string;
 }) {
@@ -142,6 +210,7 @@ function Jadual({
             {bahagianLabel && <th className="py-2 pr-3">{r.bahagian}</th>}
             <th className="py-2 pr-3 text-right">{r.members}</th>
             <th className="py-2 pr-3 text-right">{r.average}</th>
+            <th className="py-2 pr-3 text-right">{r.gps}</th>
             {GRED.map((g) => <th key={g} className="py-2 pr-3 text-right">{g}</th>)}
             {pautan && <th className="py-2 text-right">{r.form}</th>}
           </tr>
@@ -153,6 +222,7 @@ function Jadual({
               {bahagianLabel && <td className="py-2 pr-3 text-slate-500">{bahagianLabel(s)}</td>}
               <td className="py-2 pr-3 text-right">{s.ahli}</td>
               <td className="py-2 pr-3 text-right font-semibold">{s.purata ?? "—"}</td>
+              <td className="py-2 pr-3 text-right">{s.gps?.toFixed(2) ?? "—"}</td>
               {GRED.map((g) => (
                 <td key={g} className="py-2 pr-3 text-right text-slate-600">{s.purata === null ? "—" : s.gred[g]}</td>
               ))}

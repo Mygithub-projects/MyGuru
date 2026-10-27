@@ -8,12 +8,14 @@ export async function AppShell({
   nama,
   role,
   subRole,
+  jawatan,
   children,
   footer,
 }: {
   nama: string;
   role: string;
   subRole?: string | null;
+  jawatan?: string | null;
   children: React.ReactNode;
   footer?: React.ReactNode;
 }) {
@@ -26,7 +28,7 @@ export async function AppShell({
       <div className="app-shell flex min-h-screen flex-1">
         <Sidebar items={items} brandTitle="EzKokoT6" brandSubtitle="Active Hands, Brilliant Minds" institusi={institusi} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar nama={nama} role={role} subRole={subRole} />
+          <Topbar nama={nama} role={role} subRole={subRole} jawatan={jawatan} />
           <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">{children}</main>
           {footer}
         </div>

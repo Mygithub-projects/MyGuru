@@ -35,15 +35,16 @@ export async function GET(
 
   const pdf = await janaLaporanPDF({
     jenis: "Mingguan",
-    tajuk: rec.aktiviti,
+    tajuk: rec.namaProgram ?? rec.aktiviti,
     namaUnit: rec.namaUnit,
     jenisKoko: rec.jenisKoko,
     tarikh: rec.tarikh ? new Date(rec.tarikh).toLocaleDateString("ms-MY") : null,
     setiausaha: rec.setiausaha.nama,
     status: rec.statusSemakan,
     baris: [
+      { label: "Peringkat", nilai: rec.peringkat ?? "-" },
       { label: "Masa", nilai: rec.masa ?? "-" },
-      { label: "Aktiviti / Laporan", nilai: rec.aktiviti },
+      { label: "Laporan Ringkas", nilai: rec.aktiviti },
       { label: "Komen Guru", nilai: rec.komenGuru ?? "-" },
     ],
   });

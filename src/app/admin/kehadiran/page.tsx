@@ -3,12 +3,26 @@ import { prisma } from "@/lib/prisma";
 import { getT } from "@/lib/locale";
 import { KehadiranTable } from "./KehadiranTable";
 
+const MYT_MS = 8 * 3_600_000;
+// Empat bahagian PAJSK, setiap satu dengan warna tetap untuk carta harian.
+const BAHAGIAN = [
+  { jenis: "Kelab", warna: "#2563eb" },
+  { jenis: "Uniform", warna: "#059669" },
+  { jenis: "Sukan", warna: "#d97706" },
+  { jenis: "Perkhidmatan", warna: "#7c3aed" },
+] as const;
+
+/** Tarikh hari ini (YYYY-MM-DD) ikut waktu Malaysia. */
+function tarikhHariIniMYT(): string {
+  return new Date(Date.now() + MYT_MS).toISOString().slice(0, 10);
+}
+
 const back = "group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white";
 
 export default async function AdminKehadiranPage({
   searchParams,
 }: {
-  searchParams: Promise<{ unit?: string; jenis?: string; belumSah?: string }>;
+  searchParams: Promise<{ unit?: string; jenis?: string; belumSah?: string; tarikh?: string }>;
 }) {
   const { t } = await getT();
   const d = t.admin.kehadiranPage;
@@ -20,6 +34,28 @@ export default async function AdminKehadiranPage({
   const fUnit = sp.unit?.trim() || "";
   const fJenis = sp.jenis?.trim() || "";
   const fBelumSah = sp.belumSah === "1";
+
+  // Ringkasan harian — hari ikut waktu Malaysia (UTC+8); lalai hari ini.
+  const hariIni = tarikhHariIniMYT();
+  const fTarikh = /^\d{4}-\d{2}-\d{2}$/.test(sp.tarikh ?? "") ? sp.tarikh! : hariIni;
+  const mulaHari = new Date(Date.parse(`${fTarikh}T00:00:00Z`) - MYT_MS);
+  const sesiHari = await prisma.sesiKehadiran.findMany({
+    where: { tarikh: { gte: mulaHari, lt: new Date(mulaHari.getTime() + 86_400_000) } },
+    orderBy: { namaUnit: "asc" },
+    include: { kehadiran: { select: { statusHadir: true } } },
+  });
+  const harian = BAHAGIAN.map((b) => {
+    const unit = sesiHari
+      .filter((s) => s.jenisKoko === b.jenis)
+      .map((s) => {
+        const total = s.kehadiran.length;
+        const hadir = s.kehadiran.filter((k) => k.statusHadir).length;
+        return { nama: s.namaUnit, bil: s.bilPerjumpaan, hadir, total, peratus: total ? Math.round((hadir / total) * 100) : 0 };
+      });
+    const hadir = unit.reduce((a, u) => a + u.hadir, 0);
+    const total = unit.reduce((a, u) => a + u.total, 0);
+    return { ...b, label: t.guru.pemilihan.bahagian[b.jenis], unit, hadir, total, peratus: total ? Math.round((hadir / total) * 100) : 0 };
+  });
 
   const semuaUnit = await prisma.sesiKehadiran.findMany({ select: { namaUnit: true }, distinct: ["namaUnit"], orderBy: { namaUnit: "asc" } });
 
@@ -60,6 +96,62 @@ export default async function AdminKehadiranPage({
         <h1 className="mt-1 text-xl font-bold text-slate-800">{d.title}</h1>
         <p className="text-sm text-slate-500">{d.subtitle}</p>
       </div>
+
+      {/* Ringkasan kehadiran harian ikut bahagian KP / BU / SP / UP */}
+      <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">
+            {d.dailyTitle} · {new Date(`${fTarikh}T00:00:00Z`).toLocaleDateString("ms-MY", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          </h2>
+          <form method="get" className="flex flex-wrap items-end gap-2">
+            {fUnit && <input type="hidden" name="unit" value={fUnit} />}
+            {fJenis && <input type="hidden" name="jenis" value={fJenis} />}
+            {fBelumSah && <input type="hidden" name="belumSah" value="1" />}
+            <label className="text-xs font-medium text-slate-600">{d.dailyDate}
+              <input type="date" name="tarikh" defaultValue={fTarikh} className={`${inp} mt-1 block`} />
+            </label>
+            <button type="submit" className="rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-hover">{d.dailyShow}</button>
+            {fTarikh !== hariIni && (
+              <Link href="/admin/kehadiran" className="px-2 py-2 text-sm text-slate-500 hover:underline">{d.dailyToday}</Link>
+            )}
+          </form>
+        </div>
+
+        {sesiHari.length === 0 ? (
+          <p className="text-sm text-slate-400">{d.dailyNone}</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {harian.map((b) => (
+              <div key={b.jenis} className="rounded-lg border border-slate-100 p-3">
+                <p className="text-xs font-semibold text-slate-500">{b.label}</p>
+                {b.unit.length === 0 ? (
+                  <p className="mt-2 text-sm text-slate-400">{d.dailyNoMeeting}</p>
+                ) : (
+                  <>
+                    <p className="mt-1 text-2xl font-bold" style={{ color: b.warna }}>{b.peratus}%</p>
+                    <p className="text-xs text-slate-500">
+                      {b.hadir} / {b.total} {d.dailyPresent} · {b.unit.length} {d.dailySessions}
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      {b.unit.map((u) => (
+                        <div key={u.nama} title={`${u.nama} #${u.bil}: ${u.hadir}/${u.total}`}>
+                          <div className="mb-0.5 flex justify-between gap-2 text-xs">
+                            <span className="truncate text-slate-600">{u.nama}</span>
+                            <span className="shrink-0 font-semibold text-slate-700">{u.hadir}/{u.total}</span>
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-slate-100">
+                            <div className="h-2 rounded-full" style={{ width: `${u.peratus}%`, backgroundColor: b.warna }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Kad label={d.totalMeetings} nilai={`${rows.length}`} />

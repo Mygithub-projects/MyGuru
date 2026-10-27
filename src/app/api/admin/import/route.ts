@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, ok, fail } from "@/lib/api";
 import { loadWorkbookFromBuffer, parsePajskWorksheet, parsePelajarBaruWorksheet } from "@/lib/import";
 import { jalankanImportGuru, diffPajsk, diffPelajarBaru } from "@/lib/import-run";
+import { normalKohort } from "@/lib/kohort";
 
 // GET — histori/audit import (§6): siapa, bila, versi mana, status.
 export async function GET() {
@@ -35,6 +36,9 @@ export async function POST(request: NextRequest) {
   const file = form.get("fail");
   if (!(file instanceof File) || file.size === 0) return fail("Sila pilih fail Excel", 422);
   if (!["pajsk", "guru", "pelajarbaru"].includes(jenis)) return fail("Jenis import tidak sah", 422);
+  // Kohort (cth STPM 2028) — wajib untuk import pelajar; disimpan dalam payload pratonton.
+  const kohort = normalKohort(form.get("kohort"));
+  if (jenis !== "guru" && !kohort) return fail("Kohort tidak sah — gunakan format STPM 2028", 422);
 
   try {
     const wb = await loadWorkbookFromBuffer(await file.arrayBuffer());
@@ -45,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (jenis === "pelajarbaru") {
-      const rows = parsePelajarBaruWorksheet(wb.worksheets[0]);
+      const rows = parsePelajarBaruWorksheet(wb.worksheets[0]).map((r) => ({ ...r, kohort: kohort! }));
       const diff = await diffPelajarBaru(rows);
       const log = await prisma.logImport.create({
         data: {
@@ -68,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // pajsk → pratonton diff
-    const rows = parsePajskWorksheet(wb.worksheets[0]);
+    const rows = parsePajskWorksheet(wb.worksheets[0]).map((r) => ({ ...r, kohort: kohort! }));
     const diff = await diffPajsk(rows);
     const log = await prisma.logImport.create({
       data: {

@@ -13,6 +13,8 @@ interface Pencapaian extends ItemPelajar {
   peringkat: string | null;
   markahCadangan: number; // dicadang AI ikut peringkat (rubrik §5.5)
   lampiranEviden?: string | null;
+  tarikh?: string | Date | null;
+  laporan?: string | null;
 }
 interface AktivitiLuar extends ItemPelajar {
   id: string;
@@ -20,7 +22,11 @@ interface AktivitiLuar extends ItemPelajar {
   peringkat: string;
   lampiranSurat: string | null;
   lampiranSijil: string | null;
+  tarikh?: string | Date | null;
+  laporan?: string | null;
 }
+
+const fmtTarikh = (d?: string | Date | null) => (d ? new Date(d).toLocaleDateString("ms-MY") : null);
 interface Pertukaran extends ItemPelajar {
   id: string;
   jenisKoko: string;
@@ -319,7 +325,8 @@ function PencapaianRow({
       nama={item.pelajar.nama}
       kelas={item.pelajar.kelasT6}
       tajuk={item.namaPencapaian}
-      nota={[item.kategori, item.peringkat].filter(Boolean).join(" · ") || undefined}
+      nota={[item.kategori, item.peringkat, fmtTarikh(item.tarikh)].filter(Boolean).join(" · ") || undefined}
+      laporan={item.laporan}
     >
       {item.lampiranEviden ? (
         <EvidenLink href={item.lampiranEviden} label={t.viewEvidence} dilihat={dilihat} onLihat={() => setDilihat(true)} />
@@ -386,20 +393,22 @@ function AktivitiLuarRow({
 }) {
   const [suratDilihat, setSuratDilihat] = useState(false);
   const [sijilDilihat, setSijilDilihat] = useState(false);
-  const lengkap = !!(a.lampiranSurat && a.lampiranSijil);
-  const sedia = lengkap && suratDilihat && sijilDilihat;
+  // Satu fail eviden (lampiranSijil) sudah memadai; rekod lama mungkin ada surat juga.
+  const lengkap = !!(a.lampiranSurat || a.lampiranSijil);
+  const sedia = lengkap && (!a.lampiranSurat || suratDilihat) && (!a.lampiranSijil || sijilDilihat);
   return (
     <Row
       nama={a.pelajar.nama}
       kelas={a.pelajar.kelasT6}
       tajuk={`${a.namaAktiviti} · ${a.peringkat}`}
-      nota={lengkap ? t.evidenceComplete : t.evidenceIncomplete}
+      nota={[fmtTarikh(a.tarikh), lengkap ? t.evidenceComplete : t.evidenceIncomplete].filter(Boolean).join(" · ")}
+      laporan={a.laporan}
     >
       {a.lampiranSurat && (
         <EvidenLink href={a.lampiranSurat} label={t.viewLetter} dilihat={suratDilihat} onLihat={() => setSuratDilihat(true)} />
       )}
       {a.lampiranSijil && (
-        <EvidenLink href={a.lampiranSijil} label={t.viewCert} dilihat={sijilDilihat} onLihat={() => setSijilDilihat(true)} />
+        <EvidenLink href={a.lampiranSijil} label={a.lampiranSurat ? t.viewCert : t.viewEvidence} dilihat={sijilDilihat} onLihat={() => setSijilDilihat(true)} />
       )}
       <Btn
         label={t.confirm}
@@ -534,6 +543,7 @@ function Row({
   kelas,
   tajuk,
   nota,
+  laporan,
   children,
   bare,
 }: {
@@ -541,6 +551,7 @@ function Row({
   kelas: string | null;
   tajuk: string;
   nota?: string;
+  laporan?: string | null;
   children: React.ReactNode;
   bare?: boolean;
 }) {
@@ -553,6 +564,7 @@ function Row({
           {kelas ? ` · ${kelas}` : ""}
           {nota ? ` · ${nota}` : ""}
         </p>
+        {laporan && <p className="mt-1 line-clamp-3 max-w-xl whitespace-pre-line text-xs text-slate-600">{laporan}</p>}
       </div>
       <div className="flex items-center gap-2">{children}</div>
     </div>

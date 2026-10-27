@@ -518,8 +518,8 @@ export async function sahkanAktivitiLuar(input: {
   if (!aktiviti) throw new Error("Aktiviti luar tidak dijumpai.");
 
   // Syarat eviden lengkap untuk kelulusan (Verification Agent — §14)
-  if (input.status === "Approved" && (!aktiviti.lampiranSurat || !aktiviti.lampiranSijil)) {
-    throw new Error("Eviden tidak lengkap: surat & sijil diperlukan sebelum kelulusan.");
+  if (input.status === "Approved" && !aktiviti.lampiranSurat && !aktiviti.lampiranSijil) {
+    throw new Error("Eviden tidak lengkap: eviden diperlukan sebelum kelulusan.");
   }
 
   const markah = input.status === "Approved" ? markahAktivitiLuar(aktiviti.peringkat) : 0;

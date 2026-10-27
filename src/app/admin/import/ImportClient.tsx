@@ -14,6 +14,7 @@ interface ImportDict {
   networkError: string;
   pelajarBaruTab: string; pelajarBaruInfo: string; pelajarBaruWarningTpl: string;
   noFileSelected: string;
+  kohortLabel: string; kohortHint: string;
 }
 
 interface DiffBaris {
@@ -51,7 +52,7 @@ const STATUS_TONE: Record<string, string> = {
   Batal: "bg-slate-100 text-slate-500",
 };
 
-export function ImportClient({ t }: { t: ImportDict }) {
+export function ImportClient({ t, kohortList, kohortLalai }: { t: ImportDict; kohortList: string[]; kohortLalai: string }) {
   const [jenis, setJenis] = useState("pajsk");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -154,6 +155,17 @@ export function ImportClient({ t }: { t: ImportDict }) {
             </button>
           ))}
         </div>
+
+        {jenis !== "guru" && (
+          <label className="block text-sm font-medium text-slate-600">{t.kohortLabel}
+            <input name="kohort" list="senarai-kohort" defaultValue={kohortLalai} required pattern="(STPM|stpm) ?\d{4}|\d{4}"
+              className="mt-1 block w-48 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            <datalist id="senarai-kohort">
+              {kohortList.map((k) => <option key={k} value={k} />)}
+            </datalist>
+            <span className="mt-1 block text-xs font-normal text-slate-500">{t.kohortHint}</span>
+          </label>
+        )}
 
         <input name="fail" type="file" accept=".xlsx,.xls,.csv"
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm file:mr-2 file:rounded file:border-0 file:bg-slate-100 file:px-3 file:py-1" />

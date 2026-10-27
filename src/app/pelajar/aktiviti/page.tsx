@@ -18,6 +18,7 @@ export default async function AktivitiPage() {
     prisma.aktivitiLuar.findMany({ where: { pelajarId: pid }, orderBy: { createdAt: "desc" } }),
     prisma.kokurikulum.findMany({ where: { pelajarId: pid } }),
   ]);
+  const tarikhStr = (d: Date | null) => (d ? d.toLocaleDateString("ms-MY") : "");
   const units = koko.filter((k) => k.namaUnitT6).map((k) => ({ jenisKoko: k.jenisKoko, namaUnit: k.namaUnitT6! }));
 
   return (
@@ -42,8 +43,9 @@ export default async function AktivitiPage() {
                     <StatusBadge status={p.statusSemakan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {p.namaUnit ? `${p.namaUnit} · ` : ""}{p.peringkat ?? ""} {p.statusSemakan === "Approved" ? `· ${p.markah} ${t.pelajar.commentLabel}` : ""}
+                    {p.namaUnit ? `${p.namaUnit} · ` : ""}{p.peringkat ?? ""}{p.tarikh ? ` · ${tarikhStr(p.tarikh)}` : ""} {p.statusSemakan === "Approved" ? `· ${p.markah} ${t.pelajar.commentLabel}` : ""}
                   </p>
+                  {p.laporan && <p className="mt-1 line-clamp-3 text-xs text-slate-500">{p.laporan}</p>}
                   {p.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.pelajar.commentLabel}: {p.komenGuru}</p>}
                 </div>
               ))}
@@ -62,17 +64,13 @@ export default async function AktivitiPage() {
                     <StatusBadge status={a.statusPengesahan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {a.namaUnit ? `${a.namaUnit} · ` : ""}{a.peringkat}
+                    {a.namaUnit ? `${a.namaUnit} · ` : ""}{a.peringkat}{a.tarikh ? ` · ${tarikhStr(a.tarikh)}` : ""}
                     {a.statusPengesahan === "Approved" ? ` · ${a.markahLuar} ${t.pelajar.commentLabel} · ${a.noSiriECert}` : ""}
                   </p>
+                  {a.laporan && <p className="mt-1 line-clamp-3 text-xs text-slate-500">{a.laporan}</p>}
                   {a.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.pelajar.commentLabel}: {a.komenGuru}</p>}
-                  {a.statusPengesahan !== "Approved" && (!a.lampiranSurat || !a.lampiranSijil) && (
-                    <EvidenUpload
-                      pelajarId={pid}
-                      aktivitiId={a.id}
-                      adaSurat={!!a.lampiranSurat}
-                      adaSijil={!!a.lampiranSijil}
-                    />
+                  {a.statusPengesahan !== "Approved" && !a.lampiranSurat && !a.lampiranSijil && (
+                    <EvidenUpload pelajarId={pid} aktivitiId={a.id} />
                   )}
                   {a.statusPengesahan === "Approved" && (
                     <a href={`/api/pelajar/${pid}/ecert/${a.id}`} target="_blank"

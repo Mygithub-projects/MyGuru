@@ -46,12 +46,15 @@ export default async function PemilihanPertandinganPage() {
         })
       : [];
 
-  const senarai = pelajar.map((p) => ({
-    id: p.id,
-    nama: p.nama,
-    kelasT6: p.kelasT6,
-    sukan: p.kokurikulum.find((k) => k.jenisKoko === "Sukan")?.namaUnitT6 ?? null,
-  }));
+  // Unit pelajar ikut bahagian (KP/BU/SP/UP). Guru skop unit hanya nampak unit
+  // yang ditugaskan kepadanya — pelajar dari unit lain tidak disenaraikan di tab itu.
+  const senarai = pelajar.map((p) => {
+    const unit: Record<string, string> = {};
+    for (const k of p.kokurikulum) {
+      if (k.namaUnitT6 && (seluruh || units.includes(k.namaUnitT6))) unit[k.jenisKoko] = k.namaUnitT6;
+    }
+    return { id: p.id, nama: p.nama, kelasT6: p.kelasT6, unit };
+  });
 
   return (
     <div className="space-y-6">

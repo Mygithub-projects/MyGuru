@@ -20,7 +20,7 @@ export const JAWATAN_LABEL: Record<JawatanGuru, string> = {
   PenolongKetuaGP: "Penolong Guru Penasihat",
   KetuaGP: "Ketua Guru Penasihat",
   PenolongSU: "Penolong SU Kokurikulum",
-  PemantauKUPP: "Pemantau (KUPP)",
+  PemantauKUPP: "KUPP/Pemantau",
   Penyelaras: "Penyelaras Kokurikulum",
   KetuaUnitKoko: "Ketua Unit Kokurikulum",
 };
@@ -81,7 +81,7 @@ export async function eksportGuruExcel(): Promise<Buffer> {
     ["ID", "Jangan ubah. Kosongkan untuk guru baru."],
     ["NAMA / EMAIL", "Wajib. Email mesti unik."],
     ["NO IC", "12 digit, boleh dikosongkan."],
-    ["JAWATAN KOKO", (["GuruPenasihat", "PenolongKetuaGP", "KetuaGP", "Penyelaras", "KetuaUnitKoko"] as JawatanGuru[]).map((j) => JAWATAN_LABEL[j]).join(" | ")],
+    ["JAWATAN KOKO", (["GuruPenasihat", "PenolongKetuaGP", "KetuaGP", "PemantauKUPP", "Penyelaras", "KetuaUnitKoko"] as JawatanGuru[]).map((j) => JAWATAN_LABEL[j]).join(" | ")],
     ["STATUS", "Aktif | Tidak Aktif"],
     ["SUKAN / UNIFORM / KELAB / PERKHIDMATAN", "Nama unit dipisah ';'. Tambah (K) untuk Ketua, (P) untuk Penolong. Cth: Badminton (K); Ping Pong"],
     ["", "Jika keempat-empat lajur unit kosong, unit guru sedia ada TIDAK diubah."],

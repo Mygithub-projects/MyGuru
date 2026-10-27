@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getPelajarProfil } from "@/lib/pelajar";
 import { StatusBadge } from "@/components/StatusBadge";
-import { MarkahChart } from "@/components/MarkahChart";
 import { HeroBanner } from "@/components/HeroBanner";
 import { StatCard } from "@/components/StatCard";
 import { senaraiUnitBerpenasihat } from "@/lib/unit-list";
@@ -18,7 +17,7 @@ export default async function PelajarDashboard() {
 
   const data = await getPelajarProfil(session.pelajarId);
   if (!data) redirect("/login");
-  const { pelajar, markah, penyertaan, kehadiran } = data;
+  const { pelajar, penyertaan } = data;
   const [senarai, slipRows] = await Promise.all([
     senaraiUnitBerpenasihat(),
     dataRumusan({ pelajarId: pelajar.id }),
@@ -66,27 +65,6 @@ export default async function PelajarDashboard() {
           <KadPenyertaan penyertaan={penyertaan} label={unitLabel} pajsk={t.pajsk} t={t.pelajar} />
         )}
         <p className="mt-2 text-[11px] text-slate-400">{t.pelajar.unitNote}</p>
-      </section>
-
-      {/* Kehadiran keseluruhan (spec pelajar §2) */}
-      <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">
-          {t.pelajar.attendanceTitle}
-        </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label={t.pelajar.present} value={`${kehadiran.hadir} / ${kehadiran.jumlahSetahun}`} sub={`${kehadiran.direkod} ${t.pelajar.sessionsRecorded}`} />
-          <StatCard label={t.pelajar.attendancePct} value={`${kehadiran.peratus}%`} sub={t.pelajar.outOf30(kehadiran.jumlahSetahun)} />
-          <StatCard label={t.pelajar.attendanceMark} value={kehadiran.markah} sub={t.pelajar.fullMarks40} />
-          <StatCard label={t.pelajar.pajskContribution} value={kehadiran.markah} sub={t.pelajar.countedInT6} />
-        </div>
-      </section>
-
-      {/* Carta pecahan markah (T6) */}
-      <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-600">
-          {t.pelajar.marksByCategory}
-        </h2>
-        <MarkahChart data={markah.map((m) => ({ ...m, kategori: t.pajsk[m.kunci] }))} />
       </section>
 
       {/* Unit kokurikulum semasa — pendaftaran/pertukaran via modal per-kategori */}

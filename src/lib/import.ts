@@ -65,6 +65,7 @@ export interface PajskKokoRow {
 
 export interface PajskRow {
   bil: number | null;
+  kohort?: string; // ditetapkan oleh Admin semasa import (cth "STPM 2028")
   nama: string;
   noIc: string;
   koko: PajskKokoRow[];
@@ -394,6 +395,7 @@ export function parseNamelistWorksheet(ws: ExcelJS.Worksheet): NamelistRow[] {
 // ---------------------------------------------------------------------------
 
 export interface PelajarBaruRow {
+  kohort?: string; // ditetapkan oleh Admin semasa import
   nama: string;
   kelasT6: string;
   noIc: string;

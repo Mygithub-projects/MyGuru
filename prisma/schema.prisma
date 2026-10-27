@@ -80,6 +80,7 @@ model Pelajar {
   nama        String
   noIc        String @unique // disimpan sebagai TEKS (elak format saintifik)
   kelasT6     String?
+  kohort      String? // tag kohort peperiksaan, cth "STPM 2027"
 
   // Skor PAJSK ringkasan (T6 = semasa, dikira)
   markahPajskT6  Float?
@@ -130,6 +131,8 @@ model Pelajar {
   cadanganJawatan CadanganJawatan[]
   laporanMingguan LaporanMingguan[]  @relation("SetiausahaLaporan")
   laporanProjek   LaporanProjek[]    @relation("SetiausahaProjek")
+
+  @@index([kohort])
 }
 
 // === Cadangan Jawatan (SU cadang -> Guru sahkan) ==========================
@@ -382,8 +385,10 @@ model LaporanMingguan {
   namaUnit      String?
   tarikh        DateTime
   masa          String?
-  aktiviti      String
-  lampiran      String? // path fail/gambar (CSV path)
+  namaProgram   String? // nama program/aktiviti (borang baharu)
+  peringkat     String?
+  aktiviti      String // laporan ringkas
+  lampiran      String? // path fail/gambar (CSV path) — eviden
   setiausaha    Pelajar  @relation("SetiausahaLaporan", fields: [setiausahaId], references: [id])
   setiausahaId  String
   statusSemakan String   @default("Draft") // Draft | Pending | Approved | Kuiri
@@ -407,10 +412,12 @@ model LaporanProjek {
   namaUnit        String?
   jawatanProjek   String? // §1.6 — jawatan setiausaha dalam projek (Pengerusi Projek, dll.)
   peringkatProjek String? // §1.7 — peringkat pelaksanaan projek (Sekolah|Daerah/Komuniti|Negeri)
+  tarikh          DateTime? // tarikh program/aktiviti
+  laporan         String? // laporan ringkas
   setiausaha      Pelajar  @relation("SetiausahaProjek", fields: [setiausahaId], references: [id])
   setiausahaId    String
   failKertasKerja String? // pra-program
-  failLaporanImpak String? // pasca-program
+  failLaporanImpak String? // pasca-program; borang baharu: eviden tunggal
   kewangan        String?
   kekuatan        String?
   kelemahan       String?
@@ -436,6 +443,8 @@ model Pencapaian {
   kategori       String? // biasa | ekstra (Perkhidmatan/Anugerah/NILAM/TIMSS...)
   namaUnit       String? // unit pelajar berkaitan (padan Kokurikulum.namaUnitT6) — skop pengesahan guru
   peringkat      String?
+  tarikh         DateTime? // tarikh program/aktiviti
+  laporan        String? // laporan ringkas pelajar
   kedudukan      String? // Johan | Naib Johan | Ketiga (§1.5 — untuk markah pencapaian)
   lampiranEviden String?
   statusSemakan  String  @default("Pending") // Pending | Approved | Kuiri
@@ -456,8 +465,9 @@ model AktivitiLuar {
   namaUnit        String? // unit pelajar berkaitan (padan Kokurikulum.namaUnitT6) — skop pengesahan guru
   peringkat       String // Sekolah | Daerah | Zon/Daerah | Negeri | Kebangsaan | Antarabangsa
   tarikh          DateTime?
+  laporan         String? // laporan ringkas pelajar
   lampiranSurat   String?
-  lampiranSijil   String?
+  lampiranSijil   String? // eviden tunggal (borang pelajar) disimpan di sini
   statusPengesahan String  @default("Pending") // Pending | Approved | Kuiri
   markahLuar      Float    @default(0)
   komenGuru       String?

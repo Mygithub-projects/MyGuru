@@ -4,19 +4,9 @@ import { useRouter } from "next/navigation";
 import { getDict } from "@/lib/i18n";
 import { useLocale } from "@/components/LocaleProvider";
 
-// Borang ringkas untuk pelajar memuat naik surat & sijil bagi rekod aktiviti
-// luar yang dipilih oleh guru (Pending tanpa eviden lengkap).
-export function EvidenUpload({
-  pelajarId,
-  aktivitiId,
-  adaSurat,
-  adaSijil,
-}: {
-  pelajarId: string;
-  aktivitiId: string;
-  adaSurat: boolean;
-  adaSijil: boolean;
-}) {
+// Borang ringkas untuk pelajar memuat naik eviden & laporan ringkas bagi rekod
+// aktiviti luar yang dipilih oleh guru (Pending tanpa eviden).
+export function EvidenUpload({ pelajarId, aktivitiId }: { pelajarId: string; aktivitiId: string }) {
   const router = useRouter();
   const locale = useLocale();
   const t = getDict(locale).pelajar.activityForm;
@@ -61,12 +51,12 @@ export function EvidenUpload({
   return (
     <form onSubmit={submit} className="mt-2 space-y-2 rounded-lg bg-slate-50 p-3 text-xs">
       <label className="block">
-        <span className="text-slate-500">{t.letterLabel} {adaSurat && "✓ (ada)"}</span>
-        <input type="file" name="surat" className="mt-1 block w-full text-xs" />
+        <span className="text-slate-500">{t.reportLabel}</span>
+        <textarea name="laporan" rows={3} maxLength={2000} required className="mt-1 block w-full rounded border border-slate-300 px-2 py-1 text-xs" />
       </label>
       <label className="block">
-        <span className="text-slate-500">{t.certificateLabel} {adaSijil && "✓ (ada)"}</span>
-        <input type="file" name="sijil" className="mt-1 block w-full text-xs" />
+        <span className="text-slate-500">{t.evidenceLabel}</span>
+        <input type="file" name="eviden" required className="mt-1 block w-full text-xs" />
       </label>
       {ralat && <p className="text-rose-600">{ralat}</p>}
       <div className="flex gap-2">
