@@ -4,6 +4,7 @@ import { getPelajarProfil } from "@/lib/pelajar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getT } from "@/lib/locale";
 import { KadPenyertaan } from "@/components/KadPenyertaan";
+import { markahT6Skala50 } from "@/lib/pajsk";
 
 const JENIS_LABEL_KEY = { Kelab: "kelab", Sukan: "sukan", Uniform: "uniform", Perkhidmatan: "perkhidmatan" } as const;
 
@@ -21,7 +22,7 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
   const { id } = await params;
   const [data, { t, locale }] = await Promise.all([getPelajarProfil(id), getT()]);
   if (!data) notFound();
-  const { pelajar, markah, penyertaan, kehadiran, ekstra } = data;
+  const { pelajar, markah, penyertaan, ekstra } = data;
   const d = t.admin.pelajarDetail;
 
   return (
@@ -40,11 +41,10 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label={t.pelajar.scoreT6} value={`${pelajar.markahPajskT6 ?? "-"}`} sub={t.pelajar.fullMarks100} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Stat label={t.pelajar.scoreT6} value={`${markahT6Skala50(pelajar.markahPajskT6) ?? "-"}`} sub={t.pelajar.fullMarks50} />
         <Stat label={t.pelajar.pctT6} value={`${pelajar.peratusPajskT6 ?? "-"}%`} />
         <Stat label={t.pelajar.gred} value={`${pelajar.gredPajskT6 ?? "-"}`} sub="A–E" />
-        <Stat label={d.attendanceLabel} value={`${kehadiran.hadir}/${kehadiran.jumlahSetahun}`} sub={`${kehadiran.peratus}% · ${kehadiran.markah} ${d.marksCol.toLowerCase()}`} />
       </div>
 
       {/* Penyertaan (kelab/sukan/BB) + markah */}

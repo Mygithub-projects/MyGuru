@@ -10,6 +10,7 @@ import { dataRumusan } from "@/lib/rumusan";
 import { UnitSection } from "./UnitSection";
 import { SlipPajsk } from "./SlipPajsk";
 import { KadPenyertaan } from "@/components/KadPenyertaan";
+import { markahT6Skala50 } from "@/lib/pajsk";
 
 export default async function PelajarDashboard() {
   const session = await getSession();
@@ -39,7 +40,7 @@ export default async function PelajarDashboard() {
 
       {/* Ringkasan markah (T6) */}
       <div className="grid grid-cols-3 gap-3">
-        <StatCard label={t.pelajar.scoreT6} value={pelajar.markahPajskT6 ?? "-"} sub={t.pelajar.systemComputed} />
+        <StatCard label={t.pelajar.scoreT6} value={markahT6Skala50(pelajar.markahPajskT6) ?? "-"} sub={`${t.pelajar.fullMarks50} · ${t.pelajar.systemComputed}`} />
         <StatCard label={t.pelajar.pctT6} value={`${pelajar.peratusPajskT6 ?? "-"}%`} sub={t.pelajar.fullMarks100} />
         <StatCard label={t.pelajar.gred} value={pelajar.gredPajskT6 ?? "-"} sub={t.pelajar.finalGrade} />
       </div>
