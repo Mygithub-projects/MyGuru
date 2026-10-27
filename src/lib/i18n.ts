@@ -70,6 +70,7 @@ export interface Dict {
     scoreT5: string; importedRecord: string; change: string; t5ToT6: string;
     marksByUnit: string; participationTotal: string; unitNote: string;
     best2: string; attendedOf: (n: number, total: number) => string; extraTotal: string;
+    extraCardTitle: string; extraSource: string; extraNone: string;
     slip: {
       title: string; sub: string; elemen: string; aspek: string; ekstra: string;
       pelibatan: string; aktiviti: string; jawatan: string; peringkat: string; tahapPencapaian: string;
@@ -417,6 +418,7 @@ const ms: Dict = {
     scoreT5: "Markah PAJSK T5", importedRecord: "rekod import", change: "Perubahan", t5ToT6: "T5 → T6",
     marksByUnit: "Markah Mengikut Penyertaan (T6)", participationTotal: "Jumlah Skor Bidang",
     best2: "✓ Dikira (2 terbaik)", attendedOf: (n, total) => `${n}/${total} hadir`, extraTotal: "Markah Ekstra (bonus)",
+    extraCardTitle: "Ekstra Kokurikulum", extraSource: "Anugerah / jawatan khas", extraNone: "Belum ada rekod ekstra",
     slip: {
       title: "Rekod Pentaksiran Kokurikulum (PAJSK)", sub: "Rujukan anda — dikemas kini automatik daripada rekod kehadiran SU/NSU, jawatan, pencapaian & projek yang disahkan guru.",
       elemen: "Elemen", aspek: "Aspek", ekstra: "Ekstra Kurikulum",
@@ -835,6 +837,7 @@ const en: Dict = {
     scoreT5: "PAJSK Score (F5)", importedRecord: "imported record", change: "Change", t5ToT6: "F5 → F6",
     marksByUnit: "Marks by Participation (F6)", participationTotal: "Division Score",
     best2: "✓ Counted (best 2)", attendedOf: (n, total) => `${n}/${total} attended`, extraTotal: "Extra Marks (bonus)",
+    extraCardTitle: "Extra-Curricular", extraSource: "Special award / position", extraNone: "No extra record yet",
     slip: {
       title: "Co-curricular Assessment Record (PAJSK)", sub: "For your reference — updated automatically from SU/NSU attendance records and teacher-verified positions, achievements & projects.",
       elemen: "Element", aspek: "Aspect", ekstra: "Extra-curricular",

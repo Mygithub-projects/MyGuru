@@ -1,7 +1,7 @@
 // Lapisan data pelajar — profil & pecahan markah PAJSK T6 (model §1.1)
 import { prisma } from "./prisma";
 import { ringkasanKehadiranPelajar } from "./kehadiran";
-import { markahEkstra } from "./pajsk";
+import { markahEkstra, nilaiEkstra } from "./pajsk";
 import { itemEkstra, skorUnit, type RekodPelajar, type SkorUnit } from "./skor-unit";
 import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
 
@@ -94,7 +94,10 @@ export async function getPelajarProfil(pelajarId: string) {
     aktivitiLuar: pelajar.aktivitiLuar.filter((a) => a.statusPengesahan === "Approved"),
     laporanProjek: pelajar.laporanProjek,
   };
-  const ekstra = markahEkstra(itemEkstra(rekod, pelajar.kokurikulum));
+  const itemEks = itemEkstra(rekod, pelajar.kokurikulum);
+  const ekstra = markahEkstra(itemEks);
+  // Sumber markah ekstra tertinggi (jawatan Unit Perkhidmatan / anugerah khas disahkan).
+  const sumberEkstra = itemEks.reduce<string | null>((m, x) => (nilaiEkstra(x) > nilaiEkstra(m) ? x : m), null);
   const jumlah = await jumlahAktiviti();
   const asas = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"]
     .map((jenis) => {
@@ -120,5 +123,5 @@ export async function getPelajarProfil(pelajarId: string) {
   // Ringkasan kehadiran keseluruhan (atas 30 perjumpaan/tahun — spec pelajar §2)
   const kehadiran = await ringkasanKehadiranPelajar(pelajarId);
 
-  return { pelajar, markah, penyertaan, kehadiran };
+  return { pelajar, markah, penyertaan, kehadiran, ekstra: { markah: ekstra, sumber: sumberEkstra } };
 }

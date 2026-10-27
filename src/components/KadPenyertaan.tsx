@@ -21,17 +21,22 @@ function Baris({ label, sub, nilai, maks }: { label: string; sub?: string; nilai
 
 export function KadPenyertaan({
   penyertaan,
+  ekstra,
   label,
   pajsk,
   t,
 }: {
   penyertaan: BarisPenyertaan[];
+  /** Markah ekstra keseluruhan — dipapar sebagai kad sendiri jika tiada Unit Perkhidmatan. */
+  ekstra?: { markah: number; sumber: string | null };
   label: Record<string, string>;
   pajsk: Dict["pajsk"];
-  t: Pick<Dict["pelajar"], "participationTotal" | "best2" | "attendedOf" | "extraTotal">;
+  t: Pick<Dict["pelajar"], "participationTotal" | "best2" | "attendedOf" | "extraTotal" | "extraCardTitle" | "extraSource" | "extraNone">;
 }) {
+  const kadEkstra = !!ekstra && !penyertaan.some((p) => p.jenisKoko === "Perkhidmatan");
+  const bil = penyertaan.length + (kadEkstra ? 1 : 0);
   return (
-    <div className={`grid gap-3 sm:grid-cols-2 ${penyertaan.length > 3 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+    <div className={`grid gap-3 sm:grid-cols-2 ${bil > 3 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
       {penyertaan.map((p) => {
         const s = p.skor;
         const up = p.jenisKoko === "Perkhidmatan";
@@ -77,6 +82,19 @@ export function KadPenyertaan({
           </div>
         );
       })}
+      {kadEkstra && (
+        <div className="rounded-lg border border-slate-200 p-3">
+          <p className="text-xs font-semibold uppercase text-brand-dark">{t.extraCardTitle}</p>
+          <p className="mt-1 font-medium text-slate-800">{ekstra.sumber ?? t.extraNone}</p>
+          <dl className="mt-2 space-y-1 text-sm">
+            <Baris label={t.extraSource} sub={ekstra.sumber ?? undefined} nilai={ekstra.markah} maks={10} />
+            <div className="flex justify-between border-t border-slate-100 pt-1">
+              <dt className="font-semibold text-slate-600">{t.extraTotal}</dt>
+              <dd className="font-bold text-brand-dark">{ekstra.markah}<span className="text-[11px] font-normal text-slate-400"> /10</span></dd>
+            </div>
+          </dl>
+        </div>
+      )}
     </div>
   );
 }
