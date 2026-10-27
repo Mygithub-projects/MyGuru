@@ -330,7 +330,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
     orderBy: [{ kelasT6: "asc" }, { nama: "asc" }],
     include: {
       kokurikulum: true,
-      kehadiran: { where: { statusHadir: true }, select: { jenisKoko: true } },
+      kehadiran: { where: { statusHadir: true, disahkan: true }, select: { jenisKoko: true } },
       pencapaian: { where: { statusSemakan: "Approved" } },
       aktivitiLuar: { where: { statusPengesahan: "Approved" } },
       laporanProjek: { where: { statusPengesahan: "Approved" } },

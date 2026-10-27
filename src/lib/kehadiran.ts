@@ -140,26 +140,30 @@ export async function selfCheckIn(token: string, pelajarId: string) {
   return sesi;
 }
 
-/** Guru sahkan sesi → tandakan rekod disahkan. */
+/** Guru/Admin sahkan sesi → tandakan rekod disahkan, kemudian kira semula
+ *  markah ahli sesi (kehadiran hanya dikira selepas disahkan). */
 export async function sahkanSesi(sesiId: string, guruId: string | null) {
   const sesi = await prisma.sesiKehadiran.update({
     where: { id: sesiId },
     data: { disahkan: true, dibuka: false, guruId },
   });
   await prisma.kehadiran.updateMany({ where: { sesiId }, data: { disahkan: true } });
+  const ahli = await prisma.kehadiran.findMany({ where: { sesiId }, select: { pelajarId: true }, distinct: ["pelajarId"] });
+  for (const a of ahli) await kiraSemulaKehadiran(a.pelajarId);
   return sesi;
 }
 
 /**
  * Kira semula markah kehadiran pelajar (§1.2, kaedah KTE Desa Mahkota):
  * 2 aktiviti = 1 perjumpaan PAJSK (maks 15), markah = perjumpaan/15 × 50.
- * Berdasarkan jumlah perjumpaan wajib yang tetap (30 kali). Hanya menulis
- * ganti jika ada sekurang-kurangnya satu rekod (jika tiada, kekalkan import).
+ * Berdasarkan jumlah perjumpaan wajib yang tetap (30 kali). Pelajar tanpa
+ * sebarang rekod kekal nilai import; jika ada rekod, HANYA rekod yang telah
+ * DISAHKAN guru/admin dikira (0 jika belum ada yang disahkan).
  */
 export async function kiraSemulaKehadiran(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
   if (recs.length === 0) return;
-  const hadir = recs.filter((r) => r.statusHadir).length;
+  const hadir = recs.filter((r) => r.statusHadir && r.disahkan).length;
   const denom = jumlahKeseluruhan(await jumlahAktiviti()); // cth 16 + 17 + 14 = 47
   const markah = markahKehadiran(hadir, denom);
   await prisma.pelajar.update({ where: { id: pelajarId }, data: { markahKehadiran: markah } });
@@ -189,7 +193,8 @@ export async function kiraSemulaSemuaPelajar() {
  *  penyebut jumlah di sebelahnya. */
 export async function ringkasanKehadiranPelajar(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
-  const hadir = recs.filter((r) => r.statusHadir).length;
+  // Hadir & markah hanya daripada sesi yang telah disahkan.
+  const hadir = recs.filter((r) => r.statusHadir && r.disahkan).length;
   const jumlahSetahun = jumlahKeseluruhan(await jumlahAktiviti());
   const direkod = Math.min(recs.length, jumlahSetahun);
   const markah = markahKehadiran(hadir, jumlahSetahun);
