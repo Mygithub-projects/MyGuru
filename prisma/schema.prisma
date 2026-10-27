@@ -224,6 +224,19 @@ model TetapanMarkah {
   @@unique([kategori, namaItem])
 }
 
+// === Had Ahli Unit (kuota pendaftaran SP/KP/BU setiap kohort) ============
+
+model HadUnit {
+  id        String   @id @default(cuid())
+  kohort    String // cth "STPM 2028"
+  jenisKoko String // Sukan | Kelab | Uniform
+  namaUnit  String
+  had       Int // bilangan ahli maksimum; 0 = ditutup
+  updatedAt DateTime @updatedAt
+
+  @@unique([kohort, namaUnit])
+}
+
 // === Log Pertukaran Unit ==================================================
 
 model LogPertukaran {

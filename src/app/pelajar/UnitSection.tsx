@@ -120,12 +120,23 @@ export function UnitSection({ pelajarId, senarai, units }: { pelajarId: string; 
                   if (kod === "Kekal") return null;
                   return <StatusBadge status={kod} label={labelStatusPilihanT6(kod, locale)} />;
                 })()}
-                <button
-                  onClick={() => buka(k.v)}
-                  className={`ml-auto rounded-md px-3 py-1 text-xs font-semibold text-white ${berdaftar ? "bg-ink hover:bg-ink-2" : "bg-brand hover:bg-brand-hover"}`}
-                >
-                  {berdaftar ? t.unitChange : t.unitRegister}
-                </button>
+                {/* Pertukaran unit tidak lagi dibenarkan untuk pelajar. SP/KP/BU didaftar
+                    melalui borang berkuota; Unit Perkhidmatan (pilihan) kekal melalui permohonan. */}
+                {!berdaftar && (k.v === "Perkhidmatan" ? (
+                  <button
+                    onClick={() => buka(k.v)}
+                    className="ml-auto rounded-md bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-hover"
+                  >
+                    {t.unitRegister}
+                  </button>
+                ) : (
+                  <Link
+                    href="/pelajar/tukar-unit"
+                    className="ml-auto rounded-md bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-hover"
+                  >
+                    {t.unitRegister}
+                  </Link>
+                ))}
               </div>
             </div>
           );
