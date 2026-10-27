@@ -9,10 +9,13 @@ type Jumlah = { Kelab: number; Sukan: number; Uniform: number };
 // kaedah KTE Desa Mahkota: 2 aktiviti = 1 perjumpaan PAJSK.
 export function KehadiranTetapan({
   awal,
+  kohort,
   label,
   locale,
 }: {
   awal: Jumlah;
+  /** Kohort yang dipilih di header — tetapan disimpan bagi kohort ini sahaja. */
+  kohort: string | null;
   label: Record<keyof Jumlah, string>;
   locale: Locale;
 }) {
@@ -51,7 +54,7 @@ export function KehadiranTetapan({
   return (
     <section className="space-y-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <div>
-        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{L("Jumlah Aktiviti Kehadiran (Penuh)", "Full Attendance Activity Totals")}</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{L("Jumlah Aktiviti Kehadiran (Penuh)", "Full Attendance Activity Totals")}{kohort ? ` · ${kohort}` : ""}</h2>
         <p className="mt-1 text-xs text-slate-500">
           {L(
             "Bilangan aktiviti kokurikulum (80 minit) penuh bagi setiap bahagian. Kehadiran dikira GABUNGAN semua bahagian: hadir KP + SP + BU ÷ 2 = perjumpaan PAJSK, maksimum 15 (KPM); markah = perjumpaan ÷ 15 × 50, dipakai dalam skor setiap bidang.",

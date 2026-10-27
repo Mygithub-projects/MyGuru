@@ -1,6 +1,6 @@
 // Senarai laporan SU/NSU (mingguan & projek) untuk semakan guru/admin.
 import type { Guru } from "@prisma/client";
-import { prisma } from "./prisma";
+import { dbKohort } from "./prisma-kohort";
 import { unitSeliaan } from "./workflow";
 import { pelajarIdsDalamSkop } from "./guru";
 import { urlFail } from "./fail-url";
@@ -35,6 +35,7 @@ export async function senaraiLaporanSU(
   guru: Guru | null,
   opts: { jenis?: string; status?: string } = {}
 ): Promise<LaporanSU[]> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const ids = guru ? await pelajarIdsDalamSkop(guru) : null;
   const units = guru ? await unitSeliaan(guru) : [];
   const whereUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, setiausahaId: { in: ids } }] };
@@ -44,14 +45,14 @@ export async function senaraiLaporanSU(
   const [mingguan, projek] = await Promise.all([
     opts.jenis === "projek"
       ? []
-      : prisma.laporanMingguan.findMany({
+      : db.laporanMingguan.findMany({
           where: { ...whereUnit, statusSemakan: status },
           include: pilihSU,
           orderBy: { createdAt: "desc" },
         }),
     opts.jenis === "mingguan"
       ? []
-      : prisma.laporanProjek.findMany({
+      : db.laporanProjek.findMany({
           where: { ...whereUnit, statusPengesahan: status },
           include: pilihSU,
           orderBy: { createdAt: "desc" },

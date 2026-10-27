@@ -10,7 +10,7 @@ import ExcelJS from "exceljs";
 import { prisma } from "./prisma";
 import { nilaiEkstra, type Gred } from "./pajsk";
 import { skorUnit, type SkorUnit } from "./skor-unit";
-import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
+import { jumlahAktivitiIkutKohort, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
 
 export const BAHAGIAN = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"] as const;
 export type Bahagian = (typeof BAHAGIAN)[number];
@@ -71,7 +71,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
     },
   });
 
-  const jumlah = await jumlahAktiviti();
+  const jumlahKohort = await jumlahAktivitiIkutKohort(pelajar.map((p) => p.kohort));
   const baris: BarisRumusan[] = [];
   for (const p of pelajar) {
     // Anugerah khas (ekstra) — dipaparkan dalam borang Unit Perkhidmatan.
@@ -81,7 +81,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
     );
     for (const k of p.kokurikulum) {
       if (!isBahagian(k.jenisKoko) || !k.namaUnitT6) continue;
-      const s = skorUnit(p, k, jumlahKehadiranUntuk(jumlah, k.jenisKoko));
+      const s = skorUnit(p, k, jumlahKehadiranUntuk(jumlahKohort.get(p.kohort ?? "")!, k.jenisKoko));
       const mAnugerah = ekstra ? nilaiEkstra(ekstra.namaPencapaian) : 0;
       baris.push({
         ...s,

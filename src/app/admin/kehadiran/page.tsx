@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { dbKohort } from "@/lib/prisma-kohort";
 import { getT } from "@/lib/locale";
 import { KehadiranTable } from "./KehadiranTable";
 
@@ -24,6 +24,7 @@ export default async function AdminKehadiranPage({
 }: {
   searchParams: Promise<{ unit?: string; jenis?: string; belumSah?: string; tarikh?: string }>;
 }) {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const { t } = await getT();
   const d = t.admin.kehadiranPage;
   const JENIS = [
@@ -39,7 +40,7 @@ export default async function AdminKehadiranPage({
   const hariIni = tarikhHariIniMYT();
   const fTarikh = /^\d{4}-\d{2}-\d{2}$/.test(sp.tarikh ?? "") ? sp.tarikh! : hariIni;
   const mulaHari = new Date(Date.parse(`${fTarikh}T00:00:00Z`) - MYT_MS);
-  const sesiHari = await prisma.sesiKehadiran.findMany({
+  const sesiHari = await db.sesiKehadiran.findMany({
     where: { tarikh: { gte: mulaHari, lt: new Date(mulaHari.getTime() + 86_400_000) } },
     orderBy: { namaUnit: "asc" },
     include: { kehadiran: { select: { statusHadir: true } } },
@@ -57,9 +58,9 @@ export default async function AdminKehadiranPage({
     return { ...b, label: t.guru.pemilihan.bahagian[b.jenis], unit, hadir, total, peratus: total ? Math.round((hadir / total) * 100) : 0 };
   });
 
-  const semuaUnit = await prisma.sesiKehadiran.findMany({ select: { namaUnit: true }, distinct: ["namaUnit"], orderBy: { namaUnit: "asc" } });
+  const semuaUnit = await db.sesiKehadiran.findMany({ select: { namaUnit: true }, distinct: ["namaUnit"], orderBy: { namaUnit: "asc" } });
 
-  const sesi = await prisma.sesiKehadiran.findMany({
+  const sesi = await db.sesiKehadiran.findMany({
     where: { ...(fUnit ? { namaUnit: fUnit } : {}), ...(fJenis ? { jenisKoko: fJenis } : {}) },
     orderBy: [{ namaUnit: "asc" }, { bilPerjumpaan: "asc" }],
     include: { kehadiran: { select: { statusHadir: true } } },

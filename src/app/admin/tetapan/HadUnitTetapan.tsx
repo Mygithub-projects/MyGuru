@@ -1,23 +1,32 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { KuotaUnit, JenisDaftar } from "@/lib/had-unit";
 
 interface Dict {
   title: string; sub: string; kohort: string; show: string; unit: string; members: string; limit: string;
   save: string; saving: string; noLimit: string; networkError: string;
+  current: string; next: string; other: string; copyFrom: string; copied: string;
 }
 
 // Had ahli setiap unit SP/KP/BU bagi satu kohort. Kosong = tiada had; 0 = ditutup.
 export function HadUnitTetapan({
   kohort,
-  kohortList,
+  tabKohort,
+  semasa,
+  seterusnya,
+  salinDari,
   kuota,
   label,
   t,
 }: {
   kohort: string;
-  kohortList: string[];
+  tabKohort: string[];
+  semasa: string;
+  seterusnya: string;
+  /** Had kohort semasa — untuk diisi terus ke kohort lain (cth kohort seterusnya). */
+  salinDari: { kohort: string; had: Record<string, number> } | null;
   kuota: KuotaUnit[];
   label: Record<JenisDaftar, string>;
   t: Dict;
@@ -62,15 +71,40 @@ export function HadUnitTetapan({
       <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{t.title}</h2>
       <p className="mb-4 text-xs text-slate-500">{t.sub}</p>
 
-      <form method="get" className="mb-4 flex flex-wrap items-end gap-2">
-        <label className="text-xs font-medium text-slate-600">{t.kohort}
-          <input name="kohort" list="had-kohort" defaultValue={kohort} required className={`${inp} mt-1 block w-40`} />
-          <datalist id="had-kohort">
-            {kohortList.map((k) => <option key={k} value={k} />)}
-          </datalist>
-        </label>
-        <button type="submit" className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white hover:bg-ink-2">{t.show}</button>
-      </form>
+      {/* Tab kohort: semasa, kohort yang sudah ada had, dan kohort seterusnya (pengambilan pertengahan tahun) */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium text-slate-600">{t.kohort}:</span>
+        {tabKohort.map((k) => (
+          <Link
+            key={k}
+            href={`/admin/tetapan?kohort=${encodeURIComponent(k)}`}
+            scroll={false}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${
+              k === kohort ? "bg-brand text-white ring-brand" : "bg-white text-slate-600 ring-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            {k === seterusnya && k !== kohort ? "+ " : ""}{k}
+            {k === semasa ? ` (${t.current})` : k === seterusnya ? ` (${t.next})` : ""}
+          </Link>
+        ))}
+        <form method="get" className="flex items-center gap-1">
+          <input name="kohort" placeholder={t.other} required pattern="(STPM|stpm) ?\d{4}|\d{4}" className={`${inp} w-32`} aria-label={t.other} />
+          <button type="submit" className="rounded-lg bg-ink px-3 py-1.5 text-sm font-semibold text-white hover:bg-ink-2">{t.show}</button>
+        </form>
+      </div>
+
+      {salinDari && (
+        <button
+          type="button"
+          onClick={() => {
+            setNilai(Object.fromEntries(kuota.map((k) => [k.namaUnit, salinDari.had[k.namaUnit] === undefined ? "" : String(salinDari.had[k.namaUnit])])));
+            setMsg({ text: t.copied, ok: true });
+          }}
+          className="mb-4 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+        >
+          {t.copyFrom} {salinDari.kohort}
+        </button>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         {JENIS.map((j) => (
@@ -101,7 +135,7 @@ export function HadUnitTetapan({
                           onChange={(e) => setNilai((v) => ({ ...v, [k.namaUnit]: e.target.value }))}
                           placeholder={t.noLimit}
                           aria-label={`${t.limit} ${k.namaUnit}`}
-                          className="w-20 rounded border border-slate-300 px-2 py-1 text-right text-sm"
+                          className="w-24 rounded border border-slate-300 px-2 py-1 text-right text-sm placeholder:text-xs"
                         />
                       </td>
                     </tr>

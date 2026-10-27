@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { dbKohort } from "@/lib/prisma-kohort";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
 import { bolehGuruAksesPelajar, pilihPelajarUntukPertandingan } from "@/lib/workflow";
 import { pelajarIdsDalamSkop } from "@/lib/guru";
@@ -11,6 +11,7 @@ import { PERINGKAT } from "@/lib/enums";
 // Pemilihan = rekod Aktiviti Luar peringkat luar sekolah, mengikut skop.
 //   ?peringkat=Negeri  ?status=Pending
 export async function GET(request: NextRequest) {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const auth = await requireGuruOrAdmin();
   if ("response" in auth) return auth.response;
   const { guru } = auth;
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
   if (peringkat) where.peringkat = peringkat;
   if (status) where.statusPengesahan = status;
 
-  const recs = await prisma.aktivitiLuar.findMany({
+  const recs = await db.aktivitiLuar.findMany({
     where,
     include: { pelajar: { select: { nama: true, kelasT6: true } } },
     orderBy: { createdAt: "desc" },

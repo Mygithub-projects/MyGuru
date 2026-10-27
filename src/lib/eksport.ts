@@ -3,9 +3,10 @@
 // ===========================================================================
 import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { prisma } from "./prisma";
+import { dbKohort } from "./prisma-kohort";
 import { markahKehadiran, markahProjekJawatan, markahProjekPeringkat } from "./pajsk";
 import { jumlahAktiviti, jumlahKeseluruhan } from "./tetapan-kehadiran";
+import { kohortDipilih } from "./kohort-pilihan";
 import {
   analitikKehadiran,
   analitikProjek,
@@ -20,7 +21,8 @@ export interface FilterKehadiran {
 }
 
 async function dataKehadiran(filter: FilterKehadiran) {
-  const sesi = await prisma.sesiKehadiran.findMany({
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const sesi = await db.sesiKehadiran.findMany({
     where: {
       ...(filter.unit ? { namaUnit: filter.unit } : {}),
       ...(filter.jenis ? { jenisKoko: filter.jenis } : {}),
@@ -94,7 +96,8 @@ export async function eksportKehadiranExcel(filter: FilterKehadiran): Promise<Bu
  * (Kelab, Sukan, Badan Beruniform) — spec admin §1.
  */
 export async function eksportPelajarRosterExcel(): Promise<Buffer> {
-  const pelajar = await prisma.pelajar.findMany({
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const pelajar = await db.pelajar.findMany({
     orderBy: { nama: "asc" },
     include: { kokurikulum: { select: { jenisKoko: true, namaUnitT6: true, jawatanT6: true } } },
   });
@@ -325,8 +328,9 @@ function isiTabKelas(ws: ExcelJS.Worksheet, kelas: string, baris: BarisPelajar[]
  * kelas: satu tab setiap kelas T6.
  */
 export async function eksportRawDataExcel(): Promise<Buffer> {
-  const jumlahSemua = jumlahKeseluruhan(await jumlahAktiviti()); // tetapan Admin
-  const pelajar = await prisma.pelajar.findMany({
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const jumlahSemua = jumlahKeseluruhan(await jumlahAktiviti(await kohortDipilih())); // tetapan Admin (kohort dipilih)
+  const pelajar = await db.pelajar.findMany({
     orderBy: [{ kelasT6: "asc" }, { nama: "asc" }],
     include: {
       kokurikulum: true,
@@ -418,7 +422,8 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
 
 /** Senarai kelas & bilangan pelajar (untuk paparan halaman Raw Data). */
 export async function ringkasanKelasRawData() {
-  const kumpulan = await prisma.pelajar.groupBy({ by: ["kelasT6"], _count: { _all: true }, orderBy: { kelasT6: "asc" } });
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const kumpulan = await db.pelajar.groupBy({ by: ["kelasT6"], _count: { _all: true }, orderBy: { kelasT6: "asc" } });
   return kumpulan.map((k) => ({ kelas: k.kelasT6?.trim() || "TIADA KELAS", bil: k._count._all }));
 }
 

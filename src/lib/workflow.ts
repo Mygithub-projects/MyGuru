@@ -240,7 +240,7 @@ export async function kiraSemulaT6(pelajarId: string) {
 
   // --- MARKAH KESELURUHAN (slip PAJSK): purata 2 bidang terbaik (SP/BU/KP,
   // setiap satu /100 dengan kehadiran bidang itu sendiri) + ekstra, had 100.
-  const jumlah = await jumlahAktiviti(); // tetapan Admin: jumlah aktiviti penuh setiap bahagian
+  const jumlah = await jumlahAktiviti(pelajar.kohort); // tetapan Admin (ikut kohort): jumlah aktiviti penuh setiap bahagian
   const skorBidang = pelajar.kokurikulum
     .filter((k) => k.namaUnitT6 && k.jenisKoko !== "Perkhidmatan")
     .map((k) => skorUnit(rekod, k, jumlahKehadiranUntuk(jumlah, k.jenisKoko)).jumlah ?? 0);

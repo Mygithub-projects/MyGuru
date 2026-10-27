@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole, ok, fail } from "@/lib/api";
 import { applyPajskRows, applyPelajarBaruRows } from "@/lib/import-run";
 import { kiraSemulaT6 } from "@/lib/workflow";
+import { pastikanKohort } from "@/lib/kohort-urus";
 import type { PajskRow, PelajarBaruRow } from "@/lib/import";
 
 // POST — SAHKAN import pratonton: tulis ke DB. Cabang ikut `log.jenis`:
@@ -30,6 +31,7 @@ export async function POST(
       return fail("Data import rosak — sila muat naik semula.", 400);
     }
 
+    if (rows[0]?.kohort) await pastikanKohort(rows[0].kohort);
     const hasil = await applyPelajarBaruRows(rows);
 
     await prisma.logImport.update({
@@ -50,6 +52,7 @@ export async function POST(
     return fail("Data import rosak — sila muat naik semula.", 400);
   }
 
+  if (rows[0]?.kohort) await pastikanKohort(rows[0].kohort);
   const hasil = await applyPajskRows(rows);
 
   // Kira semula markah pelajar yang disentuh berdasarkan data baharu.

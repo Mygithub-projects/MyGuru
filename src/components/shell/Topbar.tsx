@@ -6,6 +6,8 @@ import { TindakanBadge } from "../TindakanBadge";
 import { LanguageToggle } from "../LanguageToggle";
 import { SidebarToggleButton } from "./SidebarToggleButton";
 import { getT } from "@/lib/locale";
+import { KohortPilih } from "../KohortPilih";
+import { kohortDipilih, senaraiSemuaKohort } from "@/lib/kohort-pilihan";
 
 function initials(nama: string): string {
   const parts = nama.trim().split(/\s+/).filter(Boolean);
@@ -27,6 +29,8 @@ export async function Topbar({
   jawatan?: string | null;
 }) {
   const { locale, t } = await getT();
+  const staf = role === "Guru" || role === "Admin";
+  const [kohort, senaraiKohort] = staf ? await Promise.all([kohortDipilih(), senaraiSemuaKohort()]) : [null, []];
   const roleLabel: Record<string, string> = {
     Pelajar: t.header.roleStudent,
     Guru: t.header.roleTeacher,
@@ -46,6 +50,9 @@ export async function Topbar({
       </div>
 
       <div className="flex items-center gap-2">
+        {staf && (
+          <KohortPilih kohort={kohort} senarai={senaraiKohort} label={t.chrome.kohortLabel} labelArkib={t.chrome.kohortArkib} />
+        )}
         {(role === "Guru" || role === "Admin") && (
           <TindakanBadge href={dashHref} onLight label={t.chrome.tindakanLabel} title={t.chrome.tindakanTitle} />
         )}

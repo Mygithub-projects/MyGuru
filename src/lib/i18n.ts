@@ -43,7 +43,7 @@ export interface Dict {
   // peranan/laman, jadi terasing daripada `header` (label peranan/tema).
   chrome: {
     notifTitle: string; notifEmpty: string;
-    tindakanLabel: string; tindakanTitle: string;
+    tindakanLabel: string; tindakanTitle: string; kohortLabel: string; kohortArkib: string;
     agentChat: {
       subtitle: string; inputPlaceholder: string; sessionExpired: string;
       genericError: string; networkError: string; noAnswer: string; proposalsSuffix: string;
@@ -191,7 +191,7 @@ export interface Dict {
     actFormula: string; actDemographics: string; actManageTeachers: string; actAttendance: string;
     actCertTemplate: string; actAnalytics: string; seeAlso: string; teacherView: string; studentView: string;
     pelajarTitle: string; pelajarSub: string; downloadAll: string;
-    actRawData: string;
+    actRawData: string; actKohort: string;
     actRumusan: string;
     rumusan: {
       title: string; subtitle: string; bahagian: string; kelas: string; all: string; filter: string;
@@ -298,6 +298,7 @@ export interface Dict {
     hadUnit: {
       title: string; sub: string; kohort: string; show: string; unit: string; members: string; limit: string;
       save: string; saving: string; noLimit: string; networkError: string;
+      current: string; next: string; other: string; copyFrom: string; copied: string;
     };
     tetapanClient: { saveSettings: string; saving: string };
   };
@@ -380,7 +381,7 @@ const ms: Dict = {
   header: { roleStudent: "Pelajar", roleTeacher: "Guru Penasihat", roleAdmin: "Pentadbir", help: "Bantuan", logout: "Log Keluar", changePassword: "Tukar Kata Laluan", notifications: "Notifikasi", theme: "Tukar mod terang/gelap", chatbot: "Chatbot" },
   chrome: {
     notifTitle: "Notifikasi", notifEmpty: "Tiada notifikasi.",
-    tindakanLabel: "Tindakan", tindakanTitle: "Item menunggu tindakan",
+    tindakanLabel: "Tindakan", tindakanTitle: "Item menunggu tindakan", kohortLabel: "Kohort", kohortArkib: "arkib",
     agentChat: {
       subtitle: "Pembantu kokurikulum", inputPlaceholder: "Taip mesej…",
       sessionExpired: "Sesi tamat. Sila log masuk semula.", genericError: "Maaf, berlaku ralat.",
@@ -555,7 +556,7 @@ const ms: Dict = {
     actFormula: "Tetapan Formula Markah", actDemographics: "Kemas Kini Demografi", actManageTeachers: "Urus Guru & Penasihat", actAttendance: "Kehadiran (Setiap Perjumpaan)",
     actCertTemplate: "Templat e-Cert", actAnalytics: "📊 Analitik Keseluruhan", seeAlso: "Lihat juga:", teacherView: "Pandangan Guru", studentView: "Pandangan Pelajar",
     pelajarTitle: "Urus Pelajar", pelajarSub: "Senarai pelajar T6 (markah, nama, kelab, sukan, badan beruniform terkini). Klik Butiran untuk paparan penuh & muat turun PDF setiap pelajar.", downloadAll: "⬇ Muat turun semua (Excel)",
-    actRawData: "Muat Turun Raw Data (Excel)",
+    actRawData: "Muat Turun Raw Data (Excel)", actKohort: "Pengurusan Kohort",
     actRumusan: "Rumusan Markah Kokurikulum",
     rumusan: {
       title: "Rumusan Markah Kokurikulum",
@@ -699,6 +700,8 @@ const ms: Dict = {
       title: "Had Ahli Unit (SP / KP / BU)", sub: "Tetapkan bilangan ahli maksimum setiap unit bagi satu kohort. Kosong = tiada had; 0 = unit ditutup.",
       kohort: "Kohort", show: "Papar", unit: "Unit", members: "Ahli", limit: "Had", save: "Simpan Had", saving: "Menyimpan…",
       noLimit: "tiada had", networkError: "Ralat rangkaian",
+      current: "semasa", next: "seterusnya", other: "Kohort lain", copyFrom: "Salin had daripada",
+      copied: "Had disalin — semak dan tekan Simpan Had.",
     },
     tetapanClient: { saveSettings: "Simpan Tetapan", saving: "Menyimpan..." },
   },
@@ -810,7 +813,7 @@ const en: Dict = {
   header: { roleStudent: "Student", roleTeacher: "Advisor Teacher", roleAdmin: "Administrator", help: "Help", logout: "Log Out", changePassword: "Change Password", notifications: "Notifications", theme: "Toggle light/dark mode", chatbot: "Chatbot" },
   chrome: {
     notifTitle: "Notifications", notifEmpty: "No notifications.",
-    tindakanLabel: "Actions", tindakanTitle: "Items awaiting action",
+    tindakanLabel: "Actions", tindakanTitle: "Items awaiting action", kohortLabel: "Cohort", kohortArkib: "archived",
     agentChat: {
       subtitle: "Co-curriculum assistant", inputPlaceholder: "Type a message…",
       sessionExpired: "Session expired. Please log in again.", genericError: "Sorry, something went wrong.",
@@ -992,7 +995,7 @@ const en: Dict = {
     actFormula: "Mark Formula Settings", actDemographics: "Update Demographics", actManageTeachers: "Manage Teachers & Advisors", actAttendance: "Attendance (Per Meeting)",
     actCertTemplate: "e-Cert Template", actAnalytics: "📊 Overall Analytics", seeAlso: "See also:", teacherView: "Teacher View", studentView: "Student View",
     pelajarTitle: "Manage Students", pelajarSub: "F6 student list (latest marks, name, club, sport, uniformed body). Click Details for the full view & per-student PDF download.", downloadAll: "⬇ Download all (Excel)",
-    actRawData: "Download Raw Data (Excel)",
+    actRawData: "Download Raw Data (Excel)", actKohort: "Cohort Management",
     actRumusan: "Co-curricular Mark Summary",
     rumusan: {
       title: "Co-curricular Mark Summary",
@@ -1136,6 +1139,8 @@ const en: Dict = {
       title: "Unit Member Limits (SP / KP / BU)", sub: "Set the maximum members per unit for a cohort. Blank = no limit; 0 = unit closed.",
       kohort: "Cohort", show: "Show", unit: "Unit", members: "Members", limit: "Limit", save: "Save Limits", saving: "Saving…",
       noLimit: "no limit", networkError: "Network error",
+      current: "current", next: "next", other: "Other cohort", copyFrom: "Copy limits from",
+      copied: "Limits copied — review and press Save Limits.",
     },
     tetapanClient: { saveSettings: "Save Settings", saving: "Saving..." },
   },

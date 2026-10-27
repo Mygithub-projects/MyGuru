@@ -224,6 +224,17 @@ model TetapanMarkah {
   @@unique([kategori, namaItem])
 }
 
+// === Kohort (kitaran 18 bulan; kohort baharu masuk pada bulan ke-8) =======
+
+model Kohort {
+  id          String    @id @default(cuid())
+  nama        String    @unique // cth "STPM 2028" — padan Pelajar.kohort
+  tarikhMula  DateTime // tarikh kohort mula; jangkaan tamat = +18 bulan
+  status      String    @default("Aktif") // Aktif | Tamat (diarkib)
+  tarikhTamat DateTime? // tarikh sebenar diarkib
+  createdAt   DateTime  @default(now())
+}
+
 // === Had Ahli Unit (kuota pendaftaran SP/KP/BU setiap kohort) ============
 
 model HadUnit {
@@ -262,6 +273,7 @@ model LogPertukaran {
 
 model SesiKehadiran {
   id            String   @id @default(cuid())
+  kohort        String   @default("") // sesi berasingan setiap kohort (nombor perjumpaan bermula semula)
   jenisKoko     String // Sukan | Kelab | Uniform
   namaUnit      String
   tarikh        DateTime
@@ -277,7 +289,7 @@ model SesiKehadiran {
   laporanMingguan LaporanMingguan[]
   laporanProjek   LaporanProjek[]
 
-  @@unique([namaUnit, bilPerjumpaan])
+  @@unique([kohort, namaUnit, bilPerjumpaan])
   @@index([jenisKoko])
 }
 

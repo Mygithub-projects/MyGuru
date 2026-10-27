@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalKohort } from "../src/lib/kohort";
+import { kitaranKohort, kohortSeterusnya, normalKohort, tambahBulan } from "../src/lib/kohort";
 import { kiraGps } from "../src/lib/rumusan";
 
 describe("normalKohort", () => {
@@ -13,6 +13,40 @@ describe("normalKohort", () => {
     expect(normalKohort("SPM 2027")).toBeNull();
     expect(normalKohort("STPM 27")).toBeNull();
     expect(normalKohort(null)).toBeNull();
+  });
+});
+
+describe("kohortSeterusnya", () => {
+  it("tahun terkini + 1", () => {
+    expect(kohortSeterusnya(["STPM 2027"])).toBe("STPM 2028");
+    expect(kohortSeterusnya(["STPM 2027", "STPM 2029", "STPM 2028"])).toBe("STPM 2030");
+  });
+  it("tiada kohort → tahun semasa + 1", () => {
+    expect(kohortSeterusnya([], 2026)).toBe("STPM 2027");
+  });
+});
+
+describe("kitaranKohort (18 bulan, kohort baharu bulan ke-8)", () => {
+  const mula = new Date(Date.UTC(2026, 0, 15)); // 15 Jan 2026
+  it("bulan pertama & jangka tamat +18 bulan", () => {
+    const c = kitaranKohort(mula, new Date(Date.UTC(2026, 0, 20)));
+    expect(c.bulanKe).toBe(1);
+    expect(c.fasa).toBe("awal");
+    expect(c.jangkaTamat.toISOString().slice(0, 10)).toBe("2027-07-15");
+    expect(c.jangkaKohortBaharu.toISOString().slice(0, 10)).toBe("2026-08-15");
+  });
+  it("bulan ke-8 → sedia kohort baharu", () => {
+    const c = kitaranKohort(mula, new Date(Date.UTC(2026, 7, 15)));
+    expect(c.bulanKe).toBe(8);
+    expect(c.fasa).toBe("sediaBaharu");
+  });
+  it("selepas 18 bulan → patut tamat (bulan dihadkan 18)", () => {
+    const c = kitaranKohort(mula, new Date(Date.UTC(2027, 7, 1)));
+    expect(c.fasa).toBe("patutTamat");
+    expect(c.bulanKe).toBe(18);
+  });
+  it("tambahBulan menghadkan ke hujung bulan", () => {
+    expect(tambahBulan(new Date(Date.UTC(2026, 0, 31)), 1).toISOString().slice(0, 10)).toBe("2026-02-28");
   });
 });
 

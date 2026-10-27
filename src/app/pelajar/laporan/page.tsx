@@ -36,7 +36,7 @@ export default async function LaporanPage({
   const [mingguan, projek, sesiList] = await Promise.all([
     prisma.laporanMingguan.findMany({ where: { setiausahaId: session.pelajarId }, orderBy: { tarikh: arah } }),
     prisma.laporanProjek.findMany({ where: { setiausahaId: session.pelajarId }, orderBy: { createdAt: arah } }),
-    sesiUntukUnit(units),
+    sesiUntukUnit(units, (await prisma.pelajar.findUnique({ where: { id: session.pelajarId }, select: { kohort: true } }))?.kohort ?? null),
   ]);
 
   // Ringkasan kehadiran bagi sesi yang dipaut

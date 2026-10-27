@@ -3,7 +3,8 @@
 //  Cth: Kelab 16, Sukan 17, Badan Beruniform 14 → jumlah 47. Kehadiran dikira
 //  GABUNGAN: hadir KP + SP + BU (≤ 47) / 2 = perjumpaan, had 15 (KPM);
 //  markah = perjumpaan / 15 × 50 — dipakai dalam skor setiap bidang.
-//  Disimpan dalam TetapanMarkah (kategori "Kehadiran") — tiada migrasi skema.
+//  Disimpan dalam TetapanMarkah: kategori "Kehadiran:<kohort>" bagi setiap
+//  kohort, dengan jatuhan ke kategori umum "Kehadiran" (tetapan asal).
 // ===========================================================================
 import { prisma } from "./prisma";
 import { JUMLAH_PERJUMPAAN_WAJIB } from "./pajsk";
@@ -21,13 +22,17 @@ export const JUMLAH_AKTIVITI_LALAI: JumlahAktiviti = {
   Uniform: JUMLAH_PERJUMPAAN_WAJIB,
 };
 
-export async function jumlahAktiviti(): Promise<JumlahAktiviti> {
+const kategoriKohort = (kohort: string) => `${KATEGORI}:${kohort}`;
+
+/** Jumlah aktiviti bagi kohort (jatuh ke tetapan umum, kemudian lalai). */
+export async function jumlahAktiviti(kohort?: string | null): Promise<JumlahAktiviti> {
   const rows = await prisma.tetapanMarkah.findMany({
-    where: { kategori: KATEGORI },
-    select: { namaItem: true, nilaiMarkah: true },
+    where: { kategori: { in: kohort ? [KATEGORI, kategoriKohort(kohort)] : [KATEGORI] } },
+    select: { kategori: true, namaItem: true, nilaiMarkah: true },
   });
   const j = { ...JUMLAH_AKTIVITI_LALAI };
-  for (const r of rows) {
+  // Umum dahulu, kemudian khusus kohort menimpa.
+  for (const r of [...rows].sort((a) => (a.kategori === KATEGORI ? -1 : 1))) {
     if ((BAHAGIAN_KEHADIRAN as readonly string[]).includes(r.namaItem) && r.nilaiMarkah > 0) {
       j[r.namaItem as BahagianKehadiran] = Math.round(r.nilaiMarkah);
     }
@@ -35,13 +40,21 @@ export async function jumlahAktiviti(): Promise<JumlahAktiviti> {
   return j;
 }
 
-export async function simpanJumlahAktiviti(j: JumlahAktiviti) {
+/** Jumlah aktiviti bagi beberapa kohort sekali gus (untuk laporan pukal). */
+export async function jumlahAktivitiIkutKohort(kohort: (string | null)[]): Promise<Map<string, JumlahAktiviti>> {
+  const peta = new Map<string, JumlahAktiviti>();
+  for (const k of new Set(kohort)) peta.set(k ?? "", await jumlahAktiviti(k));
+  return peta;
+}
+
+export async function simpanJumlahAktiviti(j: JumlahAktiviti, kohort?: string | null) {
+  const kategori = kohort ? kategoriKohort(kohort) : KATEGORI;
   await prisma.$transaction(
     BAHAGIAN_KEHADIRAN.map((b) =>
       prisma.tetapanMarkah.upsert({
-        where: { kategori_namaItem: { kategori: KATEGORI, namaItem: b } },
+        where: { kategori_namaItem: { kategori, namaItem: b } },
         update: { nilaiMarkah: j[b] },
-        create: { kategori: KATEGORI, namaItem: b, nilaiMarkah: j[b], markahPenuh: j[b] },
+        create: { kategori, namaItem: b, nilaiMarkah: j[b], markahPenuh: j[b] },
       }),
     ),
   );

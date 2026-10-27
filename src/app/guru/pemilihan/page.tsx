@@ -1,18 +1,19 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { dbKohort } from "@/lib/prisma-kohort";
 import { getT } from "@/lib/locale";
 import { guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
 import { PemilihanForm } from "./PemilihanForm";
 
 export default async function PemilihanPertandinganPage() {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const session = await getSession();
   const { t } = await getT();
   const d = t.guru.pemilihan;
   if (!session) redirect("/login");
 
   const guru = session.guruId
-    ? await prisma.guru.findUnique({ where: { id: session.guruId } })
+    ? await db.guru.findUnique({ where: { id: session.guruId } })
     : null;
   if (!guru && session.role !== "Admin") redirect("/login");
 
@@ -33,13 +34,13 @@ export default async function PemilihanPertandinganPage() {
   // Pelajar yang boleh dipilih mengikut skop seliaan guru.
   const pelajar =
     seluruh
-      ? await prisma.pelajar.findMany({
+      ? await db.pelajar.findMany({
           where: { statusAktif: true },
           select: { id: true, nama: true, kelasT6: true, kokurikulum: { select: { jenisKoko: true, namaUnitT6: true } } },
           orderBy: [{ kelasT6: "asc" }, { nama: "asc" }],
         })
       : units.length
-      ? await prisma.pelajar.findMany({
+      ? await db.pelajar.findMany({
           where: { statusAktif: true, kokurikulum: { some: { namaUnitT6: { in: units } } } },
           select: { id: true, nama: true, kelasT6: true, kokurikulum: { select: { jenisKoko: true, namaUnitT6: true } } },
           orderBy: [{ kelasT6: "asc" }, { nama: "asc" }],

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { dbKohort } from "@/lib/prisma-kohort";
 import { AiInsights } from "@/components/AiInsights";
 import { HeroBanner } from "@/components/HeroBanner";
 import { StatCard } from "@/components/StatCard";
@@ -27,13 +27,14 @@ const WARNA_GRED: Record<(typeof GRED)[number], string> = {
 };
 
 export default async function AdminDashboard() {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const { t, locale } = await getT();
   const L = (ms: string, en: string) => (locale === "en" ? en : ms);
   const ta = t.analitik;
 
   const [bilGuru, kpi, gred, trend, kehadiranUnit, statusT6, rumusanRows, pertukaranPending, bilPencapaianPending, bilLuarPending] =
     await Promise.all([
-      prisma.guru.count(),
+      db.guru.count(),
       kpiSekolah(),
       analitikTaburanGred(),
       analitikTrendKehadiran(),
@@ -41,13 +42,13 @@ export default async function AdminDashboard() {
       analitikStatusPilihanT6(),
       dataRumusan(),
       // Permohonan pertukaran/pendaftaran unit — admin boleh sahkan terus.
-      prisma.logPertukaran.findMany({
+      db.logPertukaran.findMany({
         where: { status: "Pending" },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { tarikhMohon: "desc" },
       }),
-      prisma.pencapaian.count({ where: { statusSemakan: "Pending" } }),
-      prisma.aktivitiLuar.count({ where: { statusPengesahan: "Pending" } }),
+      db.pencapaian.count({ where: { statusSemakan: "Pending" } }),
+      db.aktivitiLuar.count({ where: { statusPengesahan: "Pending" } }),
     ]);
   const bahagian = analitikRumusan(rumusanRows).bahagian;
   const labelBahagian: Record<Bahagian, string> = {
