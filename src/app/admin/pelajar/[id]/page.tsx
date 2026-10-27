@@ -21,7 +21,7 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
   const { id } = await params;
   const [data, { t, locale }] = await Promise.all([getPelajarProfil(id), getT()]);
   if (!data) notFound();
-  const { pelajar, markah, penyertaan, kehadiran } = data;
+  const { pelajar, markah, penyertaan, kehadiran, ekstra } = data;
   const d = t.admin.pelajarDetail;
 
   return (
@@ -55,6 +55,7 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
         ) : (
           <KadPenyertaan
             penyertaan={penyertaan}
+            ekstra={ekstra}
             label={Object.fromEntries(Object.entries(JENIS_LABEL_KEY).map(([k, v]) => [k, t.common[v]]))}
             pajsk={t.pajsk}
             t={t.pelajar}

@@ -17,7 +17,7 @@ export default async function PelajarDashboard() {
 
   const data = await getPelajarProfil(session.pelajarId);
   if (!data) redirect("/login");
-  const { pelajar, penyertaan } = data;
+  const { pelajar, penyertaan, ekstra } = data;
   const [senarai, slipRows] = await Promise.all([
     senaraiUnitBerpenasihat(),
     dataRumusan({ pelajarId: pelajar.id }),
@@ -62,7 +62,7 @@ export default async function PelajarDashboard() {
         {penyertaan.length === 0 ? (
           <p className="text-sm text-slate-400">{t.guru.noMembers}</p>
         ) : (
-          <KadPenyertaan penyertaan={penyertaan} label={unitLabel} pajsk={t.pajsk} t={t.pelajar} />
+          <KadPenyertaan penyertaan={penyertaan} ekstra={ekstra} label={unitLabel} pajsk={t.pajsk} t={t.pelajar} />
         )}
         <p className="mt-2 text-[11px] text-slate-400">{t.pelajar.unitNote}</p>
       </section>
