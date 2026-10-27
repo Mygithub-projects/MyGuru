@@ -5,20 +5,28 @@ import { TetapanClient } from "./TetapanClient";
 import { KehadiranTetapan } from "./KehadiranTetapan";
 import { jumlahAktiviti } from "@/lib/tetapan-kehadiran";
 import { HadUnitTetapan } from "./HadUnitTetapan";
-import { kuotaUnit } from "@/lib/had-unit";
-import { normalKohort, senaraiKohort } from "@/lib/kohort";
+import { hadIkutUnit, kohortBerhad, kuotaUnit } from "@/lib/had-unit";
+import { kohortSeterusnya, normalKohort, senaraiKohort } from "@/lib/kohort";
+import { kohortDipilih } from "@/lib/kohort-pilihan";
 
 export default async function TetapanPage({ searchParams }: { searchParams: Promise<{ kohort?: string }> }) {
   // Had ahli unit: lalai kohort terkini; admin boleh taip kohort baharu (cth STPM 2028).
-  const kohortList = await senaraiKohort();
-  const kohort = normalKohort((await searchParams).kohort) ?? kohortList[0] ?? "STPM 2027";
-  const [items, jumlah, kuota, { t, locale }] = await Promise.all([
+  const [kohortList, berhad, kohortHeader] = await Promise.all([senaraiKohort(), kohortBerhad(), kohortDipilih()]);
+  const semasa = kohortList[0] ?? "STPM 2027";
+  const seterusnya = kohortSeterusnya([...kohortList, ...berhad]);
+  const kohort = normalKohort((await searchParams).kohort) ?? kohortHeader ?? semasa;
+  // Tab: kohort sedia ada + kohort yang sudah ada had + kohort seterusnya (pengambilan pertengahan tahun).
+  const tabKohort = [...new Set([...kohortList, ...berhad, seterusnya, kohort])].sort((a, b) =>
+    a.localeCompare(b, "ms", { numeric: true }),
+  );
+  const [items, jumlah, kuota, hadSemasa, { t, locale }] = await Promise.all([
     prisma.tetapanMarkah.findMany({
       where: { kategori: { not: "Kehadiran" } }, // diurus oleh KehadiranTetapan
       orderBy: [{ kategori: "asc" }, { nilaiMarkah: "desc" }],
     }),
-    jumlahAktiviti(),
+    jumlahAktiviti(kohortHeader),
     kuotaUnit(kohort),
+    kohort === semasa ? Promise.resolve(null) : hadIkutUnit(semasa),
     getT(),
   ]);
   return (
@@ -32,13 +40,17 @@ export default async function TetapanPage({ searchParams }: { searchParams: Prom
       </div>
       <KehadiranTetapan
         awal={jumlah}
+        kohort={kohortHeader}
         label={{ Kelab: `${t.common.kelab} (KP)`, Sukan: `${t.common.sukan} (SP)`, Uniform: `${t.common.uniform} (BU)` }}
         locale={locale}
       />
       <HadUnitTetapan
         key={kohort}
         kohort={kohort}
-        kohortList={kohortList}
+        tabKohort={tabKohort}
+        semasa={semasa}
+        seterusnya={seterusnya}
+        salinDari={hadSemasa && Object.keys(hadSemasa).length ? { kohort: semasa, had: hadSemasa } : null}
         kuota={kuota}
         label={{ Sukan: `${t.common.sukan} (SP)`, Kelab: `${t.common.kelab} (KP)`, Uniform: `${t.common.uniform} (BU)` }}
         t={t.admin.hadUnit}

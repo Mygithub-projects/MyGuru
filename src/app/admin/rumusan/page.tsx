@@ -11,6 +11,7 @@ import {
   type StatKumpulan,
 } from "@/lib/rumusan";
 import { normalKohort, senaraiKohort } from "@/lib/kohort";
+import { kohortDipilih } from "@/lib/kohort-pilihan";
 
 // Dikira semula setiap permintaan — sentiasa ikut markah terkini yang disahkan.
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export default async function AdminRumusanPage({
   // Kohort semasa = kohort terkini; lalai penapis. "semua" = tiada had kohort.
   const kohortList = await senaraiKohort();
   const semasa = kohortList[0];
-  const kohort = sp.kohort === "semua" ? undefined : normalKohort(sp.kohort) ?? semasa;
+  const kohort = sp.kohort === "semua" ? undefined : normalKohort(sp.kohort) ?? (await kohortDipilih()) ?? semasa;
 
   const [rows, semuaRows, kelasList, { t }] = await Promise.all([
     dataRumusan({ bahagian, kelas, kohort }),

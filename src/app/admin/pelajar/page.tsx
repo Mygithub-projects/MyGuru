@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { dbKohort } from "@/lib/prisma-kohort";
 import { getT } from "@/lib/locale";
 import { PelajarClient } from "./PelajarClient";
 
 export default async function PelajarAdminPage() {
-  const raw = await prisma.pelajar.findMany({
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const raw = await db.pelajar.findMany({
     orderBy: { nama: "asc" },
     select: {
       id: true, nama: true, noIc: true, kelasT6: true,

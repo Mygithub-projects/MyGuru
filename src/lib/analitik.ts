@@ -2,13 +2,14 @@
 //  Analitik — agregat kehadiran, projek/laporan, demografi & cross-tab.
 //  Hak akses: Admin = seluruh kohort; Guru = unit seliaan (hantar unitFilter).
 // ===========================================================================
-import { prisma } from "./prisma";
+import { dbKohort } from "./prisma-kohort";
 import { statusPilihanT6, normalizePeringkat } from "./pajsk";
 
 /** pelajarId dalam unit tertentu (null = semua pelajar / skop admin). */
 async function pelajarIdsUntukUnit(units?: string[]): Promise<string[] | null> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   if (!units) return null;
-  const koko = await prisma.kokurikulum.findMany({
+  const koko = await db.kokurikulum.findMany({
     where: { namaUnitT6: { in: units } },
     select: { pelajarId: true },
   });
@@ -23,8 +24,9 @@ export interface KehadiranUnit {
 }
 
 export async function analitikKehadiran(units?: string[]): Promise<KehadiranUnit[]> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const where = units ? { namaUnit: { in: units } } : {};
-  const recs = await prisma.kehadiran.findMany({ where, select: { namaUnit: true, statusHadir: true } });
+  const recs = await db.kehadiran.findMany({ where, select: { namaUnit: true, statusHadir: true } });
   const map = new Map<string, { total: number; hadir: number }>();
   for (const r of recs) {
     const key = r.namaUnit ?? "(tiada unit)";
@@ -45,8 +47,9 @@ export async function analitikKehadiran(units?: string[]): Promise<KehadiranUnit
 
 /** Tren kehadiran mengikut nombor perjumpaan (untuk carta garisan). */
 export async function analitikTrendKehadiran(units?: string[]): Promise<{ label: string; nilai: number }[]> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const where = units ? { namaUnit: { in: units } } : {};
-  const recs = await prisma.kehadiran.findMany({
+  const recs = await db.kehadiran.findMany({
     where,
     select: { bilPerjumpaan: true, statusHadir: true },
   });
@@ -66,16 +69,18 @@ export async function analitikTrendKehadiran(units?: string[]): Promise<{ label:
 }
 
 export async function analitikProjek() {
-  const grp = await prisma.laporanProjek.groupBy({ by: ["statusPengesahan"], _count: true });
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const grp = await db.laporanProjek.groupBy({ by: ["statusPengesahan"], _count: true });
   return grp.map((g) => ({ status: g.statusPengesahan, bil: g._count }));
 }
 
 export async function analitikLaporan() {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const [jumlah, disahkan, pending, kuiri] = await Promise.all([
-    prisma.laporanMingguan.count(),
-    prisma.laporanMingguan.count({ where: { statusSemakan: "Approved" } }),
-    prisma.laporanMingguan.count({ where: { statusSemakan: "Pending" } }),
-    prisma.laporanMingguan.count({ where: { statusSemakan: "Kuiri" } }),
+    db.laporanMingguan.count(),
+    db.laporanMingguan.count({ where: { statusSemakan: "Approved" } }),
+    db.laporanMingguan.count({ where: { statusSemakan: "Pending" } }),
+    db.laporanMingguan.count({ where: { statusSemakan: "Kuiri" } }),
   ]);
   const kadar = jumlah ? Math.round((disahkan / jumlah) * 1000) / 10 : 0;
   return { jumlah, disahkan, pending, kuiri, kadarPematuhan: kadar };
@@ -87,7 +92,8 @@ export interface Taburan {
 }
 
 async function taburan(field: "jantina" | "kaum" | "agama", label: string): Promise<Taburan> {
-  const grp = await prisma.pelajar.groupBy({ by: [field], _count: true });
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const grp = await db.pelajar.groupBy({ by: [field], _count: true });
   return {
     label,
     data: grp.map((g) => ({ nama: (g[field] as string) ?? "Tiada data", bil: g._count })),
@@ -104,7 +110,8 @@ export async function analitikDemografi() {
 
 /** Taburan status pilihan unit T6 (Belum Pilih/Kekal/Mohon Tukar/Disahkan). */
 export async function analitikStatusPilihanT6(units?: string[]): Promise<{ nama: string; bil: number }[]> {
-  const koko = await prisma.kokurikulum.findMany({
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const koko = await db.kokurikulum.findMany({
     where: units ? { namaUnitT6: { in: units } } : {},
     select: { namaUnitT5: true, namaUnitT6: true, statusPertukaran: true },
   });
@@ -119,8 +126,9 @@ export async function analitikStatusPilihanT6(units?: string[]): Promise<{ nama:
 
 /** Taburan gred PAJSK T6 (A/B/C/D/E) — untuk carta (§7). */
 export async function analitikTaburanGred(units?: string[]): Promise<{ nama: string; bil: number }[]> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const ids = await pelajarIdsUntukUnit(units);
-  const grp = await prisma.pelajar.groupBy({
+  const grp = await db.pelajar.groupBy({
     by: ["gredPajskT6"],
     where: ids ? { id: { in: ids } } : {},
     _count: true,
@@ -134,8 +142,9 @@ export async function analitikTaburanGred(units?: string[]): Promise<{ nama: str
 
 /** Taburan pencapaian (aktiviti luar disahkan) mengikut peringkat (§7). */
 export async function analitikPencapaianPeringkat(units?: string[]): Promise<{ nama: string; bil: number }[]> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const ids = await pelajarIdsUntukUnit(units);
-  const recs = await prisma.aktivitiLuar.findMany({
+  const recs = await db.aktivitiLuar.findMany({
     where: { statusPengesahan: "Approved", ...(ids ? { pelajarId: { in: ids } } : {}) },
     select: { peringkat: true },
   });
@@ -151,13 +160,14 @@ export async function analitikPencapaianPeringkat(units?: string[]): Promise<{ n
 
 /** Kad ringkasan (KPI) sekolah/skop: jumlah pelajar, purata markah, %Gred A, purata kehadiran (§7). */
 export async function kpiSekolah(units?: string[]) {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const ids = await pelajarIdsUntukUnit(units);
   const wherePel = ids ? { id: { in: ids } } : {};
   const [jumlah, agg, gredA, kehadiranRecs] = await Promise.all([
-    prisma.pelajar.count({ where: wherePel }),
-    prisma.pelajar.aggregate({ where: wherePel, _avg: { markahPajskT6: true } }),
-    prisma.pelajar.count({ where: { ...wherePel, gredPajskT6: "A" } }),
-    prisma.kehadiran.findMany({ where: units ? { namaUnit: { in: units } } : {}, select: { statusHadir: true } }),
+    db.pelajar.count({ where: wherePel }),
+    db.pelajar.aggregate({ where: wherePel, _avg: { markahPajskT6: true } }),
+    db.pelajar.count({ where: { ...wherePel, gredPajskT6: "A" } }),
+    db.kehadiran.findMany({ where: units ? { namaUnit: { in: units } } : {}, select: { statusHadir: true } }),
   ]);
   const purataMarkah = Math.round((agg._avg.markahPajskT6 ?? 0) * 10) / 10;
   const peratusGredA = jumlah ? Math.round((gredA / jumlah) * 100) : 0;
@@ -168,7 +178,8 @@ export async function kpiSekolah(units?: string[]) {
 
 /** Cross-tab: Jantina × Jenis Koko (bilangan rekod kokurikulum). */
 export async function crosstabJantinaKoko() {
-  const koko = await prisma.kokurikulum.findMany({
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const koko = await db.kokurikulum.findMany({
     select: { jenisKoko: true, pelajar: { select: { jantina: true } } },
   });
   const jenisList = ["Sukan", "Kelab", "Uniform", "Perkhidmatan"];

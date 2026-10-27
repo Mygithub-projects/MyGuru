@@ -2,7 +2,7 @@
 //  Analitik Pintar (data-driven insights) — KPI kohort + cerapan automatik.
 //  Berasaskan peraturan (rule-based) ke atas data sebenar, bukan model bahasa.
 // ===========================================================================
-import { prisma } from "./prisma";
+import { dbKohort } from "./prisma-kohort";
 import { analitikKehadiran, analitikStatusPilihanT6 } from "./analitik";
 import { getDict, type Locale } from "./i18n";
 
@@ -25,17 +25,18 @@ function purata(arr: (number | null | undefined)[]): number {
 }
 
 export async function getInsights(units?: string[], locale: Locale = "ms"): Promise<{ kpi: KPI[]; cerapan: Cerapan[] }> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const t = getDict(locale).insights;
   // Pelajar dalam skop
   let pelajarWhere = {};
   if (units) {
     const ids = (
-      await prisma.kokurikulum.findMany({ where: { namaUnitT6: { in: units } }, select: { pelajarId: true } })
+      await db.kokurikulum.findMany({ where: { namaUnitT6: { in: units } }, select: { pelajarId: true } })
     ).map((k) => k.pelajarId);
     pelajarWhere = { id: { in: [...new Set(ids)] } };
   }
 
-  const pelajar = await prisma.pelajar.findMany({
+  const pelajar = await db.pelajar.findMany({
     where: pelajarWhere,
     select: { markahPajskT6: true, gredPajskT6: true },
   });
@@ -54,11 +55,11 @@ export async function getInsights(units?: string[], locale: Locale = "ms"): Prom
 
   // Item menunggu tindakan (kohort)
   const [pPertukaran, pCadangan, pPencapaian, pAktiviti, pLaporan] = await Promise.all([
-    prisma.logPertukaran.count({ where: { status: "Pending" } }),
-    prisma.cadanganJawatan.count({ where: { status: "Pending" } }),
-    prisma.pencapaian.count({ where: { statusSemakan: "Pending" } }),
-    prisma.aktivitiLuar.count({ where: { statusPengesahan: "Pending" } }),
-    prisma.laporanMingguan.count({ where: { statusSemakan: "Pending" } }),
+    db.logPertukaran.count({ where: { status: "Pending" } }),
+    db.cadanganJawatan.count({ where: { status: "Pending" } }),
+    db.pencapaian.count({ where: { statusSemakan: "Pending" } }),
+    db.aktivitiLuar.count({ where: { statusPengesahan: "Pending" } }),
+    db.laporanMingguan.count({ where: { statusSemakan: "Pending" } }),
   ]);
   const pending = pPertukaran + pCadangan + pPencapaian + pAktiviti + pLaporan;
 

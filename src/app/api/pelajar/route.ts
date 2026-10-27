@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { dbKohort } from "@/lib/prisma-kohort";
 import { requireGuruOrAdmin, ok } from "@/lib/api";
 import { pelajarIdsDalamSkop } from "@/lib/guru";
 
@@ -8,6 +8,7 @@ import { pelajarIdsDalamSkop } from "@/lib/guru";
 //   ?kelas=6AK1  ?q=ahmad  ?limit=100  ?offset=0
 // Admin / guru seluruh sekolah: semua; guru unit: pelajar dalam unit seliaan.
 export async function GET(request: NextRequest) {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const auth = await requireGuruOrAdmin();
   if ("response" in auth) return auth.response;
   const { guru } = auth;
@@ -25,8 +26,8 @@ export async function GET(request: NextRequest) {
   if (q) where.OR = [{ nama: { contains: q } }, { noIc: { contains: q } }];
 
   const [total, pelajar] = await Promise.all([
-    prisma.pelajar.count({ where }),
-    prisma.pelajar.findMany({
+    db.pelajar.count({ where }),
+    db.pelajar.findMany({
       where,
       skip: offset,
       take: limit,

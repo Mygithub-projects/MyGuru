@@ -4,6 +4,13 @@ import { requireSession, ok, fail } from "@/lib/api";
 import { ciptaSesi, bilPerjumpaanSeterusnya } from "@/lib/kehadiran";
 import { unitSeliaanSU } from "@/lib/pelajar";
 import { JENIS_KOKO } from "@/lib/enums";
+import { kohortDipilih, kohortPelajar } from "@/lib/kohort-pilihan";
+import type { SessionPayload } from "@/lib/auth";
+
+/** Sesi berasingan setiap kohort: SU/NSU guna kohort sendiri; Admin guna kohort dipilih di header. */
+async function kohortSesi(session: SessionPayload): Promise<string | null> {
+  return session.pelajarId ? kohortPelajar(session.pelajarId) : kohortDipilih();
+}
 
 const schema = z.object({
   jenisKoko: z.enum(JENIS_KOKO),
@@ -20,7 +27,9 @@ export async function GET(request: NextRequest) {
   const namaUnit = request.nextUrl.searchParams.get("namaUnit");
   if (!namaUnit) return fail("namaUnit diperlukan", 400);
 
-  const seterusnya = await bilPerjumpaanSeterusnya(namaUnit);
+  const kohort = await kohortSesi(auth.session);
+  if (!kohort) return fail("Kohort belum ditetapkan", 422);
+  const seterusnya = await bilPerjumpaanSeterusnya(namaUnit, kohort);
   return ok({ seterusnya });
 }
 
@@ -49,8 +58,12 @@ export async function POST(request: NextRequest) {
     if (!namaUnits.includes(parsed.data.namaUnit)) return fail("Anda hanya boleh membuka sesi untuk unit seliaan anda", 403);
   }
 
+  const kohort = await kohortSesi(session);
+  if (!kohort) return fail("Kohort belum ditetapkan — hubungi pentadbir", 422);
+
   try {
     const sesi = await ciptaSesi({
+      kohort,
       jenisKoko: parsed.data.jenisKoko,
       namaUnit: parsed.data.namaUnit,
       tarikh: new Date(parsed.data.tarikh),

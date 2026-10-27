@@ -1,5 +1,5 @@
 // Lapisan data Guru — kumpul item menunggu tindakan ikut skop seliaan.
-import { prisma } from "./prisma";
+import { dbKohort } from "./prisma-kohort";
 import { guruSeluruhSekolah, unitSeliaan } from "./workflow";
 import { statusPilihanT6 } from "./pajsk";
 import type { Guru } from "@prisma/client";
@@ -11,10 +11,11 @@ import type { Guru } from "@prisma/client";
  * UNIT yang ditugaskan secara langsung kepada guru.
  */
 export async function pelajarIdsDalamSkop(guru: Guru): Promise<string[] | null> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   if (guruSeluruhSekolah(guru)) return null;
   const units = await unitSeliaan(guru);
   if (units.length === 0) return [];
-  const koko = await prisma.kokurikulum.findMany({
+  const koko = await db.kokurikulum.findMany({
     where: { namaUnitT6: { in: units } },
     select: { pelajarId: true },
   });
@@ -23,6 +24,7 @@ export async function pelajarIdsDalamSkop(guru: Guru): Promise<string[] | null> 
 
 /** Bilangan item menunggu tindakan dalam skop (guru = unit seliaan; null = seluruh sekolah). */
 export async function countPendingGuru(guru: Guru | null): Promise<number> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const ids = guru ? await pelajarIdsDalamSkop(guru) : null;
   const wherePelajar = ids === null ? {} : { pelajarId: { in: ids } };
   const units = guru ? await unitSeliaan(guru) : [];
@@ -33,18 +35,19 @@ export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const whereUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, setiausahaId: { in: ids } }] };
   const whereSesi = ids === null ? {} : { namaUnit: { in: units } };
   const [a, b, c, d, e, f, g] = await Promise.all([
-    prisma.pencapaian.count({ where: { statusSemakan: "Pending", ...wherePelajarUnit } }),
-    prisma.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...wherePelajarUnit } }),
-    prisma.logPertukaran.count({ where: { status: "Pending", ...wherePelajar } }),
-    prisma.laporanMingguan.count({ where: { statusSemakan: "Pending", ...whereUnit } }),
-    prisma.laporanProjek.count({ where: { statusPengesahan: "Pending", ...whereUnit } }),
-    prisma.sesiKehadiran.count({ where: { disahkan: false, ...whereSesi } }),
-    prisma.cadanganJawatan.count({ where: { status: "Pending", ...wherePelajar } }),
+    db.pencapaian.count({ where: { statusSemakan: "Pending", ...wherePelajarUnit } }),
+    db.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...wherePelajarUnit } }),
+    db.logPertukaran.count({ where: { status: "Pending", ...wherePelajar } }),
+    db.laporanMingguan.count({ where: { statusSemakan: "Pending", ...whereUnit } }),
+    db.laporanProjek.count({ where: { statusPengesahan: "Pending", ...whereUnit } }),
+    db.sesiKehadiran.count({ where: { disahkan: false, ...whereSesi } }),
+    db.cadanganJawatan.count({ where: { status: "Pending", ...wherePelajar } }),
   ]);
   return a + b + c + d + e + f + g;
 }
 
 export async function getGuruDashboard(guru: Guru) {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const ids = await pelajarIdsDalamSkop(guru);
   const wherePelajar = ids === null ? {} : { pelajarId: { in: ids } };
   const units = await unitSeliaan(guru);
@@ -54,32 +57,32 @@ export async function getGuruDashboard(guru: Guru) {
 
   const [pencapaian, aktivitiLuar, pertukaran, laporanMingguan, laporanProjek, sesiKehadiran, cadanganJawatan] =
     await Promise.all([
-      prisma.pencapaian.findMany({
+      db.pencapaian.findMany({
         where: { statusSemakan: "Pending", ...wherePelajarUnit },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.aktivitiLuar.findMany({
+      db.aktivitiLuar.findMany({
         where: { statusPengesahan: "Pending", ...wherePelajarUnit },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.logPertukaran.findMany({
+      db.logPertukaran.findMany({
         where: { status: "Pending", ...wherePelajar },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { tarikhMohon: "desc" },
       }),
-      prisma.laporanMingguan.findMany({
+      db.laporanMingguan.findMany({
         where: { statusSemakan: "Pending", ...whereUnit },
         include: { setiausaha: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.laporanProjek.findMany({
+      db.laporanProjek.findMany({
         where: { statusPengesahan: "Pending", ...whereUnit },
         include: { setiausaha: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.sesiKehadiran.findMany({
+      db.sesiKehadiran.findMany({
         where: { disahkan: false, ...whereSesi },
         include: {
           kehadiran: {
@@ -89,7 +92,7 @@ export async function getGuruDashboard(guru: Guru) {
         },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.cadanganJawatan.findMany({
+      db.cadanganJawatan.findMany({
         where: { status: "Pending", ...wherePelajar },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
@@ -114,9 +117,10 @@ export async function getGuruDashboard(guru: Guru) {
  * - Seluruh sekolah: ringkasan kiraan ikut status (elak senarai terlalu besar).
  */
 export async function getStatusPilihanT6(guru: Guru) {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const seluruh = guruSeluruhSekolah(guru);
   const units = await unitSeliaan(guru);
-  const koko = await prisma.kokurikulum.findMany({
+  const koko = await db.kokurikulum.findMany({
     where: seluruh ? {} : { namaUnitT6: { in: units } },
     include: { pelajar: { select: { nama: true, kelasT6: true } } },
     orderBy: [{ namaUnitT6: "asc" }],
@@ -147,19 +151,20 @@ export async function getStatusPilihanT6(guru: Guru) {
 
 /** Laporan yang TELAH DISAHKAN dalam skop guru — untuk muat turun (spec guru §6). */
 export async function getLaporanDisahkan(guru: Guru) {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const seluruh = guruSeluruhSekolah(guru);
   const units = await unitSeliaan(guru);
   if (!seluruh && units.length === 0) return { mingguan: [], projek: [] };
   const whereUnit = seluruh ? {} : { namaUnit: { in: units } };
 
   const [mingguan, projek] = await Promise.all([
-    prisma.laporanMingguan.findMany({
+    db.laporanMingguan.findMany({
       where: { statusSemakan: "Approved", ...whereUnit },
       include: { setiausaha: { select: { nama: true } } },
       orderBy: { updatedAt: "desc" },
       take: 50,
     }),
-    prisma.laporanProjek.findMany({
+    db.laporanProjek.findMany({
       where: { statusPengesahan: "Approved", ...whereUnit },
       include: { setiausaha: { select: { nama: true } } },
       orderBy: { updatedAt: "desc" },
@@ -197,11 +202,12 @@ export interface UnitAhli {
  * Guru seluruh sekolah → semua unit; guru unit → unit seliaan sahaja.
  */
 export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const seluruh = guruSeluruhSekolah(guru);
   const units = await unitSeliaan(guru);
   if (!seluruh && units.length === 0) return [];
 
-  const koko = await prisma.kokurikulum.findMany({
+  const koko = await db.kokurikulum.findMany({
     where: seluruh
       ? { namaUnitT6: { not: null } }
       : { namaUnitT6: { in: units } },
@@ -242,11 +248,12 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
  * (spec guru §3). Guru seluruh sekolah → semua unit.
  */
 export async function getKehadiranGuru(guru: Guru, arah: "asc" | "desc" = "desc") {
+  const db = await dbKohort(); // data kohort dipilih sahaja
   const seluruh = guruSeluruhSekolah(guru);
   const units = await unitSeliaan(guru);
   if (!seluruh && units.length === 0) return [];
 
-  const sesi = await prisma.sesiKehadiran.findMany({
+  const sesi = await db.sesiKehadiran.findMany({
     where: seluruh ? {} : { namaUnit: { in: units } },
     include: {
       kehadiran: {

@@ -98,7 +98,7 @@ export async function getPelajarProfil(pelajarId: string) {
   const ekstra = markahEkstra(itemEks);
   // Sumber markah ekstra tertinggi (jawatan Unit Perkhidmatan / anugerah khas disahkan).
   const sumberEkstra = itemEks.reduce<string | null>((m, x) => (nilaiEkstra(x) > nilaiEkstra(m) ? x : m), null);
-  const jumlah = await jumlahAktiviti();
+  const jumlah = await jumlahAktiviti(pelajar.kohort);
   const asas = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"]
     .map((jenis) => {
       const k = byJenis(jenis);

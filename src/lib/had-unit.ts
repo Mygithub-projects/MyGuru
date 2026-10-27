@@ -41,6 +41,18 @@ export async function kuotaUnit(kohort: string | null): Promise<KuotaUnit[]> {
   );
 }
 
+/** Kohort yang sudah mempunyai had ditetapkan (termasuk kohort akan datang tanpa pelajar). */
+export async function kohortBerhad(): Promise<string[]> {
+  const rows = await prisma.hadUnit.findMany({ distinct: ["kohort"], select: { kohort: true } });
+  return rows.map((r) => r.kohort);
+}
+
+/** Had tersimpan satu kohort sebagai peta unit → had (untuk "salin had"). */
+export async function hadIkutUnit(kohort: string): Promise<Record<string, number>> {
+  const rows = await prisma.hadUnit.findMany({ where: { kohort }, select: { namaUnit: true, had: true } });
+  return Object.fromEntries(rows.map((r) => [r.namaUnit, r.had]));
+}
+
 /** Simpan had (null/kosong = buang had) bagi satu kohort. */
 export async function simpanHad(
   kohort: string,

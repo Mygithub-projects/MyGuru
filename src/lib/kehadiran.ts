@@ -9,15 +9,16 @@ import { markahKehadiran, peratusKehadiran, MARKAH_KEHADIRAN_PENUH, JUMLAH_PERJU
 import { kiraSemulaT6 } from "./workflow";
 import { jumlahAktiviti, jumlahKeseluruhan } from "./tetapan-kehadiran";
 import type { JenisKoko } from "./enums";
+import { kohortPelajar } from "./kohort-pilihan";
 
 // Jumlah perjumpaan mingguan wajib = 30 kali sepanjang pengajian (§1.2).
 // Satu kiraan keseluruhan (bukan berasingan ikut bidang).
 const PERJUMPAAN_STANDARD = JUMLAH_PERJUMPAAN_WAJIB;
 
-/** Senarai pelajar (ahli) dalam unit T6 tertentu. */
-export async function ahliUnit(namaUnit: string) {
+/** Senarai pelajar (ahli) dalam unit T6 tertentu — hanya kohort yang sama. */
+export async function ahliUnit(namaUnit: string, kohort: string | null) {
   const koko = await prisma.kokurikulum.findMany({
-    where: { namaUnitT6: namaUnit },
+    where: { namaUnitT6: namaUnit, pelajar: { kohort, statusAktif: true } },
     include: { pelajar: { select: { id: true, nama: true, kelasT6: true } } },
   });
   return koko.map((k) => k.pelajar);
@@ -28,14 +29,16 @@ export async function ahliUnit(namaUnit: string) {
  *  sesi lampau yang telah disahkan tidak tertimpa secara senyap oleh SU yang
  *  tersilap guna semula nombor perjumpaan lama. */
 export async function ciptaSesi(input: {
+  kohort: string;
   jenisKoko: JenisKoko;
   namaUnit: string;
   tarikh: Date;
   bilPerjumpaan: number;
   dibuatOlehId?: string;
 }) {
+  const kunci = { kohort: input.kohort, namaUnit: input.namaUnit, bilPerjumpaan: input.bilPerjumpaan };
   const sediaAda = await prisma.sesiKehadiran.findUnique({
-    where: { namaUnit_bilPerjumpaan: { namaUnit: input.namaUnit, bilPerjumpaan: input.bilPerjumpaan } },
+    where: { kohort_namaUnit_bilPerjumpaan: kunci },
   });
   if (sediaAda?.disahkan) {
     const tarikhLama = sediaAda.tarikh.toISOString().slice(0, 10);
@@ -47,9 +50,10 @@ export async function ciptaSesi(input: {
 
   const token = randomBytes(9).toString("base64url");
   return prisma.sesiKehadiran.upsert({
-    where: { namaUnit_bilPerjumpaan: { namaUnit: input.namaUnit, bilPerjumpaan: input.bilPerjumpaan } },
+    where: { kohort_namaUnit_bilPerjumpaan: kunci },
     update: { tarikh: input.tarikh, dibuka: true },
     create: {
+      kohort: input.kohort,
       jenisKoko: input.jenisKoko,
       namaUnit: input.namaUnit,
       tarikh: input.tarikh,
@@ -62,9 +66,9 @@ export async function ciptaSesi(input: {
 
 /** Nombor perjumpaan seterusnya (belum wujud) untuk unit ini — cadangan UI
  *  supaya borang "Buka Sesi" tidak default ke #1 dan tertimpa sesi lampau. */
-export async function bilPerjumpaanSeterusnya(namaUnit: string): Promise<number> {
+export async function bilPerjumpaanSeterusnya(namaUnit: string, kohort: string): Promise<number> {
   const terbesar = await prisma.sesiKehadiran.aggregate({
-    where: { namaUnit },
+    where: { namaUnit, kohort },
     _max: { bilPerjumpaan: true },
   });
   return (terbesar._max.bilPerjumpaan ?? 0) + 1;
@@ -110,9 +114,9 @@ export async function selfCheckIn(token: string, pelajarId: string) {
   if (!sesi) throw new Error("Token sesi tidak sah.");
   if (!sesi.dibuka) throw new Error("Sesi kehadiran telah ditutup.");
 
-  // Pastikan pelajar ialah ahli unit
+  // Pastikan pelajar ialah ahli unit DAN dalam kohort sesi ini
   const ahli = await prisma.kokurikulum.findFirst({
-    where: { pelajarId, namaUnitT6: sesi.namaUnit },
+    where: { pelajarId, namaUnitT6: sesi.namaUnit, ...(sesi.kohort ? { pelajar: { kohort: sesi.kohort } } : {}) },
     select: { id: true },
   });
   if (!ahli) throw new Error("Anda bukan ahli unit ini.");
@@ -164,7 +168,7 @@ export async function kiraSemulaKehadiran(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
   if (recs.length === 0) return;
   const hadir = recs.filter((r) => r.statusHadir && r.disahkan).length;
-  const denom = jumlahKeseluruhan(await jumlahAktiviti()); // cth 16 + 17 + 14 = 47
+  const denom = jumlahKeseluruhan(await jumlahAktiviti(await kohortPelajar(pelajarId))); // cth 16 + 17 + 14 = 47
   const markah = markahKehadiran(hadir, denom);
   await prisma.pelajar.update({ where: { id: pelajarId }, data: { markahKehadiran: markah } });
   await kiraSemulaT6(pelajarId);
@@ -175,8 +179,9 @@ export async function kiraSemulaKehadiran(pelajarId: string) {
  * Kira semula markah SEMUA pelajar (cth. selepas Admin menukar jumlah aktiviti
  * bahagian). Pelajar dengan rekod kehadiran: kehadiran + T6; tanpa rekod: T6.
  */
-export async function kiraSemulaSemuaPelajar() {
+export async function kiraSemulaSemuaPelajar(kohort?: string | null) {
   const senarai = await prisma.pelajar.findMany({
+    where: kohort ? { kohort } : undefined,
     select: { id: true, _count: { select: { kehadiran: true } } },
   });
   for (const p of senarai) {
@@ -195,7 +200,7 @@ export async function ringkasanKehadiranPelajar(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
   // Hadir & markah hanya daripada sesi yang telah disahkan.
   const hadir = recs.filter((r) => r.statusHadir && r.disahkan).length;
-  const jumlahSetahun = jumlahKeseluruhan(await jumlahAktiviti());
+  const jumlahSetahun = jumlahKeseluruhan(await jumlahAktiviti(await kohortPelajar(pelajarId)));
   const direkod = Math.min(recs.length, jumlahSetahun);
   const markah = markahKehadiran(hadir, jumlahSetahun);
   const peratus = peratusKehadiran(hadir, jumlahSetahun);
@@ -212,10 +217,10 @@ export async function ringkasanSesi(sesiId: string) {
 }
 
 /** Senarai sesi kehadiran untuk unit-unit tertentu (untuk dropdown laporan). */
-export async function sesiUntukUnit(units: string[]) {
+export async function sesiUntukUnit(units: string[], kohort: string | null) {
   if (units.length === 0) return [];
   return prisma.sesiKehadiran.findMany({
-    where: { namaUnit: { in: units } },
+    where: { namaUnit: { in: units }, ...(kohort ? { kohort } : {}) },
     orderBy: [{ namaUnit: "asc" }, { bilPerjumpaan: "asc" }],
     select: { id: true, namaUnit: true, bilPerjumpaan: true, tarikh: true },
   });

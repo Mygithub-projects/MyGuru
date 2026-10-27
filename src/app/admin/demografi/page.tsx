@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { dbKohort } from "@/lib/prisma-kohort";
 import { getT } from "@/lib/locale";
 import { DemografiClient } from "./DemografiClient";
 
 export default async function DemografiPage() {
-  const pelajar = await prisma.pelajar.findMany({
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const pelajar = await db.pelajar.findMany({
     orderBy: { nama: "asc" },
     select: { id: true, nama: true, noIc: true, kelasT6: true, jantina: true, kaum: true, agama: true },
   });
