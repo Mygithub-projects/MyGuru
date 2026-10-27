@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { fail } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { janaLaporanPDF } from "@/lib/pdf";
+import { teksDisahkanOleh } from "@/lib/pengesah";
 import { guruSeluruhSekolah, unitSeliaan, bolehGuruAksesPelajar } from "@/lib/workflow";
 
 export async function GET(
@@ -33,6 +34,7 @@ export async function GET(
   }
 
   const pdf = await janaLaporanPDF({
+    disahkanOleh: await teksDisahkanOleh(rec),
     jenis: "Projek",
     tajuk: rec.namaProjek,
     namaUnit: rec.namaUnit,

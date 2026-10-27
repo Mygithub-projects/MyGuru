@@ -393,6 +393,8 @@ model LaporanMingguan {
   setiausahaId  String
   statusSemakan String   @default("Draft") // Draft | Pending | Approved | Kuiri
   komenGuru     String?
+  disahkanOleh  String? // nama pengesah, cth "NAMA (Guru Penasihat)"
+  tarikhSahkan  DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -423,6 +425,8 @@ model LaporanProjek {
   kelemahan       String?
   statusPengesahan String  @default("Draft") // Draft | Pending | Approved | Kuiri
   komenGuru       String?
+  disahkanOleh    String? // nama pengesah, cth "NAMA (Guru Penasihat)"
+  tarikhSahkan    DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

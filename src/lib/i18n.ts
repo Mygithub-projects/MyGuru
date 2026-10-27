@@ -305,7 +305,7 @@ export interface Dict {
     semakan: {
       title: string; sub: string; all: string; pending: string; approved: string; query: string;
       by: string; evidence: string; workPlan: string; approve: string; queryBtn: string; queryPrompt: string;
-      empty: string; notAllowed: string; networkError: string; position: string; filterBtn: string; statusLabel: string; typeLabel: string;
+      empty: string; notAllowed: string; networkError: string; position: string; filterBtn: string; statusLabel: string; typeLabel: string; approvedBy: string;
     };
   };
   insights: {
@@ -697,7 +697,7 @@ const ms: Dict = {
       all: "Semua", pending: "Menunggu", approved: "Disahkan", query: "Kuiri",
       by: "oleh", evidence: "Lihat eviden", workPlan: "Kertas kerja", approve: "Sahkan", queryBtn: "Kuiri", queryPrompt: "Komen kuiri:",
       empty: "Tiada laporan untuk tapisan ini.", notAllowed: "Tidak dibenarkan.", networkError: "Ralat rangkaian",
-      position: "Jawatan", filterBtn: "Tapis", statusLabel: "Status", typeLabel: "Jenis laporan",
+      position: "Jawatan", filterBtn: "Tapis", statusLabel: "Status", typeLabel: "Jenis laporan", approvedBy: "Disahkan oleh",
     },
   },
   insights: {
@@ -1123,7 +1123,7 @@ const en: Dict = {
       all: "All", pending: "Pending", approved: "Approved", query: "Query",
       by: "by", evidence: "View evidence", workPlan: "Work plan", approve: "Approve", queryBtn: "Query", queryPrompt: "Query comment:",
       empty: "No reports for this filter.", notAllowed: "Not allowed.", networkError: "Network error",
-      position: "Position", filterBtn: "Filter", statusLabel: "Status", typeLabel: "Report type",
+      position: "Position", filterBtn: "Filter", statusLabel: "Status", typeLabel: "Report type", approvedBy: "Approved by",
     },
   },
   insights: {
