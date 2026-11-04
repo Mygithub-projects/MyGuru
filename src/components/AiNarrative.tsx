@@ -36,7 +36,7 @@ export function AiNarrative({ label, loadingText, locale }: { label: string; loa
       {state === "loading" ? (
         <p className="animate-pulse text-sm text-slate-400">{loadingText}</p>
       ) : (
-        <p className="text-sm leading-relaxed text-slate-700">{teks}</p>
+        <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">{teks}</p>
       )}
     </div>
   );
