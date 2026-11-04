@@ -1,6 +1,7 @@
 import { requireGuruOrAdmin, ok } from "@/lib/api";
 import { guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
 import { getInsights } from "@/lib/insights";
+import { analitikKehadiranPerjumpaanBahagian } from "@/lib/analitik";
 import { ringkasanAI, aiDiaktifkan } from "@/lib/ai";
 import { getLocale } from "@/lib/locale";
 
@@ -24,7 +25,10 @@ export async function GET() {
   }
 
   const locale = await getLocale();
-  const { kpi, cerapan } = await getInsights(units, locale);
-  const ringkasan = await ringkasanAI({ skop, kpi, cerapan, locale });
+  const [{ kpi, cerapan, gredA, jumlahPelajar }, kehadiranPerjumpaan] = await Promise.all([
+    getInsights(units, locale),
+    analitikKehadiranPerjumpaanBahagian(units),
+  ]);
+  const ringkasan = await ringkasanAI({ skop, kpi, cerapan, gredA, jumlahPelajar, kehadiranPerjumpaan, locale });
   return ok({ ai: ringkasan != null, ringkasan });
 }

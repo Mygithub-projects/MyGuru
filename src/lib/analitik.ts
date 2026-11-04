@@ -68,6 +68,50 @@ export async function analitikTrendKehadiran(units?: string[]): Promise<{ label:
     }));
 }
 
+export interface KehadiranPerjumpaan {
+  bil: number;
+  hadir: number;
+  total: number;
+  peratus: number;
+}
+
+/**
+ * Kehadiran setiap perjumpaan (#1, #2 …) dipecah ikut bahagian (jenisKoko:
+ * Kelab = KP, Sukan = SP, Uniform = BU). Perjumpaan #n semua unit dalam
+ * bahagian yang sama digabungkan.
+ */
+export async function analitikKehadiranPerjumpaanBahagian(
+  units?: string[],
+): Promise<Record<string, KehadiranPerjumpaan[]>> {
+  const db = await dbKohort(); // data kohort dipilih sahaja
+  const where = units ? { namaUnit: { in: units } } : {};
+  const recs = await db.kehadiran.findMany({
+    where,
+    select: { jenisKoko: true, bilPerjumpaan: true, statusHadir: true },
+  });
+  const map = new Map<string, Map<number, { total: number; hadir: number }>>();
+  for (const r of recs) {
+    const perJenis = map.get(r.jenisKoko) ?? new Map();
+    const m = perJenis.get(r.bilPerjumpaan) ?? { total: 0, hadir: 0 };
+    m.total++;
+    if (r.statusHadir) m.hadir++;
+    perJenis.set(r.bilPerjumpaan, m);
+    map.set(r.jenisKoko, perJenis);
+  }
+  const hasil: Record<string, KehadiranPerjumpaan[]> = {};
+  for (const [jenis, perJenis] of map) {
+    hasil[jenis] = [...perJenis.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([bil, m]) => ({
+        bil,
+        hadir: m.hadir,
+        total: m.total,
+        peratus: m.total ? Math.round((m.hadir / m.total) * 1000) / 10 : 0,
+      }));
+  }
+  return hasil;
+}
+
 export async function analitikProjek() {
   const db = await dbKohort(); // data kohort dipilih sahaja
   const grp = await db.laporanProjek.groupBy({ by: ["statusPengesahan"], _count: true });

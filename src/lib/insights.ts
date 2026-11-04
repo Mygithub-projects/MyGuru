@@ -24,7 +24,7 @@ function purata(arr: (number | null | undefined)[]): number {
   return Math.round((v.reduce((s, x) => s + x, 0) / v.length) * 10) / 10;
 }
 
-export async function getInsights(units?: string[], locale: Locale = "ms"): Promise<{ kpi: KPI[]; cerapan: Cerapan[] }> {
+export async function getInsights(units?: string[], locale: Locale = "ms"): Promise<{ kpi: KPI[]; cerapan: Cerapan[]; gredA: number; jumlahPelajar: number }> {
   const db = await dbKohort(); // data kohort dipilih sahaja
   const t = getDict(locale).insights;
   // Pelajar dalam skop
@@ -100,5 +100,5 @@ export async function getInsights(units?: string[], locale: Locale = "ms"): Prom
   if (cerapan.length === 0)
     cerapan.push({ teks: t.noIssues, jenis: "positif" });
 
-  return { kpi, cerapan };
+  return { kpi, cerapan, gredA, jumlahPelajar: n };
 }
