@@ -2,23 +2,24 @@
 // Klien LLM untuk lapisan agent — Anthropic Claude (tool-use asli: blok tool_use +
 // blok tool_result). Sama penyedia seperti ringkasan AI di src/lib/ai.ts.
 
-import Anthropic from "@anthropic-ai/sdk";
+import type Anthropic from "@anthropic-ai/sdk";
+import { buatKlienClaude, claudeDikonfigurasi, type KlienClaude } from "../claude-client";
 
 // Lazy singleton: bina klien hanya pada penggunaan pertama supaya `next build`
 // (yang menilai modul route) tidak gagal apabila ANTHROPIC_API_KEY belum
 // ditetapkan — ralat auth ditangguh ke masa panggilan, ditangkap oleh route.
-let _client: Anthropic | null = null;
+let _client: KlienClaude | null = null;
 
-export function getClient(): Anthropic {
+export function getClient(): KlienClaude {
   if (!_client) {
-    _client = new Anthropic(); // membaca ANTHROPIC_API_KEY dari env
+    _client = buatKlienClaude(); // Vertex AI (GCP) atau ANTHROPIC_API_KEY
   }
   return _client;
 }
 
 /** Adakah kunci Claude ditetapkan? Route boleh guna untuk gagal-anggun. */
 export function llmDiaktifkan(): boolean {
-  return !!process.env.ANTHROPIC_API_KEY;
+  return claudeDikonfigurasi();
 }
 
 /**
