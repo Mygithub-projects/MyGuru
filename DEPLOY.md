@@ -192,7 +192,7 @@ Ini mencipta:
 
 - **E-mel (SMTP):** set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`. Pelajar perlu medan `email` diisi.
 - **Telegram:** set `TELEGRAM_BOT_TOKEN` (+ `telegramChatId` pelajar atau `TELEGRAM_DEFAULT_CHAT_ID`).
-- **Cerapan AI:** set `ANTHROPIC_API_KEY` (panel Analitik Pintar akan jana ringkasan).
+- **Cerapan AI:** set `ANTHROPIC_VERTEX_PROJECT_ID` (+ `CLOUD_ML_REGION`, lalai `global`) untuk guna Claude melalui Vertex AI pada projek GCP DELIMa — aktifkan model Claude dalam Vertex AI Model Garden dan beri akaun servis VM peranan **Vertex AI User**. Atau set `ANTHROPIC_API_KEY` untuk API Anthropic terus. Panel Analitik Pintar akan jana ringkasan.
 - **Domain tersuai:** Vercel → Settings → Domains → tambah domain sekolah.
 
 ---

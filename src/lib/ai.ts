@@ -1,9 +1,10 @@
 // ===========================================================================
 //  Ringkasan AI — guna API Claude untuk menjana naratif bahasa tabii ringkas
-//  daripada KPI + cerapan. Aktif HANYA bila ANTHROPIC_API_KEY ditetapkan;
+//  daripada KPI + cerapan. Aktif HANYA bila Claude dikonfigurasi (Vertex/API key);
 //  jika tidak, pulangkan null (pemanggil guna cerapan berasaskan peraturan).
 // ===========================================================================
-import Anthropic from "@anthropic-ai/sdk";
+import type Anthropic from "@anthropic-ai/sdk";
+import { buatKlienClaude, claudeDikonfigurasi } from "./claude-client";
 import type { KPI, Cerapan } from "./insights";
 import type { Locale } from "./i18n";
 
@@ -11,7 +12,7 @@ import type { Locale } from "./i18n";
 const MODEL = process.env.AI_MODEL || "claude-opus-4-8";
 
 export function aiDiaktifkan(): boolean {
-  return !!process.env.ANTHROPIC_API_KEY;
+  return claudeDikonfigurasi();
 }
 
 export async function ringkasanAI(input: {
@@ -22,7 +23,7 @@ export async function ringkasanAI(input: {
 }): Promise<string | null> {
   if (!aiDiaktifkan()) return null;
 
-  const client = new Anthropic(); // membaca ANTHROPIC_API_KEY dari env
+  const client = buatKlienClaude(); // Vertex AI (GCP) atau ANTHROPIC_API_KEY
 
   const data = [
     `Skop: ${input.skop}`,
