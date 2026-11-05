@@ -55,6 +55,7 @@ model Guru {
   pertukaranLulus LogPertukaran[] @relation("GuruPertukaran")
   kokurikulumLulus Kokurikulum[]  @relation("GuruKokoLulus")
   penasihatKelab  GuruPenasihatKelab[]
+  kehadiranGuru   KehadiranGuru[]
 }
 
 // === RBAC: Guru Penasihat ikut kelab/sukan (§3) ===========================
@@ -286,6 +287,7 @@ model SesiKehadiran {
   createdAt     DateTime @default(now())
 
   kehadiran       Kehadiran[]
+  kehadiranGuru   KehadiranGuru[]
   laporanMingguan LaporanMingguan[]
   laporanProjek   LaporanProjek[]
 
@@ -311,6 +313,27 @@ model Kehadiran {
 
   @@unique([pelajarId, namaUnit, bilPerjumpaan])
   @@index([pelajarId, jenisKoko])
+}
+
+// === Kehadiran Guru (guru isi setiap perjumpaan; disemak Admin) ==========
+
+model KehadiranGuru {
+  id            String        @id @default(cuid())
+  guru          Guru          @relation(fields: [guruId], references: [id], onDelete: Cascade)
+  guruId        String
+  sesi          SesiKehadiran @relation(fields: [sesiId], references: [id], onDelete: Cascade)
+  sesiId        String
+  statusHadir   Boolean       @default(true) // false = tidak hadir (wajib nyatakan sebab)
+  catatan       String? // sebab tidak hadir / nota guru
+  statusSemakan String        @default("Pending") // Pending | Approved | Rejected
+  disemakOlehId String? // userId Admin
+  tarikhSemak   DateTime?
+  komenAdmin    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([guruId, sesiId])
+  @@index([statusSemakan])
 }
 
 // === Tetapan Sijil (templat e-Cert boleh-suai oleh Admin) =================
