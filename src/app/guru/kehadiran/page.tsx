@@ -61,9 +61,10 @@ export default async function KehadiranGuruPage({
         </p>
       ) : (
         sesi.map((s) => (
-          <section key={s.id} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <details key={s.id} className="group rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
               <h2 className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                <span className="text-slate-400 transition-transform group-open:rotate-90" aria-hidden>▶</span>
                 <span className="rounded-full bg-brand-light px-2 py-0.5 text-[11px] font-semibold uppercase text-brand-dark">
                   {s.jenisKoko}
                 </span>
@@ -82,11 +83,11 @@ export default async function KehadiranGuruPage({
                   {s.disahkan ? t.common.disahkan : t.common.belumDisahkan}
                 </span>
               </div>
-            </div>
+            </summary>
             {s.ahli.length === 0 ? (
-              <p className="text-sm text-slate-400">{t.guru.noAttendance}</p>
+              <p className="mt-3 text-sm text-slate-400">{t.guru.noAttendance}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-400">
@@ -115,7 +116,7 @@ export default async function KehadiranGuruPage({
                 </table>
               </div>
             )}
-          </section>
+          </details>
         ))
       )}
     </div>

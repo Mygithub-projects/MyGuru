@@ -22,6 +22,7 @@ const SYARAT: Record<string, Syarat> = {
   LaporanMingguan: ikutSetiausaha,
   LaporanProjek: ikutSetiausaha,
   SesiKehadiran: (k) => ({ kohort: k }),
+  KehadiranGuru: (k) => ({ sesi: { kohort: k } }),
 };
 const BACAAN = new Set(["findMany", "findFirst", "findFirstOrThrow", "count", "groupBy", "aggregate"]);
 
