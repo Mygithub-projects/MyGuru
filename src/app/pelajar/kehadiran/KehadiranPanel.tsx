@@ -97,7 +97,17 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
     }
   }
 
-  const bilHadir = Object.values(hadir).filter(Boolean).length;
+  // Kira ikut ahli unit semasa sahaja (state `hadir` kekal bila tukar unit).
+  const bilHadir = unit.ahli.filter((a) => hadir[a.id]).length;
+  const semuaHadir = unit.ahli.length > 0 && bilHadir === unit.ahli.length;
+
+  function tandaSemua(nilai: boolean) {
+    setHadir((h) => {
+      const baru = { ...h };
+      for (const a of unit.ahli) baru[a.id] = nilai;
+      return baru;
+    });
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -152,6 +162,15 @@ export function KehadiranPanel({ units }: { units: Unit[] }) {
               </button>
             </div>
             <div className="space-y-1">
+              {unit.ahli.length > 0 && (
+                <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-brand/30 bg-brand-light px-3 py-2 text-sm font-semibold text-brand-dark">
+                  <input type="checkbox" checked={semuaHadir}
+                    ref={(el) => { if (el) el.indeterminate = bilHadir > 0 && !semuaHadir; }}
+                    onChange={(e) => tandaSemua(e.target.checked)}
+                    className="h-4 w-4 accent-brand" />
+                  <span>{t.markAll}</span>
+                </label>
+              )}
               {unit.ahli.map((a) => (
                 <label key={a.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-100 px-3 py-2 text-sm hover:bg-slate-50">
                   <input type="checkbox" checked={!!hadir[a.id]}
