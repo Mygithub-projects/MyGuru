@@ -618,6 +618,14 @@ export async function cadangJawatan(input: {
  * selaraskan sub-peranan pelajar (Setiausaha → SU, Naib/Penolong Setiausaha → NSU)
  * supaya mereka boleh mengisi kehadiran & laporan.
  */
+/** SU bagi Setiausaha; NSU bagi Naib/Penolong Setiausaha; null bagi jawatan lain. */
+function subRoleDariJawatan(jawatan: string | null | undefined): "SU" | "NSU" | null {
+  const j = (jawatan ?? "").toUpperCase();
+  if (j.includes("PENOLONG SETIAUSAHA") || j.includes("NAIB SETIAUSAHA")) return "NSU";
+  if (j.includes("SETIAUSAHA")) return "SU";
+  return null;
+}
+
 export async function tetapkanJawatanOlehGuru(input: {
   pelajarId: string;
   jenisKoko: JenisKoko;
@@ -646,14 +654,19 @@ export async function tetapkanJawatanOlehGuru(input: {
   });
 
   // Selaraskan sub-peranan pelajar mengikut jawatan yang ditetapkan.
-  const j = input.jawatan.toUpperCase();
-  const subRole = j.includes("PENOLONG SETIAUSAHA") || j.includes("NAIB SETIAUSAHA")
-    ? "NSU"
-    : j.includes("SETIAUSAHA")
-    ? "SU"
-    : null;
+  const subRole = subRoleDariJawatan(input.jawatan);
   if (subRole) {
     await prisma.pelajar.update({ where: { id: input.pelajarId }, data: { subRole } });
+  } else if (subRoleDariJawatan(koko.jawatanT6)) {
+    // Diturunkan dari Setiausaha/Naib SU → buang akses SU, kecuali pelajar masih
+    // memegang jawatan Setiausaha dalam unit lain.
+    const lain = await prisma.kokurikulum.findMany({
+      where: { pelajarId: input.pelajarId, jenisKoko: { not: input.jenisKoko } },
+      select: { jawatanT6: true },
+    });
+    const peranan = lain.map((k) => subRoleDariJawatan(k.jawatanT6));
+    const baki = peranan.includes("SU") ? "SU" : peranan.includes("NSU") ? "NSU" : "Pelajar";
+    await prisma.pelajar.update({ where: { id: input.pelajarId }, data: { subRole: baki } });
   }
 
   await kiraSemulaT6(input.pelajarId);
