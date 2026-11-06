@@ -98,7 +98,7 @@ export interface Dict {
     attendancePageTitle: string; attendanceSubtitle: string; attendanceRestricted: string;
     attendancePanel: {
       openSessionTitle: string; unitLabel: string; meetingNumber: string; dateLabel: string;
-      openSessionButton: string; saveAttendanceButton: string; memberListTitle: string; attendanceCount: string;
+      openSessionButton: string; saveAttendanceButton: string; memberListTitle: string; attendanceCount: string; markAll: string;
       attendanceQrTitle: string; attendanceQrInfo: string; noUnits: string; noToken: string; loading: string;
       recording: string; networkError: string;
     };
@@ -462,7 +462,7 @@ const ms: Dict = {
     attendancePageTitle: "Kehadiran Ahli", attendanceSubtitle: "Buka sesi perjumpaan, tanda kehadiran ahli melalui senarai, atau paparkan QR untuk imbas sendiri.", attendanceRestricted: "Modul kehadiran hanya untuk Setiausaha (SU) / Naib Setiausaha (NSU). Sila hubungi guru penasihat anda jika anda sepatutnya mempunyai akses.",
     attendancePanel: {
       openSessionTitle: "Buka Sesi Perjumpaan", unitLabel: "Unit", meetingNumber: "Perjumpaan #", dateLabel: "Tarikh",
-      openSessionButton: "Buka Sesi", saveAttendanceButton: "Simpan Kehadiran", memberListTitle: "Senarai Ahli", attendanceCount: "hadir",
+      openSessionButton: "Buka Sesi", saveAttendanceButton: "Simpan Kehadiran", memberListTitle: "Senarai Ahli", attendanceCount: "hadir", markAll: "Tanda semua hadir",
       attendanceQrTitle: "Imbas QR Kehadiran", attendanceQrInfo: "Ahli boleh imbas kod ini (log masuk diperlukan) untuk menanda diri hadir.",
       noUnits: "Tiada unit dengan ahli ditemui untuk akaun anda.", noToken: "Tiada token. Sila imbas QR sah.", loading: "Merekod kehadiran...", recording: "Sesi dibuka. Tandakan kehadiran atau tunjukkan QR.", networkError: "Ralat rangkaian.",
     },
@@ -952,7 +952,7 @@ const en: Dict = {
     attendanceRestricted: "Attendance module is only for Secretary (SU) / Deputy Secretary (NSU). Contact your advisor if you should have access.",
     attendancePanel: {
       openSessionTitle: "Open Meeting Session", unitLabel: "Unit", meetingNumber: "Meeting #", dateLabel: "Date",
-      openSessionButton: "Open Session", saveAttendanceButton: "Save Attendance", memberListTitle: "Member List", attendanceCount: "present", attendanceQrTitle: "Scan Attendance QR", attendanceQrInfo: "Members can scan this code (login required) to mark themselves present.",
+      openSessionButton: "Open Session", saveAttendanceButton: "Save Attendance", memberListTitle: "Member List", attendanceCount: "present", markAll: "Mark all present", attendanceQrTitle: "Scan Attendance QR", attendanceQrInfo: "Members can scan this code (login required) to mark themselves present.",
       noUnits: "No units with members found for your account.", noToken: "No token. Please scan a valid QR code.", loading: "Recording attendance...", recording: "Session opened. Mark attendance or show the QR.", networkError: "Network error.",
     },
     reportPageTitle: "SU/NSU Reports", reportPageSubtitle: "Weekly & project reports, linked directly to related attendance sessions.",
