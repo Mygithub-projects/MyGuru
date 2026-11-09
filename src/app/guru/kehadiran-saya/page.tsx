@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getT } from "@/lib/locale";
-import { getKehadiranSaya } from "@/lib/kehadiran-guru";
+import Link from "next/link";
+import { getKehadiranSaya, BAHAGIAN_GURU } from "@/lib/kehadiran-guru";
 import { IsiKehadiranGuru } from "./IsiKehadiranGuru";
 
 function fmtTarikh(iso: string) {
@@ -12,14 +13,59 @@ function fmtTarikh(iso: string) {
 
 const WARNA: Record<string, string> = { Uniform: "#059669", Sukan: "#d97706", Kelab: "#2563eb" };
 
-export default async function KehadiranSayaPage() {
+const SAIZ_HALAMAN = 10;
+const STATUS_TAPIS = ["semua", "belum", "Pending", "Approved"] as const;
+type StatusTapis = (typeof STATUS_TAPIS)[number];
+
+export default async function KehadiranSayaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; jenis?: string; hal?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
   if (!session.guruId) redirect(session.role === "Admin" ? "/admin/kehadiran-guru" : "/login");
 
   const { t } = await getT();
   const d = t.kehadiranGuru;
-  const { sesi, ringkasan } = await getKehadiranSaya({ id: session.guruId });
+  const { sesi: semuaSesi, ringkasan } = await getKehadiranSaya({ id: session.guruId });
+
+  // Tapisan + paginasi (melalui URL supaya kekal selepas Hantar / muat semula)
+  const sp = await searchParams;
+  const fStatus: StatusTapis = STATUS_TAPIS.includes(sp.status as StatusTapis) ? (sp.status as StatusTapis) : "semua";
+  const fJenis = BAHAGIAN_GURU.some((b) => b.jenis === sp.jenis) ? sp.jenis! : "";
+  const perluIsi = (s: (typeof semuaSesi)[number]) => s.bolehIsi && (!s.rekod || s.rekod.statusSemakan === "Rejected");
+  const ditapis = semuaSesi.filter((s) => {
+    if (fJenis && s.jenisKoko !== fJenis) return false;
+    if (fStatus === "belum") return perluIsi(s);
+    if (fStatus === "Pending" || fStatus === "Approved") return s.rekod?.statusSemakan === fStatus;
+    return true;
+  });
+  const jumlahHal = Math.max(1, Math.ceil(ditapis.length / SAIZ_HALAMAN));
+  const hal = Math.min(jumlahHal, Math.max(1, parseInt(sp.hal ?? "1", 10) || 1));
+  const mula = (hal - 1) * SAIZ_HALAMAN;
+  const sesi = ditapis.slice(mula, mula + SAIZ_HALAMAN);
+
+  const pautan = (p: { status?: string; jenis?: string; hal?: number }) => {
+    const q = new URLSearchParams();
+    const st = p.status ?? fStatus;
+    const jn = p.jenis ?? fJenis;
+    if (st !== "semua") q.set("status", st);
+    if (jn) q.set("jenis", jn);
+    if (p.hal && p.hal > 1) q.set("hal", String(p.hal));
+    const s = q.toString();
+    return s ? `/guru/kehadiran-saya?${s}` : "/guru/kehadiran-saya";
+  };
+  const bilStatus = (st: StatusTapis) =>
+    semuaSesi.filter((s) => (!fJenis || s.jenisKoko === fJenis) &&
+      (st === "semua" ? true : st === "belum" ? perluIsi(s) : s.rekod?.statusSemakan === st)).length;
+  const labelStatus: Record<StatusTapis, string> = {
+    semua: d.all, belum: d.fNeedAction, Pending: d.stPending, Approved: d.stApproved,
+  };
+  const chip = (aktif: boolean) =>
+    `rounded-full px-3 py-1 text-xs font-semibold ring-1 transition ${
+      aktif ? "bg-slate-800 text-white ring-slate-800" : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
+    }`;
 
   return (
     <div className="space-y-6">
@@ -73,8 +119,29 @@ export default async function KehadiranSayaPage() {
 
           <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{d.listTitle}</h2>
-            {sesi.length === 0 ? (
+            {semuaSesi.length > 0 && (
+              <div className="mb-4 space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {STATUS_TAPIS.map((st) => (
+                    <Link key={st} href={pautan({ status: st, hal: 1 })} scroll={false} className={chip(fStatus === st)}>
+                      {labelStatus[st]} <span className="opacity-70">({bilStatus(st)})</span>
+                    </Link>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link href={pautan({ jenis: "", hal: 1 })} scroll={false} className={chip(fJenis === "")}>{d.allTypes}</Link>
+                  {BAHAGIAN_GURU.filter((b) => semuaSesi.some((s) => s.jenisKoko === b.jenis)).map((b) => (
+                    <Link key={b.jenis} href={pautan({ jenis: b.jenis, hal: 1 })} scroll={false} className={chip(fJenis === b.jenis)}>
+                      {b.kod} · {b.jenis}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {semuaSesi.length === 0 ? (
               <p className="text-sm text-slate-400">{d.noSessions}</p>
+            ) : sesi.length === 0 ? (
+              <p className="text-sm text-slate-400">{d.noMatch}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -118,6 +185,31 @@ export default async function KehadiranSayaPage() {
                     ))}
                   </tbody>
                 </table>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                  <span>
+                    {d.showing
+                      .replace("{a}", String(mula + 1))
+                      .replace("{b}", String(mula + sesi.length))
+                      .replace("{n}", String(ditapis.length))}
+                  </span>
+                  {jumlahHal > 1 && (
+                    <div className="flex items-center gap-1">
+                      {hal > 1 ? (
+                        <Link href={pautan({ hal: hal - 1 })} scroll={false} className={chip(false)}>{d.prev}</Link>
+                      ) : (
+                        <span className={`${chip(false)} opacity-40`}>{d.prev}</span>
+                      )}
+                      {Array.from({ length: jumlahHal }, (_, i) => i + 1).map((n) => (
+                        <Link key={n} href={pautan({ hal: n })} scroll={false} className={chip(n === hal)}>{n}</Link>
+                      ))}
+                      {hal < jumlahHal ? (
+                        <Link href={pautan({ hal: hal + 1 })} scroll={false} className={chip(false)}>{d.next}</Link>
+                      ) : (
+                        <span className={`${chip(false)} opacity-40`}>{d.next}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </section>

@@ -303,7 +303,7 @@ export interface Dict {
     tetapanClient: { saveSettings: string; saving: string };
   };
   kehadiranGuru: {
-    navGuru: string; navAdmin: string; guruTitle: string; guruSub: string; summaryTitle: string; presentVerified: string; ofMeetings: string; pending: string; notFilled: string; datesTitle: string; noDates: string; noUnits: string; listTitle: string; colUnit: string; colMeeting: string; colDate: string; colMyStatus: string; colReview: string; colAction: string; present: string; absent: string; reasonPlaceholder: string; submit: string; resubmit: string; saving: string; notYet: string; notStarted: string; stPending: string; stApproved: string; stRejected: string; adminNote: string; networkError: string; adminTitle: string; adminSub: string; adminSummaryTitle: string; colTeacher: string; colTotal: string; colPending: string; colNotFilled: string; adminListTitle: string; filterStatus: string; filterType: string; allTypes: string; all: string; filterBtn: string; approve: string; reject: string; approveSelected: string; rejectPrompt: string; colNote: string; colReviewedAt: string; empty: string; noSessions: string;
+    navGuru: string; navAdmin: string; guruTitle: string; guruSub: string; summaryTitle: string; presentVerified: string; ofMeetings: string; pending: string; notFilled: string; datesTitle: string; noDates: string; noUnits: string; listTitle: string; colUnit: string; colMeeting: string; colDate: string; colMyStatus: string; colReview: string; colAction: string; present: string; absent: string; reasonPlaceholder: string; submit: string; resubmit: string; saving: string; notYet: string; notStarted: string; stPending: string; stApproved: string; stRejected: string; adminNote: string; networkError: string; adminTitle: string; adminSub: string; adminSummaryTitle: string; colTeacher: string; colTotal: string; colPending: string; colNotFilled: string; adminListTitle: string; filterStatus: string; filterType: string; allTypes: string; all: string; filterBtn: string; approve: string; reject: string; approveSelected: string; rejectPrompt: string; colNote: string; colReviewedAt: string; empty: string; noSessions: string; fNeedAction: string; noMatch: string; showing: string; prev: string; next: string;
   };
   laporan: {
     title: string; sub: string; weekly: string; project: string; noRecords: string; downloadVerified: string; comment: string;
@@ -762,6 +762,11 @@ const ms: Dict = {
     colReviewedAt: "Disemak",
     empty: "Tiada rekod.",
     noSessions: "Tiada perjumpaan direkod untuk unit anda dalam kohort ini.",
+    fNeedAction: "Perlu diisi",
+    noMatch: "Tiada perjumpaan untuk tapisan ini.",
+    showing: "Papar {a}–{b} daripada {n}",
+    prev: "‹ Sebelum",
+    next: "Seterusnya ›",
   },
   laporan: {
     title: "Laporan SU/NSU", sub: "Laporan mingguan & laporan projek, dipaut terus ke sesi kehadiran berkaitan.", weekly: "Laporan Mingguan", project: "Laporan Projek", noRecords: "Tiada rekod lagi.", downloadVerified: "⬇ Muat turun dokumen disahkan", comment: "Komen",
@@ -1256,6 +1261,11 @@ const en: Dict = {
     colReviewedAt: "Reviewed",
     empty: "No records.",
     noSessions: "No meetings recorded for your units in this cohort.",
+    fNeedAction: "To fill",
+    noMatch: "No meetings match this filter.",
+    showing: "Showing {a}–{b} of {n}",
+    prev: "‹ Previous",
+    next: "Next ›",
   },
   laporan: {
     title: "SU/NSU Reports", sub: "Weekly & project reports, linked directly to related attendance sessions.", weekly: "Weekly Reports", project: "Project Reports", noRecords: "No records yet.", downloadVerified: "⬇ Download verified document", comment: "Comment",
