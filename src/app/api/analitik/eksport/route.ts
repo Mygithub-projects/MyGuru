@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { requireGuruOrAdmin, fail } from "@/lib/api";
-import { guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
+import { guruSeluruhSekolah } from "@/lib/workflow";
+import { normalBahagian, skopAnalitikBahagian } from "@/lib/analitik";
 import { eksportExcel, eksportPdf } from "@/lib/eksport";
 
 export async function GET(request: NextRequest) {
@@ -10,11 +11,14 @@ export async function GET(request: NextRequest) {
 
   const format = request.nextUrl.searchParams.get("format") ?? "excel";
 
-  // Skop: guru biasa = unit seliaan; admin/penyelaras = semua
-  let units: string[] | undefined = undefined;
-  if (guru && !guruSeluruhSekolah(guru)) {
-    units = await unitSeliaan(guru);
-  }
+  // Skop: guru biasa = unit seliaan; admin/penyelaras = semua.
+  // ?bahagian=Uniform|Kelab|Sukan menapis lagi ke BU/KP/SP.
+  const seluruh = !guru || guruSeluruhSekolah(guru);
+  const { units } = await skopAnalitikBahagian(
+    guru?.id ?? null,
+    seluruh,
+    normalBahagian(request.nextUrl.searchParams.get("bahagian")),
+  );
 
   if (format === "pdf") {
     const pdf = await eksportPdf(units);

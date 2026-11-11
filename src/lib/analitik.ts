@@ -3,7 +3,51 @@
 //  Hak akses: Admin = seluruh kohort; Guru = unit seliaan (hantar unitFilter).
 // ===========================================================================
 import { dbKohort } from "./prisma-kohort";
+import { prisma } from "./prisma";
 import { statusPilihanT6, normalizePeringkat } from "./pajsk";
+
+/** Bahagian kokurikulum (nilai jenisKoko): Uniform = BU, Kelab = KP, Sukan = SP. */
+export const BAHAGIAN_KOKO = ["Uniform", "Kelab", "Sukan"] as const;
+export type BahagianKoko = (typeof BAHAGIAN_KOKO)[number];
+
+export function normalBahagian(v?: string | null): BahagianKoko | undefined {
+  return BAHAGIAN_KOKO.find((b) => b === v);
+}
+
+/**
+ * Skop analitik mengikut bahagian (BU/KP/SP).
+ * - Guru unit: unit seliaan (GuruPenasihatKelab), ditapis ke bahagian jika dipilih.
+ * - Seluruh sekolah (admin/penyelaras): semua unit; bahagian dipilih = semua unit
+ *   T6 kohort dalam bahagian itu.
+ * `tersedia` = bahagian yang boleh dipilih; bahagian di luar skop diabaikan.
+ */
+export async function skopAnalitikBahagian(
+  guruId: string | null,
+  seluruh: boolean,
+  bahagianDiminta?: BahagianKoko,
+): Promise<{ units: string[] | undefined; tersedia: BahagianKoko[]; bahagian: BahagianKoko | undefined }> {
+  if (seluruh) {
+    if (!bahagianDiminta) return { units: undefined, tersedia: [...BAHAGIAN_KOKO], bahagian: undefined };
+    const db = await dbKohort(); // data kohort dipilih sahaja
+    const koko = await db.kokurikulum.findMany({
+      where: { jenisKoko: bahagianDiminta, namaUnitT6: { not: null } },
+      select: { namaUnitT6: true },
+      distinct: ["namaUnitT6"],
+    });
+    return {
+      units: koko.map((k) => k.namaUnitT6 as string),
+      tersedia: [...BAHAGIAN_KOKO],
+      bahagian: bahagianDiminta,
+    };
+  }
+  const rows = guruId
+    ? await prisma.guruPenasihatKelab.findMany({ where: { guruId }, select: { namaUnit: true, jenisKoko: true } })
+    : [];
+  const tersedia = BAHAGIAN_KOKO.filter((b) => rows.some((r) => r.jenisKoko === b));
+  const bahagian = bahagianDiminta && tersedia.includes(bahagianDiminta) ? bahagianDiminta : undefined;
+  const units = rows.filter((r) => !bahagian || r.jenisKoko === bahagian).map((r) => r.namaUnit);
+  return { units, tersedia, bahagian };
+}
 
 /** pelajarId dalam unit tertentu (null = semua pelajar / skop admin). */
 async function pelajarIdsUntukUnit(units?: string[]): Promise<string[] | null> {
@@ -112,19 +156,24 @@ export async function analitikKehadiranPerjumpaanBahagian(
   return hasil;
 }
 
-export async function analitikProjek() {
+export async function analitikProjek(units?: string[]) {
   const db = await dbKohort(); // data kohort dipilih sahaja
-  const grp = await db.laporanProjek.groupBy({ by: ["statusPengesahan"], _count: true });
+  const grp = await db.laporanProjek.groupBy({
+    by: ["statusPengesahan"],
+    where: units ? { namaUnit: { in: units } } : {},
+    _count: true,
+  });
   return grp.map((g) => ({ status: g.statusPengesahan, bil: g._count }));
 }
 
-export async function analitikLaporan() {
+export async function analitikLaporan(units?: string[]) {
   const db = await dbKohort(); // data kohort dipilih sahaja
+  const skop = units ? { namaUnit: { in: units } } : {};
   const [jumlah, disahkan, pending, kuiri] = await Promise.all([
-    db.laporanMingguan.count(),
-    db.laporanMingguan.count({ where: { statusSemakan: "Approved" } }),
-    db.laporanMingguan.count({ where: { statusSemakan: "Pending" } }),
-    db.laporanMingguan.count({ where: { statusSemakan: "Kuiri" } }),
+    db.laporanMingguan.count({ where: skop }),
+    db.laporanMingguan.count({ where: { ...skop, statusSemakan: "Approved" } }),
+    db.laporanMingguan.count({ where: { ...skop, statusSemakan: "Pending" } }),
+    db.laporanMingguan.count({ where: { ...skop, statusSemakan: "Kuiri" } }),
   ]);
   const kadar = jumlah ? Math.round((disahkan / jumlah) * 1000) / 10 : 0;
   return { jumlah, disahkan, pending, kuiri, kadarPematuhan: kadar };
