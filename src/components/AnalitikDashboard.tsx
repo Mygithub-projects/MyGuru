@@ -27,8 +27,8 @@ export async function AnalitikDashboard({
   const [kehadiran, projek, laporan, statusT6, trend, gred, pencapaian, kpi, demografi, crosstab] =
     await Promise.all([
       analitikKehadiran(units),
-      analitikProjek(),
-      analitikLaporan(),
+      analitikProjek(units),
+      analitikLaporan(units),
       analitikStatusPilihanT6(units),
       analitikTrendKehadiran(units),
       analitikTaburanGred(units),

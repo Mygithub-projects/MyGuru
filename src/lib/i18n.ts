@@ -340,6 +340,7 @@ export interface Dict {
     total: string; verified: string; pending: string; complianceRate: string;
     demographicsPrefix: string; crosstabTitle: string; gender: string;
     noChartData: string; valueIn: string;
+    allSections: string; sectionFilter: string;
   };
   bantuan: {
     subtitle: string;
@@ -807,6 +808,7 @@ const ms: Dict = {
     total: "Jumlah", verified: "Disahkan", pending: "Pending", complianceRate: "Kadar Pematuhan",
     demographicsPrefix: "Demografi: ", crosstabTitle: "Jadual Silang: Jantina × Jenis Kokurikulum", gender: "Jantina",
     noChartData: "Tiada data untuk dipaparkan.", valueIn: "Nilai dalam",
+    allSections: "Semua", sectionFilter: "Tapis mengikut bahagian",
   },
   bantuan: {
     subtitle: "Panduan ringkas penggunaan sistem EzKokoT6.",
@@ -1306,6 +1308,7 @@ const en: Dict = {
     total: "Total", verified: "Verified", pending: "Pending", complianceRate: "Compliance Rate",
     demographicsPrefix: "Demographics: ", crosstabTitle: "Crosstab: Gender × Co-curriculum Type", gender: "Gender",
     noChartData: "No data to display.", valueIn: "Value in",
+    allSections: "All", sectionFilter: "Filter by section",
   },
   bantuan: {
     subtitle: "Quick guide to using the EzKokoT6 system.",

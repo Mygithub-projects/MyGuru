@@ -455,8 +455,8 @@ export async function eksportKehadiranPdf(filter: FilterKehadiran): Promise<Buff
 export async function eksportExcel(units?: string[]): Promise<Buffer> {
   const [kehadiran, projek, laporan, demografi, statusT6] = await Promise.all([
     analitikKehadiran(units),
-    analitikProjek(),
-    analitikLaporan(),
+    analitikProjek(units),
+    analitikLaporan(units),
     analitikDemografi(),
     analitikStatusPilihanT6(units),
   ]);
@@ -514,8 +514,8 @@ export async function eksportExcel(units?: string[]): Promise<Buffer> {
 export async function eksportPdf(units?: string[]): Promise<Buffer> {
   const [kehadiran, projek, laporan, statusT6] = await Promise.all([
     analitikKehadiran(units),
-    analitikProjek(),
-    analitikLaporan(),
+    analitikProjek(units),
+    analitikLaporan(units),
     analitikStatusPilihanT6(units),
   ]);
 
