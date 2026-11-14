@@ -11,6 +11,7 @@ export async function AppShell({
   jawatan,
   children,
   footer,
+  adaProjek = false,
 }: {
   nama: string;
   role: string;
@@ -18,9 +19,10 @@ export async function AppShell({
   jawatan?: string | null;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  adaProjek?: boolean;
 }) {
   const { t } = await getT();
-  const items = getNavForRole(role, subRole, t);
+  const items = getNavForRole(role, subRole, t, adaProjek);
   const institusi = process.env.NEXT_PUBLIC_INSTITUSI || "KTE (Prauniversiti) Desa Mahkota";
 
   return (

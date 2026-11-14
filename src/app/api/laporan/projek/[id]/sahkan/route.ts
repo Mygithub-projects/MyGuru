@@ -25,15 +25,19 @@ export async function PATCH(
   const parsed = schema.safeParse(body);
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Input tidak sah", 422);
 
-  const rec = await prisma.laporanProjek.findUnique({ where: { id } });
+  const rec = await prisma.laporanProjek.findUnique({
+    where: { id },
+    include: { projek: { select: { units: true } }, peserta: { select: { pelajarId: true } } },
+  });
   if (!rec) return fail("Projek tidak dijumpai", 404);
 
   // Hanya guru penasihat unit berkenaan boleh sahkan (spec guru §1/§6).
   if (guru && !guruSeluruhSekolah(guru)) {
     const units = await unitSeliaan(guru);
-    const okUnit = rec.namaUnit
-      ? units.includes(rec.namaUnit)
-      : await bolehGuruAksesPelajar(guru, rec.setiausahaId);
+    // Projek pelbagai unit: guru penasihat mana-mana unit terlibat boleh mengesahkan.
+    const okUnit =
+      (rec.projek?.units ?? []).some((u) => units.includes(u)) ||
+      (rec.namaUnit ? units.includes(rec.namaUnit) : await bolehGuruAksesPelajar(guru, rec.setiausahaId));
     if (!okUnit) return fail("Laporan projek ini di luar unit seliaan anda", 403);
   }
 
@@ -48,6 +52,18 @@ export async function PATCH(
     },
   });
   await kiraSemulaT6(rec.setiausahaId);
+  // Markah projek peserta (jawatan + peringkat) — dikira semula sama ada diluluskan atau dikuiri.
+  for (const p of rec.peserta) await kiraSemulaT6(p.pelajarId);
+  if (parsed.data.status === "Approved") {
+    for (const p of rec.peserta) {
+      await notifyPelajar(p.pelajarId, {
+        tajuk: "Markah projek dikemas kini",
+        mesej: `Penyertaan anda dalam projek "${rec.namaProjek}" telah disahkan.`,
+        jenis: "lulus",
+        pautan: "/pelajar",
+      });
+    }
+  }
   await notifyPelajar(rec.setiausahaId, {
     tajuk: parsed.data.status === "Approved" ? "Laporan projek disahkan" : "Projek dikuiri",
     mesej:

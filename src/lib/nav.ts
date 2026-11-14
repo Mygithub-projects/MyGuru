@@ -13,7 +13,8 @@ export function stripEmoji(label: string): string {
   return label.replace(/^[\p{Extended_Pictographic}️‍]+\s*/u, "");
 }
 
-export function getNavForRole(role: string, subRole: string | null | undefined, t: Dict): NavItem[] {
+/** `adaProjek`: pelajar di-tag SU/NSU bagi sekurang-kurangnya satu projek (akses Laporan Projek). */
+export function getNavForRole(role: string, subRole: string | null | undefined, t: Dict, adaProjek = false): NavItem[] {
   const notifChat: NavItem[] = [
     { label: t.header.notifications, icon: "bell", action: "notif" },
     { label: t.header.chatbot, icon: "chat", action: "chat" },
@@ -30,6 +31,8 @@ export function getNavForRole(role: string, subRole: string | null | undefined, 
         { href: "/pelajar/laporan", label: stripEmoji(t.pelajar.linkLaporan), icon: "reports" },
         { href: "/pelajar/jawatan", label: stripEmoji(t.pelajar.linkJawatan), icon: "members" },
       );
+    } else if (adaProjek) {
+      items.push({ href: "/pelajar/laporan", label: stripEmoji(t.pelajar.linkLaporan), icon: "reports" });
     }
     items.push({ href: "/pelajar/tukar-unit", label: t.pelajar.transferTitle, icon: "transfer" });
     return [...items, ...notifChat];
@@ -44,6 +47,7 @@ export function getNavForRole(role: string, subRole: string | null | undefined, 
       { href: "/guru/analitik", label: stripEmoji(t.guru.linkAnalytics), icon: "analytics" },
       { href: "/guru/pemilihan", label: stripEmoji(t.guru.linkSelection), icon: "trophy" },
       { href: "/guru/laporan", label: t.laporan.semakan.title, icon: "reports" },
+      { href: "/guru/projek", label: t.laporan.projekUrus.title, icon: "trophy" },
       ...notifChat,
     ];
   }
@@ -58,6 +62,7 @@ export function getNavForRole(role: string, subRole: string | null | undefined, 
     { href: "/admin/kehadiran", label: t.admin.actAttendance, icon: "attendance" },
     { href: "/admin/kehadiran-guru", label: t.kehadiranGuru.navAdmin, icon: "attendance" },
     { href: "/admin/laporan", label: t.laporan.semakan.title, icon: "reports" },
+    { href: "/admin/projek", label: t.laporan.projekUrus.title, icon: "trophy" },
     { href: "/admin/demografi", label: t.admin.actDemographics, icon: "demographics" },
     { href: "/admin/analitik", label: stripEmoji(t.admin.actAnalytics), icon: "analytics" },
     { href: "/admin/rumusan", label: t.admin.actRumusan, icon: "analytics" },

@@ -15,7 +15,7 @@ export async function GET(
 
   const rec = await prisma.laporanProjek.findUnique({
     where: { id },
-    include: { setiausaha: { select: { nama: true } } },
+    include: { setiausaha: { select: { nama: true } }, projek: { select: { units: true } } },
   });
   if (!rec) return fail("Laporan projek tidak dijumpai", 404);
   if (rec.statusPengesahan !== "Approved") return fail("Hanya laporan yang telah disahkan boleh dimuat turun", 403);
@@ -26,9 +26,10 @@ export async function GET(
     const guru = session.guruId ? await prisma.guru.findUnique({ where: { id: session.guruId } }) : null;
     if (!guru) return fail("Profil guru tidak dijumpai", 403);
     if (!guruSeluruhSekolah(guru)) {
-      const okUnit = rec.namaUnit
-        ? (await unitSeliaan(guru)).includes(rec.namaUnit)
-        : await bolehGuruAksesPelajar(guru, rec.setiausahaId);
+      const seliaan = await unitSeliaan(guru);
+      const okUnit =
+        (rec.projek?.units ?? []).some((u) => seliaan.includes(u)) ||
+        (rec.namaUnit ? seliaan.includes(rec.namaUnit) : await bolehGuruAksesPelajar(guru, rec.setiausahaId));
       if (!okUnit) return fail("Laporan ini di luar unit seliaan anda", 403);
     }
   }

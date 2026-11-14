@@ -6,6 +6,7 @@
 //  pencapaian & projek unit tersebut), dikira oleh skorUnit() (skor-unit.ts).
 //  Turut menyediakan analitik ringkas ikut bahagian / unit / kelas untuk Admin.
 // ===========================================================================
+import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import ExcelJS from "exceljs";
 import { prisma } from "./prisma";
 import { nilaiEkstra, type Gred } from "./pajsk";
@@ -68,12 +69,15 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
       pencapaian: { where: { statusSemakan: "Approved" } },
       aktivitiLuar: { where: { statusPengesahan: "Approved" } },
       laporanProjek: { where: { statusPengesahan: "Approved" } },
+      projekPeserta: INCLUDE_PESERTA_LULUS,
     },
   });
 
   const jumlahKohort = await jumlahAktivitiIkutKohort(pelajar.map((p) => p.kohort));
   const baris: BarisRumusan[] = [];
-  for (const p of pelajar) {
+  for (const asal of pelajar) {
+    // Kokurikulum di sini mungkin ditapis; unit kredit peserta disimpan dalam rekod, jadi tidak terjejas.
+    const p = { ...asal, laporanProjek: gabungProjek(asal.laporanProjek, asal.projekPeserta, asal.kokurikulum) };
     // Anugerah khas (ekstra) — dipaparkan dalam borang Unit Perkhidmatan.
     const ekstra = terbaik(
       p.pencapaian.filter((c) => c.kategori === "ekstra"),

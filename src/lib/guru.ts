@@ -22,6 +22,11 @@ export async function pelajarIdsDalamSkop(guru: Guru): Promise<string[] | null> 
   return [...new Set(koko.map((k) => k.pelajarId))];
 }
 
+/** Skop laporan projek: ikut unit rekod, ATAU mana-mana unit projek pelbagai unit. */
+function whereProjek(whereUnit: object, ids: string[] | null, units: string[]) {
+  return ids === null ? {} : { OR: [whereUnit, { projek: { units: { hasSome: units } } }] };
+}
+
 /** Bilangan item menunggu tindakan dalam skop (guru = unit seliaan; null = seluruh sekolah). */
 export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const db = await dbKohort(); // data kohort dipilih sahaja
@@ -39,7 +44,7 @@ export async function countPendingGuru(guru: Guru | null): Promise<number> {
     db.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...wherePelajarUnit } }),
     db.logPertukaran.count({ where: { status: "Pending", ...wherePelajar } }),
     db.laporanMingguan.count({ where: { statusSemakan: "Pending", ...whereUnit } }),
-    db.laporanProjek.count({ where: { statusPengesahan: "Pending", ...whereUnit } }),
+    db.laporanProjek.count({ where: { statusPengesahan: "Pending", ...whereProjek(whereUnit, ids, units) } }),
     db.sesiKehadiran.count({ where: { disahkan: false, ...whereSesi } }),
     db.cadanganJawatan.count({ where: { status: "Pending", ...wherePelajar } }),
   ]);
@@ -78,7 +83,7 @@ export async function getGuruDashboard(guru: Guru) {
         orderBy: { createdAt: "desc" },
       }),
       db.laporanProjek.findMany({
-        where: { statusPengesahan: "Pending", ...whereUnit },
+        where: { statusPengesahan: "Pending", ...whereProjek(whereUnit, ids, units) },
         include: { setiausaha: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),
@@ -165,7 +170,7 @@ export async function getLaporanDisahkan(guru: Guru) {
       take: 50,
     }),
     db.laporanProjek.findMany({
-      where: { statusPengesahan: "Approved", ...whereUnit },
+      where: { statusPengesahan: "Approved", ...whereProjek(whereUnit, seluruh ? null : units, units) },
       include: { setiausaha: { select: { nama: true } } },
       orderBy: { updatedAt: "desc" },
       take: 50,

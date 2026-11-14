@@ -1,4 +1,5 @@
 // Lapisan data pelajar — profil & pecahan markah PAJSK T6 (model §1.1)
+import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import { prisma } from "./prisma";
 import { ringkasanKehadiranPelajar } from "./kehadiran";
 import { markahEkstra, nilaiEkstra } from "./pajsk";
@@ -59,6 +60,7 @@ export async function getPelajarProfil(pelajarId: string) {
       aktivitiLuar: { orderBy: { createdAt: "desc" } },
       kehadiran: { where: { statusHadir: true, disahkan: true }, select: { jenisKoko: true } },
       laporanProjek: { where: { statusPengesahan: "Approved" } },
+      projekPeserta: INCLUDE_PESERTA_LULUS,
     },
   });
   if (!pelajar) return null;
@@ -92,7 +94,7 @@ export async function getPelajarProfil(pelajarId: string) {
     kehadiran: pelajar.kehadiran,
     pencapaian: pelajar.pencapaian.filter((p) => p.statusSemakan === "Approved"),
     aktivitiLuar: pelajar.aktivitiLuar.filter((a) => a.statusPengesahan === "Approved"),
-    laporanProjek: pelajar.laporanProjek,
+    laporanProjek: gabungProjek(pelajar.laporanProjek, pelajar.projekPeserta, pelajar.kokurikulum),
   };
   const itemEks = itemEkstra(rekod, pelajar.kokurikulum);
   const ekstra = markahEkstra(itemEks);

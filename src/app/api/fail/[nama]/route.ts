@@ -16,6 +16,8 @@ import { NAMA_FAIL_SAH } from "@/lib/fail-url";
 interface Pemilik {
   pelajarId?: string;
   namaUnit: string | null;
+  /** Laporan projek pelbagai unit: semua unit terlibat. */
+  unitProjek?: string[];
 }
 
 /** Cari rekod yang merujuk fail ini (nilai baru /api/fail/x atau lama /uploads/x). */
@@ -32,17 +34,21 @@ async function cariPemilik(nama: string): Promise<Pemilik | null> {
       where: { lampiran: { contains: nama } },
       select: { namaUnit: true },
     })) ??
-    (await prisma.laporanProjek.findFirst({
-      where: { OR: [{ failKertasKerja: ada }, { failLaporanImpak: ada }] },
-      select: { namaUnit: true },
-    }))
+    (await prisma.laporanProjek
+      .findFirst({
+        where: { OR: [{ failKertasKerja: ada }, { failLaporanImpak: ada }] },
+        select: { namaUnit: true, projek: { select: { units: true } } },
+      })
+      .then((r) => (r ? { namaUnit: r.namaUnit, unitProjek: r.projek?.units ?? [] } : null)))
   );
 }
 
 async function bolehAkses(guru: Guru | null, p: Pemilik): Promise<boolean> {
   if (!guru) return true; // Admin
   if (guruSeluruhSekolah(guru)) return true;
-  if (p.namaUnit) return (await unitSeliaan(guru)).includes(p.namaUnit);
+  const seliaan = await unitSeliaan(guru);
+  if (p.unitProjek?.some((u) => seliaan.includes(u))) return true;
+  if (p.namaUnit) return seliaan.includes(p.namaUnit);
   return p.pelajarId ? bolehGuruAksesPelajar(guru, p.pelajarId) : false;
 }
 
