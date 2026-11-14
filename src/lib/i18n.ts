@@ -61,6 +61,7 @@ export interface Dict {
     hintAdmin: string; hintGuru: string; hintPelajar: string;
     roleMismatch: string;
     forgotPassword: string;
+    showPassword: string; hidePassword: string; welcome: string; highlights: string[];
   };
   pelajar: {
     welcome: string; icNo: string;
@@ -329,6 +330,12 @@ export interface Dict {
       roleLabel: string; remove: string; deleteProject: string; confirmDelete: string; confirmRemoveTag: string; networkError: string;
       editUnits: string; save: string; cancel: string; saveAjk: string; saving: string; unsaved: string; saved: string;
     };
+    programKolej: {
+      tab: string; tabProjek: string; sub: string; newTitle: string; nameLabel: string; dateLabel: string; levelLabel: string; collegeLevel: string;
+      marks: string; create: string; creating: string; empty: string; participants: string; choose: string; close: string;
+      classFilter: string; allClasses: string; search: string; selectFiltered: string; clearFiltered: string; selected: string;
+      save: string; saving: string; unsaved: string; edit: string; cancel: string; delete: string; confirmDelete: string; networkError: string; recalcNote: string;
+    };
     semakan: {
       title: string; sub: string; all: string; pending: string; approved: string; query: string;
       by: string; evidence: string; workPlan: string; approve: string; queryBtn: string; queryPrompt: string;
@@ -437,6 +444,8 @@ const ms: Dict = {
     hintPelajar: "Guna No. Kad Pengenalan anda (12 digit, tanpa sengkang).",
     roleMismatch: "Akaun ini bukan akaun {role}. Sila pilih peranan yang betul.",
     forgotPassword: "Lupa kata laluan? Sila hubungi pentadbir sekolah untuk ditetapkan semula.",
+    showPassword: "Tunjuk kata laluan", hidePassword: "Sembunyi kata laluan", welcome: "Selamat datang! Sila log masuk untuk meneruskan.",
+    highlights: ["Rekod kehadiran & aktiviti kokurikulum", "Markah PAJSK dikira automatik", "Laporan OPR & pengesahan guru"],
   },
   pelajar: {
     welcome: "Selamat Datang,", icNo: "No. IC:",
@@ -817,6 +826,16 @@ const ms: Dict = {
       editUnits: "Ubah", save: "Simpan", cancel: "Batal",
       saveAjk: "Simpan & sahkan AJK", saving: "Menyimpan...", unsaved: "Belum disimpan", saved: "AJK disimpan — pelajar telah dimaklumkan",
     },
+    programKolej: {
+      tab: "Program Kolej", tabProjek: "Projek Unit", sub: "Program kolej / luar yang diurus Admin. Pelajar yang dipilih menerima markah penglibatan ikut peringkat program bagi semua unit bidang (KP/SP/BU) — diambil yang tertinggi antara peringkat unit dan program.",
+      newTitle: "Program baharu", nameLabel: "Nama program", dateLabel: "Tarikh", levelLabel: "Peringkat", collegeLevel: "Kolej",
+      marks: "markah penglibatan", create: "Cipta program", creating: "Mencipta...", empty: "Tiada program lagi.", participants: "Pelajar terlibat",
+      choose: "Pilih pelajar", close: "Tutup senarai", classFilter: "Kelas", allClasses: "Semua kelas", search: "Cari nama…",
+      selectFiltered: "Pilih semua (ditapis)", clearFiltered: "Nyahpilih (ditapis)", selected: "dipilih",
+      save: "Simpan pelajar & markah", saving: "Menyimpan...", unsaved: "Belum disimpan", edit: "Ubah", cancel: "Batal", delete: "Padam",
+      confirmDelete: "Padam program ini? Markah penglibatan pelajar akan dikira semula.", networkError: "Ralat rangkaian",
+      recalcNote: "Markah dikira semula di latar belakang — muat semula halaman pelajar selepas seketika.",
+    },
     semakan: {
       title: "Laporan SU/NSU", sub: "Semua laporan mingguan & projek yang dihantar SU/NSU — lihat butiran, eviden dan sahkan atau kuiri.",
       all: "Semua", pending: "Menunggu", approved: "Disahkan", query: "Kuiri",
@@ -954,6 +973,8 @@ const en: Dict = {
     hintPelajar: "Use your MyKad (IC) number (12 digits, no dashes).",
     roleMismatch: "This is not a {role} account. Please choose the correct role.",
     forgotPassword: "Forgot your password? Please contact your school administrator to reset it.",
+    showPassword: "Show password", hidePassword: "Hide password", welcome: "Welcome! Please sign in to continue.",
+    highlights: ["Co-curricular attendance & activity records", "PAJSK marks calculated automatically", "OPR reports & teacher verification"],
   },
   pelajar: {
     welcome: "Welcome,", icNo: "IC No.:",
@@ -1340,6 +1361,16 @@ const en: Dict = {
       confirmDelete: "Delete this project?", confirmRemoveTag: "Remove this student's tag?", networkError: "Network error",
       editUnits: "Edit", save: "Save", cancel: "Cancel",
       saveAjk: "Save & confirm committee", saving: "Saving...", unsaved: "Not saved yet", saved: "Committee saved — students notified",
+    },
+    programKolej: {
+      tab: "College Programmes", tabProjek: "Unit Projects", sub: "College / external programmes managed by Admin. Selected students receive involvement marks by programme level for all their bidang units (KP/SP/BU) — the higher of the unit level and the programme level counts.",
+      newTitle: "New programme", nameLabel: "Programme name", dateLabel: "Date", levelLabel: "Level", collegeLevel: "College",
+      marks: "involvement marks", create: "Create programme", creating: "Creating...", empty: "No programmes yet.", participants: "Students involved",
+      choose: "Choose students", close: "Close list", classFilter: "Class", allClasses: "All classes", search: "Search name…",
+      selectFiltered: "Select all (filtered)", clearFiltered: "Deselect (filtered)", selected: "selected",
+      save: "Save students & marks", saving: "Saving...", unsaved: "Not saved yet", edit: "Edit", cancel: "Cancel", delete: "Delete",
+      confirmDelete: "Delete this programme? Students' involvement marks will be recalculated.", networkError: "Network error",
+      recalcNote: "Marks are recalculated in the background — reload student pages after a moment.",
     },
     semakan: {
       title: "SU/NSU Reports", sub: "All weekly & project reports submitted by SU/NSU — view details and evidence, then approve or query.",

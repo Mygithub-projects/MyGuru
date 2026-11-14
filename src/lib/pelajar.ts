@@ -61,6 +61,7 @@ export async function getPelajarProfil(pelajarId: string) {
       kehadiran: { where: { statusHadir: true, disahkan: true }, select: { jenisKoko: true } },
       laporanProjek: { where: { statusPengesahan: "Approved" } },
       projekPeserta: INCLUDE_PESERTA_LULUS,
+      programKolej: { include: { program: { select: { nama: true, peringkat: true } } } },
     },
   });
   if (!pelajar) return null;
@@ -95,6 +96,7 @@ export async function getPelajarProfil(pelajarId: string) {
     pencapaian: pelajar.pencapaian.filter((p) => p.statusSemakan === "Approved"),
     aktivitiLuar: pelajar.aktivitiLuar.filter((a) => a.statusPengesahan === "Approved"),
     laporanProjek: gabungProjek(pelajar.laporanProjek, pelajar.projekPeserta, pelajar.kokurikulum),
+    programKolej: pelajar.programKolej.map((x) => x.program),
   };
   const itemEks = itemEkstra(rekod, pelajar.kokurikulum);
   const ekstra = markahEkstra(itemEks);

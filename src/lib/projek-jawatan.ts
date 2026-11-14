@@ -32,3 +32,10 @@ export const JAWATAN_PERANAN: Record<string, string> = {
 export const JAWATAN_PESERTA = [
   "Bendahari", "Penolong Setiausaha", "Penolong Bendahari", "Ahli Jawatankuasa", "Ahli",
 ] as const;
+
+/** Peringkat Program Kolej (nilai disimpan; "Sekolah" dipapar sebagai "Kolej"). */
+export const PERINGKAT_PROGRAM = ["Antarabangsa", "Kebangsaan", "Negeri", "Zon/Daerah", "Sekolah"] as const;
+/** Markah penglibatan (§1.4) setiap peringkat — sama seperti markahPenglibatan() (pajsk.ts). */
+export const MARKAH_PERINGKAT_PROGRAM: Record<string, number> = {
+  Antarabangsa: 10, Kebangsaan: 10, Negeri: 8, "Zon/Daerah": 6, Sekolah: 4,
+};

@@ -70,6 +70,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
       aktivitiLuar: { where: { statusPengesahan: "Approved" } },
       laporanProjek: { where: { statusPengesahan: "Approved" } },
       projekPeserta: INCLUDE_PESERTA_LULUS,
+      programKolej: { include: { program: { select: { nama: true, peringkat: true } } } },
     },
   });
 
@@ -77,7 +78,11 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
   const baris: BarisRumusan[] = [];
   for (const asal of pelajar) {
     // Kokurikulum di sini mungkin ditapis; unit kredit peserta disimpan dalam rekod, jadi tidak terjejas.
-    const p = { ...asal, laporanProjek: gabungProjek(asal.laporanProjek, asal.projekPeserta, asal.kokurikulum) };
+    const p = {
+      ...asal,
+      laporanProjek: gabungProjek(asal.laporanProjek, asal.projekPeserta, asal.kokurikulum),
+      programKolej: asal.programKolej.map((x) => x.program),
+    };
     // Anugerah khas (ekstra) — dipaparkan dalam borang Unit Perkhidmatan.
     const ekstra = terbaik(
       p.pencapaian.filter((c) => c.kategori === "ekstra"),

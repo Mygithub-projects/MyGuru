@@ -25,6 +25,28 @@ export interface RekodPelajar {
   pencapaian: Pencapaian[];
   aktivitiLuar: AktivitiLuar[];
   laporanProjek: LaporanProjek[];
+  /** Program Kolej yang disertai (Admin) — menyumbang markah penglibatan semua unit bidang. */
+  programKolej?: ProgramPenglibatan[];
+}
+
+export interface ProgramPenglibatan { nama: string; peringkat: string; }
+
+/**
+ * Penglibatan (§1.4) satu unit: tertinggi antara peringkat unit itu dan
+ * peringkat Program Kolej yang disertai. Unit Perkhidmatan tidak terjejas
+ * (bukan unit bidang).
+ */
+export function penglibatanUnit(
+  k: Pick<Kokurikulum, "peringkatT6" | "jenisKoko">,
+  program: ProgramPenglibatan[] = [],
+): { peringkat: string; markah: number } {
+  let terbaik = { peringkat: k.peringkatT6 ?? "", markah: markahPenglibatan(k.peringkatT6) };
+  if (k.jenisKoko === "Perkhidmatan") return terbaik;
+  for (const pr of program) {
+    const m = markahPenglibatan(pr.peringkat);
+    if (m > terbaik.markah) terbaik = { peringkat: `${pr.peringkat === "Sekolah" ? "Kolej" : pr.peringkat} (${pr.nama})`, markah: m };
+  }
+  return terbaik;
 }
 
 export interface SkorUnit {
@@ -92,6 +114,7 @@ export function skorUnit(
   const pjJ = terbaik(projek, (pr) => markahProjekJawatan(pr.jawatanProjek));
   const pjP = terbaik(projek, (pr) => markahProjekPeringkat(pr.peringkatProjek));
 
+  const pglb = penglibatanUnit(k, p.programKolej);
   const s: SkorUnit = {
     unit,
     hadir,
@@ -102,8 +125,8 @@ export function skorUnit(
     mKehadiran: markahKehadiran(hadirGabung, jk.gabung),
     jawatan: k.jawatanT6 ?? "",
     mJawatan: k.jawatanT6 ? markahJawatan(k.jawatanT6, bidangDariJenisKoko(jenis)) : 0,
-    peringkat: k.peringkatT6 ?? "",
-    mPenglibatan: markahPenglibatan(k.peringkatT6),
+    peringkat: pglb.peringkat,
+    mPenglibatan: pglb.markah,
     pcpTahap: pcp?.tahap ?? "",
     pcpMarkah: pcp?.markah ?? 0,
     pjJawatan: pjJ?.jawatanProjek ?? "",
