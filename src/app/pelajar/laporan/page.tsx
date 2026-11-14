@@ -7,6 +7,7 @@ import { ringkasanSesi, sesiUntukUnit } from "@/lib/kehadiran";
 import { getT } from "@/lib/locale";
 import { SortToggle } from "@/components/SortToggle";
 import { LaporanForm } from "./LaporanForm";
+import { calonPeserta, projekDiTag } from "@/lib/projek";
 
 export default async function LaporanPage({
   searchParams,
@@ -19,7 +20,9 @@ export default async function LaporanPage({
   const arah: "asc" | "desc" = (await searchParams).sort === "lama" ? "asc" : "desc";
 
   const isSU = session.subRole === "SU" || session.subRole === "NSU";
-  if (!isSU) {
+  // Laporan Projek: pelajar yang di-tag SU/NSU projek oleh guru (walaupun bukan SU/NSU unit).
+  const tags = await projekDiTag(session.pelajarId);
+  if (!isSU && tags.length === 0) {
     return (
       <div className="space-y-4">
         <Link href="/pelajar" className="group inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-3 py-1.5 text-sm font-semibold text-brand-dark ring-1 ring-brand/20 transition hover:bg-brand hover:text-white">← {t.common.kembali}</Link>
@@ -33,10 +36,16 @@ export default async function LaporanPage({
   const koko = await prisma.kokurikulum.findMany({ where: { pelajarId: session.pelajarId } });
   const units = koko.filter((k) => k.namaUnitT6).map((k) => k.namaUnitT6!) as string[];
 
-  const [mingguan, projek, sesiList] = await Promise.all([
+  const kohort = (await prisma.pelajar.findUnique({ where: { id: session.pelajarId }, select: { kohort: true } }))?.kohort ?? null;
+  const [mingguan, projek, sesiList, calon] = await Promise.all([
     prisma.laporanMingguan.findMany({ where: { setiausahaId: session.pelajarId }, orderBy: { tarikh: arah } }),
-    prisma.laporanProjek.findMany({ where: { setiausahaId: session.pelajarId }, orderBy: { createdAt: arah } }),
-    sesiUntukUnit(units, (await prisma.pelajar.findUnique({ where: { id: session.pelajarId }, select: { kohort: true } }))?.kohort ?? null),
+    prisma.laporanProjek.findMany({
+      where: { setiausahaId: session.pelajarId },
+      orderBy: { createdAt: arah },
+      include: { _count: { select: { peserta: true } } },
+    }),
+    isSU ? sesiUntukUnit(units, kohort) : Promise.resolve([]),
+    tags.length ? calonPeserta(kohort) : Promise.resolve([]),
   ]);
 
   // Ringkasan kehadiran bagi sesi yang dipaut
@@ -57,6 +66,16 @@ export default async function LaporanPage({
       <LaporanForm
         units={koko.filter((k) => k.namaUnitT6).map((k) => ({ jenisKoko: k.jenisKoko, namaUnit: k.namaUnitT6! }))}
         sesiList={sesiList.map((s) => ({ id: s.id, namaUnit: s.namaUnit, bilPerjumpaan: s.bilPerjumpaan }))}
+        bolehMingguan={isSU}
+        pelajarId={session.pelajarId}
+        projek={tags.map((x) => ({
+          id: x.projek.id,
+          nama: x.projek.nama,
+          units: x.projek.units,
+          peranan: x.peranan,
+          ajk: x.projek.tag.map((g) => ({ id: g.pelajar.id, nama: g.pelajar.nama, kelas: g.pelajar.kelasT6, peranan: g.peranan })),
+        }))}
+        calon={calon.map((c) => ({ id: c.id, nama: c.nama, kelas: c.kelasT6 }))}
       />
 
       <div className="flex items-center justify-between gap-3">
@@ -102,7 +121,7 @@ export default async function LaporanPage({
                     <StatusBadge status={p.statusPengesahan} />
                   </div>
                   <p className="text-xs text-slate-400">
-                    {[p.namaUnit, p.peringkatProjek, p.jawatanProjek, p.tarikh ? new Date(p.tarikh).toLocaleDateString("ms-MY") : null].filter(Boolean).join(" · ")}
+                    {[p.namaUnit, p.peringkatProjek, p.jawatanProjek, p.tarikh ? new Date(p.tarikh).toLocaleDateString("ms-MY") : null, p._count.peserta ? `${p._count.peserta} peserta` : null].filter(Boolean).join(" · ")}
                     {p.failKertasKerja || p.failLaporanImpak ? ` ${t.laporan.attachmentLabel}` : ""}
                   </p>
                   {p.laporan && <p className="mt-1 line-clamp-3 text-xs text-slate-500">{p.laporan}</p>}

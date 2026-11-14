@@ -314,6 +314,21 @@ export interface Dict {
     reportTimePlaceholder: string; reportActivityPlaceholder: string; reportProjectOptionPrefix: string; reportUploadPrompt: string;
     sessionLabel: string; attachmentLabel: string; reportAttendanceLabel: string; reportViewSession: string; suNsuOnly: string;
     positionLabel: string; sessionLinkLabel: string;
+    opr: {
+      intro: string; timeLabel: string; timePlaceholder: string; placeLabel: string; placePlaceholder: string;
+      objectiveLabel: string; objectivePlaceholder: string; activityLabel: string; activityPlaceholder: string;
+      reflectionLabel: string; reflectionPlaceholder: string; photosLabel: string; photosHint: string; removePhoto: string;
+      tooManyPhotos: string; needPhoto: string; generate: string; generating: string; previewTitle: string; previewHint: string;
+      openNewTab: string; previewError: string; checkConfirm: string; submit: string; submitting: string; edit: string; staleNotice: string;
+      projectLabel: string; projectPlaceholder: string; noProject: string; projectUnits: string;
+      participantsLabel: string; participantsHint: string; setByTeacher: string; yourPosition: string; searchStudent: string; noMatch: string; removeParticipant: string;
+    };
+    projekUrus: {
+      title: string; sub: string; newTitle: string; nameLabel: string; unitsLabel: string; myUnits: string; create: string; creating: string;
+      empty: string; createdBy: string; reports: string; tagTitle: string; tagHint: string; noTag: string; addTag: string; searchStudent: string;
+      roleLabel: string; remove: string; deleteProject: string; confirmDelete: string; confirmRemoveTag: string; networkError: string;
+      editUnits: string; save: string; cancel: string; saveAjk: string; saving: string; unsaved: string; saved: string;
+    };
     semakan: {
       title: string; sub: string; all: string; pending: string; approved: string; query: string;
       by: string; evidence: string; workPlan: string; approve: string; queryBtn: string; queryPrompt: string;
@@ -778,6 +793,30 @@ const ms: Dict = {
     reportTimePlaceholder: "Masa (cth 2.30-4.30 ptg)", reportActivityPlaceholder: "Aktiviti / laporan ringkas", reportProjectOptionPrefix: "Pasca: ", reportUploadPrompt: "Pra-program: muat naik Kertas Kerja. Pasca-program: pilih projek di atas + muat naik Laporan Impak & isi maklumat.",
     sessionLabel: "Perjumpaan", attachmentLabel: "· 📎 lampiran", reportAttendanceLabel: "Kehadiran", reportViewSession: "Lihat sesi →", suNsuOnly: "Hanya untuk SU / NSU.",
     positionLabel: "Jawatan dalam projek", sessionLinkLabel: "Sesi kehadiran berkaitan (pilihan)",
+    opr: {
+      intro: "Isi butiran & tambah gambar. Sistem akan menjana OPR (Laporan Satu Muka Surat) sebagai eviden. Semak OPR dahulu sebelum hantar untuk pengesahan guru penasihat.",
+      timeLabel: "Masa", timePlaceholder: "cth 2.30 - 4.30 ptg", placeLabel: "Tempat", placePlaceholder: "cth Dewan Kuliah 1",
+      objectiveLabel: "Objektif", objectivePlaceholder: "Objektif program / perjumpaan",
+      activityLabel: "Aktiviti / pengisian program", activityPlaceholder: "Apa yang dijalankan (boleh tulis satu aktiviti setiap baris)",
+      reflectionLabel: "Refleksi / rumusan", reflectionPlaceholder: "Kekuatan, kelemahan & cadangan penambahbaikan",
+      photosLabel: "Gambar aktiviti", photosHint: "1 hingga 4 gambar (JPG/PNG). Gambar akan dikecilkan secara automatik.", removePhoto: "Buang",
+      tooManyPhotos: "Maksimum 4 gambar.", needPhoto: "Sila tambah sekurang-kurangnya 1 gambar.",
+      generate: "Jana OPR", generating: "Menjana OPR...", previewTitle: "Pratonton OPR", previewHint: "Semak semua butiran dan gambar. Jika perlu pembetulan, ubah borang dan jana semula.",
+      openNewTab: "Buka OPR dalam tab baharu ↗", previewError: "Pratonton tidak dapat dipaparkan — sila buka OPR dalam tab baharu.",checkConfirm: "Saya telah menyemak OPR ini dan maklumatnya betul.",
+      submit: "Hantar untuk pengesahan", submitting: "Menghantar...", edit: "Ubah butiran", staleNotice: "Borang telah diubah — sila jana semula OPR sebelum hantar.",
+      projectLabel: "Projek", projectPlaceholder: "— Pilih projek yang anda di-tag —", noProject: "Anda belum di-tag sebagai SU/NSU bagi mana-mana projek. Laporan Projek hanya boleh diisi selepas guru penasihat men-tag anda.", projectUnits: "Unit terlibat",
+      participantsLabel: "Peserta & jawatan", participantsHint: "AJK teras (ditetapkan guru) disenaraikan automatik. Tambah pelajar lain yang terlibat dan jawatan masing-masing. Markah projek diberi ikut jawatan selepas laporan disahkan guru.", setByTeacher: "ditetapkan guru", yourPosition: "Jawatan anda",
+      searchStudent: "Cari nama atau kelas…", noMatch: "Tiada padanan.", removeParticipant: "Buang",
+    },
+    projekUrus: {
+      title: "Projek", sub: "Cipta projek (boleh merentas pelbagai unit) dan tetapkan AJK teras. Hanya SU/NSU projek boleh menghantar Laporan Projek.",
+      newTitle: "Projek baharu", nameLabel: "Nama projek", unitsLabel: "Unit terlibat", myUnits: "Unit seliaan anda", create: "Cipta projek", creating: "Mencipta...",
+      empty: "Tiada projek lagi.", createdBy: "Dicipta oleh", reports: "Laporan", tagTitle: "AJK teras projek", tagHint: "Guru tetapkan Pengerusi, Naib Pengerusi, SU dan NSU. Jawatan lain diisi oleh SU/NSU dalam Laporan Projek. Markah jawatan diberi selepas laporan disahkan.", noTag: "Belum ada AJK ditetapkan.", addTag: "Tetapkan",
+      searchStudent: "Cari nama atau kelas pelajar…", roleLabel: "Peranan", remove: "Buang", deleteProject: "Padam projek",
+      confirmDelete: "Padam projek ini?", confirmRemoveTag: "Buang tag pelajar ini?", networkError: "Ralat rangkaian",
+      editUnits: "Ubah", save: "Simpan", cancel: "Batal",
+      saveAjk: "Simpan & sahkan AJK", saving: "Menyimpan...", unsaved: "Belum disimpan", saved: "AJK disimpan — pelajar telah dimaklumkan",
+    },
     semakan: {
       title: "Laporan SU/NSU", sub: "Semua laporan mingguan & projek yang dihantar SU/NSU — lihat butiran, eviden dan sahkan atau kuiri.",
       all: "Semua", pending: "Menunggu", approved: "Disahkan", query: "Kuiri",
@@ -1278,6 +1317,30 @@ const en: Dict = {
     reportTimePlaceholder: "Time (e.g. 2.30-4.30 PM)", reportActivityPlaceholder: "Activity / short report", reportProjectOptionPrefix: "Post: ", reportUploadPrompt: "Pre-program: upload a Work Plan. Post-program: choose a project above + upload Impact Report & fill in details.",
     sessionLabel: "Meeting", attachmentLabel: "· 📎 attachment", reportAttendanceLabel: "Attendance", reportViewSession: "View session →", suNsuOnly: "For Secretary / Deputy Secretary only.",
     positionLabel: "Position in project", sessionLinkLabel: "Related attendance session (optional)",
+    opr: {
+      intro: "Fill in the details & add photos. The system generates an OPR (One Page Report) as evidence. Check the OPR before submitting it for advisor verification.",
+      timeLabel: "Time", timePlaceholder: "e.g. 2.30 - 4.30 PM", placeLabel: "Venue", placePlaceholder: "e.g. Lecture Hall 1",
+      objectiveLabel: "Objectives", objectivePlaceholder: "Objectives of the programme / meeting",
+      activityLabel: "Activities / programme content", activityPlaceholder: "What was carried out (one activity per line is fine)",
+      reflectionLabel: "Reflection / summary", reflectionPlaceholder: "Strengths, weaknesses & suggestions for improvement",
+      photosLabel: "Activity photos", photosHint: "1 to 4 photos (JPG/PNG). Photos are resized automatically.", removePhoto: "Remove",
+      tooManyPhotos: "Maximum 4 photos.", needPhoto: "Please add at least 1 photo.",
+      generate: "Generate OPR", generating: "Generating OPR...", previewTitle: "OPR preview", previewHint: "Check all details and photos. If something needs fixing, edit the form and generate again.",
+      openNewTab: "Open OPR in a new tab ↗", previewError: "Preview could not be shown — please open the OPR in a new tab.",checkConfirm: "I have checked this OPR and the information is correct.",
+      submit: "Submit for verification", submitting: "Submitting...", edit: "Edit details", staleNotice: "The form has changed — please generate the OPR again before submitting.",
+      projectLabel: "Project", projectPlaceholder: "— Choose a project you are tagged in —", noProject: "You have not been tagged as SU/NSU for any project. Project reports can only be filled in after an advisor tags you.", projectUnits: "Units involved",
+      participantsLabel: "Participants & positions", participantsHint: "The core committee (set by the teacher) is listed automatically. Add the other students involved and their positions. Project marks are awarded by position once the advisor approves the report.", setByTeacher: "set by teacher", yourPosition: "Your position",
+      searchStudent: "Search name or class…", noMatch: "No match.", removeParticipant: "Remove",
+    },
+    projekUrus: {
+      title: "Projects", sub: "Create projects (they can span several units) and set the core committee. Only the project SU/NSU can submit Project Reports.",
+      newTitle: "New project", nameLabel: "Project name", unitsLabel: "Units involved", myUnits: "Your units", create: "Create project", creating: "Creating...",
+      empty: "No projects yet.", createdBy: "Created by", reports: "Reports", tagTitle: "Core project committee", tagHint: "The teacher sets the Chair, Vice Chair, SU and NSU. Other positions are filled in by the SU/NSU in the Project Report. Position marks are awarded once the report is approved.", noTag: "No committee members set yet.", addTag: "Set",
+      searchStudent: "Search student name or class…", roleLabel: "Role", remove: "Remove", deleteProject: "Delete project",
+      confirmDelete: "Delete this project?", confirmRemoveTag: "Remove this student's tag?", networkError: "Network error",
+      editUnits: "Edit", save: "Save", cancel: "Cancel",
+      saveAjk: "Save & confirm committee", saving: "Saving...", unsaved: "Not saved yet", saved: "Committee saved — students notified",
+    },
     semakan: {
       title: "SU/NSU Reports", sub: "All weekly & project reports submitted by SU/NSU — view details and evidence, then approve or query.",
       all: "All", pending: "Pending", approved: "Approved", query: "Query",

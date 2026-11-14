@@ -2,6 +2,7 @@
 //  Logik Aliran Kerja — pertukaran unit, semakan pencapaian & aktiviti luar.
 //  (Spesifikasi §4, §5.5, §7). Semua peralihan status & kemas kini T6 di sini.
 // ===========================================================================
+import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import { prisma } from "./prisma";
 import { itemEkstra, skorUnit, type RekodPelajar } from "./skor-unit";
 import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
@@ -170,6 +171,7 @@ export async function kiraSemulaT6(pelajarId: string) {
       aktivitiLuar: true,
       pencapaian: true,
       laporanProjek: true,
+      projekPeserta: INCLUDE_PESERTA_LULUS,
     },
   });
   if (!pelajar) return null;
@@ -213,7 +215,11 @@ export async function kiraSemulaT6(pelajarId: string) {
   ]);
 
   // --- PROJEK (§1.6 & §1.7): tertinggi merentas laporan projek yang diluluskan.
-  const projekLulus = pelajar.laporanProjek.filter((pr) => pr.statusPengesahan === "Approved");
+  const projekLulus = gabungProjek(
+    pelajar.laporanProjek.filter((pr) => pr.statusPengesahan === "Approved"),
+    pelajar.projekPeserta,
+    pelajar.kokurikulum,
+  );
   const markahPjJwt = maks(projekLulus.map((pr) => markahProjekJawatan(pr.jawatanProjek)));
   const markahPjPrk = maks(projekLulus.map((pr) => markahProjekPeringkat(pr.peringkatProjek)));
 

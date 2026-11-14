@@ -79,6 +79,14 @@ export function LaporanSemakan({
                 <StatusBadge status={r.status} />
               </div>
               {r.laporan && <p className="mt-2 whitespace-pre-line text-sm text-slate-700">{r.laporan}</p>}
+              {r.peserta.length > 0 && (
+                <details className="mt-2 text-sm">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-600">{t.laporan.opr.participantsLabel} ({r.peserta.length})</summary>
+                  <ul className="mt-1 grid gap-x-4 text-xs text-slate-600 sm:grid-cols-2">
+                    {r.peserta.map((x, i) => <li key={i}>{x.nama}{x.kelas ? ` (${x.kelas})` : ""} — <span className="font-semibold">{x.jawatan}</span></li>)}
+                  </ul>
+                </details>
+              )}
               <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                 {r.eviden.map((u, i) => (
                   <a key={u} href={u} target="_blank" rel="noopener" className={pautan}>

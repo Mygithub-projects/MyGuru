@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession, ok, fail } from "@/lib/api";
 import { simpanFailDariForm } from "@/lib/upload";
 import { PERINGKAT } from "@/lib/enums";
+import { bacaOprDariForm, janaOprPDF, simpanOpr, teksLaporanOpr } from "@/lib/opr";
 
 // POST: laporan mingguan SU/NSU — templat sama seperti borang aktiviti:
 // Nama Program/Aktiviti, Peringkat, Tarikh, Unit, Laporan ringkas, Eviden.
@@ -36,9 +37,21 @@ export async function POST(request: NextRequest) {
   });
   if (!unit) return fail("Unit berkaitan diperlukan/tidak sah", 422);
 
+  // Borang OPR: eviden = PDF OPR yang dijana sistem (butiran + gambar).
+  // Borang lama (tanpa opr=1): eviden = fail yang dimuat naik.
   let lampiran: string | null = null;
+  let teksLaporan = laporan;
+  let masa: string | null = null;
   try {
-    lampiran = await simpanFailDariForm(form, "eviden", "laporan");
+    if (form.get("opr") === "1") {
+      const r = await bacaOprDariForm(form, "Mingguan", { id: session.pelajarId, subRole: session.subRole });
+      if ("ralat" in r) return fail(r.ralat, 422);
+      lampiran = await simpanOpr(await janaOprPDF(r.data));
+      teksLaporan = teksLaporanOpr(r.data);
+      masa = r.data.masa || null;
+    } else {
+      lampiran = await simpanFailDariForm(form, "eviden", "laporan");
+    }
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Ralat muat naik", 400);
   }
@@ -49,9 +62,10 @@ export async function POST(request: NextRequest) {
       jenisKoko: unit.jenisKoko,
       namaUnit,
       tarikh: new Date(tarikh),
+      masa,
       namaProgram,
       peringkat,
-      aktiviti: laporan,
+      aktiviti: teksLaporan,
       lampiran,
       sesiId,
       setiausahaId: session.pelajarId,

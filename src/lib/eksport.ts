@@ -1,6 +1,7 @@
 // ===========================================================================
 //  Eksport analitik — Excel (exceljs) & PDF (pdf-lib).
 // ===========================================================================
+import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { dbKohort } from "./prisma-kohort";
@@ -338,6 +339,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
       pencapaian: { where: { statusSemakan: "Approved" } },
       aktivitiLuar: { where: { statusPengesahan: "Approved" } },
       laporanProjek: { where: { statusPengesahan: "Approved" } },
+      projekPeserta: INCLUDE_PESERTA_LULUS,
     },
   });
 
@@ -363,7 +365,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
       ];
       const pcp = terbaik(calon, (c) => c.markah);
       const projek = terbaik(
-        p.laporanProjek.filter((pr) => padan(pr.namaUnit) || (!pr.namaUnit && pr.jenisKoko === jenis)),
+        gabungProjek(p.laporanProjek, p.projekPeserta, p.kokurikulum).filter((pr) => padan(pr.namaUnit) || (!pr.namaUnit && pr.jenisKoko === jenis)),
         (pr) => markahProjekJawatan(pr.jawatanProjek) + markahProjekPeringkat(pr.peringkatProjek),
       );
       return {

@@ -23,6 +23,8 @@ export interface LaporanSU {
   disahkanOleh: string | null;
   eviden: string[];
   kertasKerja: string | null;
+  /** Laporan projek: peserta & jawatan (markah dikreditkan selepas disahkan). */
+  peserta: { nama: string; kelas: string | null; jawatan: string }[];
   dicipta: number; // ms, untuk susunan terkini dahulu
 }
 
@@ -53,8 +55,15 @@ export async function senaraiLaporanSU(
     opts.jenis === "mingguan"
       ? []
       : db.laporanProjek.findMany({
-          where: { ...whereUnit, statusPengesahan: status },
-          include: pilihSU,
+          // Projek pelbagai unit: juga kelihatan kepada guru mana-mana unit terlibat.
+          where: {
+            statusPengesahan: status,
+            ...(ids === null ? {} : { OR: [whereUnit, { projek: { units: { hasSome: units } } }] }),
+          },
+          include: {
+            ...pilihSU,
+            peserta: { include: { pelajar: { select: { nama: true, kelasT6: true } } } },
+          },
           orderBy: { createdAt: "desc" },
         }),
   ]);
@@ -76,6 +85,7 @@ export async function senaraiLaporanSU(
       disahkanOleh: m.disahkanOleh,
       eviden: (m.lampiran ?? "").split(",").map((x) => urlFail(x.trim())).filter((x): x is string => !!x),
       kertasKerja: null,
+      peserta: [],
       dicipta: m.createdAt.getTime(),
     })),
     ...projek.map((p) => ({
@@ -95,6 +105,7 @@ export async function senaraiLaporanSU(
       disahkanOleh: p.disahkanOleh,
       eviden: [urlFail(p.failLaporanImpak)].filter((x): x is string => !!x),
       kertasKerja: urlFail(p.failKertasKerja),
+      peserta: p.peserta.map((x) => ({ nama: x.pelajar.nama, kelas: x.pelajar.kelasT6, jawatan: x.jawatan })),
       dicipta: p.createdAt.getTime(),
     })),
   ];
