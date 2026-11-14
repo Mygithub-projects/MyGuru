@@ -61,6 +61,7 @@ export interface Dict {
     hintAdmin: string; hintGuru: string; hintPelajar: string;
     roleMismatch: string;
     forgotPassword: string;
+    showPassword: string; hidePassword: string; welcome: string; highlights: string[];
   };
   pelajar: {
     welcome: string; icNo: string;
@@ -443,6 +444,8 @@ const ms: Dict = {
     hintPelajar: "Guna No. Kad Pengenalan anda (12 digit, tanpa sengkang).",
     roleMismatch: "Akaun ini bukan akaun {role}. Sila pilih peranan yang betul.",
     forgotPassword: "Lupa kata laluan? Sila hubungi pentadbir sekolah untuk ditetapkan semula.",
+    showPassword: "Tunjuk kata laluan", hidePassword: "Sembunyi kata laluan", welcome: "Selamat datang! Sila log masuk untuk meneruskan.",
+    highlights: ["Rekod kehadiran & aktiviti kokurikulum", "Markah PAJSK dikira automatik", "Laporan OPR & pengesahan guru"],
   },
   pelajar: {
     welcome: "Selamat Datang,", icNo: "No. IC:",
@@ -970,6 +973,8 @@ const en: Dict = {
     hintPelajar: "Use your MyKad (IC) number (12 digits, no dashes).",
     roleMismatch: "This is not a {role} account. Please choose the correct role.",
     forgotPassword: "Forgot your password? Please contact your school administrator to reset it.",
+    showPassword: "Show password", hidePassword: "Hide password", welcome: "Welcome! Please sign in to continue.",
+    highlights: ["Co-curricular attendance & activity records", "PAJSK marks calculated automatically", "OPR reports & teacher verification"],
   },
   pelajar: {
     welcome: "Welcome,", icNo: "IC No.:",
