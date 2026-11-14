@@ -130,10 +130,11 @@ model Pelajar {
   aktivitiLuar    AktivitiLuar[]
   pertukaran      LogPertukaran[]
   cadanganJawatan CadanganJawatan[]
-  laporanMingguan LaporanMingguan[] @relation("SetiausahaLaporan")
-  laporanProjek   LaporanProjek[]   @relation("SetiausahaProjek")
+  laporanMingguan LaporanMingguan[]     @relation("SetiausahaLaporan")
+  laporanProjek   LaporanProjek[]       @relation("SetiausahaProjek")
   projekTag       ProjekTag[]
   projekPeserta   ProjekPeserta[]
+  programKolej    ProgramKolejPeserta[]
 
   @@index([kohort])
 }
@@ -587,4 +588,37 @@ model AktivitiLuar {
   createdAt        DateTime  @default(now())
 
   @@index([statusPengesahan])
+}
+
+// === Program Kolej =========================================================
+// Program peringkat kolej/luar yang diurus Admin. Pelajar yang dipilih menerima
+// markah PENGLIBATAN (§1.4) ikut peringkat program — dikira bagi SEMUA unit
+// bidang (KP/SP/BU) pelajar: markah unit = tertinggi antara peringkat unit &
+// peringkat program yang disertai.
+
+model ProgramKolej {
+  id         String    @id @default(cuid())
+  nama       String
+  tarikh     DateTime?
+  peringkat  String // Sekolah (Kolej) | Zon/Daerah | Negeri | Kebangsaan | Antarabangsa
+  kohort     String    @default("")
+  dibuatOleh String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  peserta ProgramKolejPeserta[]
+
+  @@index([kohort])
+}
+
+model ProgramKolejPeserta {
+  id        String       @id @default(cuid())
+  program   ProgramKolej @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programId String
+  pelajar   Pelajar      @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId String
+  createdAt DateTime     @default(now())
+
+  @@unique([programId, pelajarId])
+  @@index([pelajarId])
 }

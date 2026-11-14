@@ -1,6 +1,7 @@
 // ===========================================================================
 //  Eksport analitik — Excel (exceljs) & PDF (pdf-lib).
 // ===========================================================================
+import { penglibatanUnit } from "./skor-unit";
 import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
@@ -340,6 +341,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
       aktivitiLuar: { where: { statusPengesahan: "Approved" } },
       laporanProjek: { where: { statusPengesahan: "Approved" } },
       projekPeserta: INCLUDE_PESERTA_LULUS,
+      programKolej: { include: { program: { select: { nama: true, peringkat: true } } } },
     },
   });
 
@@ -373,8 +375,8 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
         hadir: k ? p.kehadiran.filter((h) => h.jenisKoko === jenis).length : null,
         jawatan: k?.jawatanT6 ?? "",
         mJawatan: k ? k.markahJawatanT6 ?? 0 : null,
-        peringkat: k?.peringkatT6 ?? "",
-        mPenglibatan: k ? k.markahPeringkatT6 ?? 0 : null,
+        peringkat: k ? penglibatanUnit(k, p.programKolej.map((x) => x.program)).peringkat : "",
+        mPenglibatan: k ? penglibatanUnit(k, p.programKolej.map((x) => x.program)).markah : null,
         pcpTahap: pcp?.tahap ?? "",
         pcpMarkah: pcp ? pcp.markah : k ? 0 : null,
         pjJawatan: projek?.jawatanProjek ?? "",

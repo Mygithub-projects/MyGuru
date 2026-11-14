@@ -4,7 +4,7 @@
 // ===========================================================================
 import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import { prisma } from "./prisma";
-import { itemEkstra, skorUnit, type RekodPelajar } from "./skor-unit";
+import { itemEkstra, penglibatanUnit, skorUnit, type RekodPelajar } from "./skor-unit";
 import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
 import {
   gred,
@@ -172,9 +172,11 @@ export async function kiraSemulaT6(pelajarId: string) {
       pencapaian: true,
       laporanProjek: true,
       projekPeserta: INCLUDE_PESERTA_LULUS,
+      programKolej: { include: { program: { select: { nama: true, peringkat: true } } } },
     },
   });
   if (!pelajar) return null;
+  const programKolej = pelajar.programKolej.map((x) => x.program);
 
   const maks = (arr: number[]) => arr.reduce((m, n) => Math.max(m, n), 0);
 
@@ -186,7 +188,7 @@ export async function kiraSemulaT6(pelajarId: string) {
     const up = k.jenisKoko === "Perkhidmatan";
     // Unit Perkhidmatan: Jadual 1 (ekstra), tidak dikira dalam jawatan bidang.
     const mj = !k.jawatanT6 ? 0 : up ? nilaiEkstra(k.jawatanT6) : markahJawatan(k.jawatanT6, bidangDariJenisKoko(k.jenisKoko));
-    const mp = markahPenglibatan(k.peringkatT6);
+    const mp = penglibatanUnit(k, programKolej).markah;
     if (!up) markahJwt = Math.max(markahJwt, mj);
     if (mj !== (k.markahJawatanT6 ?? -1) || mp !== (k.markahPeringkatT6 ?? -1)) {
       await prisma.kokurikulum.update({
@@ -201,7 +203,7 @@ export async function kiraSemulaT6(pelajarId: string) {
 
   // --- PENGLIBATAN (§1.4): peringkat tertinggi (koko + aktiviti luar diluluskan).
   const markahPglb = maks([
-    ...pelajar.kokurikulum.map((k) => markahPenglibatan(k.peringkatT6)),
+    ...pelajar.kokurikulum.map((k) => penglibatanUnit(k, programKolej).markah),
     ...luarLulus.map((a) => markahPenglibatan(a.peringkat)),
   ]);
 
@@ -230,6 +232,7 @@ export async function kiraSemulaT6(pelajarId: string) {
     pencapaian: pencapaianLulus,
     aktivitiLuar: luarLulus,
     laporanProjek: projekLulus,
+    programKolej,
   };
   const markahEks = markahEkstra(itemEkstra(rekod, pelajar.kokurikulum));
 
