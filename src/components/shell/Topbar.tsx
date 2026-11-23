@@ -21,10 +21,13 @@ export async function Topbar({
   role,
   subRole,
   jawatan,
+  subRoleLabel,
 }: {
   nama: string;
   role: string;
   subRole?: string | null;
+  /** Label SU/NSU penuh (cth. "SU Kelab Komputer") — menggantikan subRole ringkas. */
+  subRoleLabel?: string | null;
   /** Label jawatan sebenar (guru) — menggantikan label peranan umum. */
   jawatan?: string | null;
 }) {
@@ -43,9 +46,9 @@ export async function Topbar({
       <SidebarToggleButton />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold leading-tight text-slate-800">{nama}</p>
-        <p className="truncate text-[11px] leading-tight text-slate-500" title={jawatan ?? undefined}>
+        <p className="truncate text-[11px] leading-tight text-slate-500" title={jawatan ?? subRoleLabel ?? undefined}>
           {jawatan || (roleLabel[role] ?? role)}
-          {subRole && subRole !== "Pelajar" ? ` · ${subRole}` : ""}
+          {subRole && subRole !== "Pelajar" ? ` · ${subRoleLabel || subRole}` : ""}
         </p>
       </div>
 
