@@ -27,7 +27,7 @@ const HAD = { objektif: 500, aktiviti: 1500, refleksi: 600, tempat: 120, masa: 6
 interface Gambar { id: string; file: File; url: string; }
 
 /** Kecilkan gambar ke JPEG (sisi panjang maks 1600px) supaya OPR ringan & muat naik pantas. */
-async function kecilkanGambar(file: File): Promise<File> {
+export async function kecilkanGambar(file: File): Promise<File> {
   try {
     const bmp = await createImageBitmap(file);
     const s = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
