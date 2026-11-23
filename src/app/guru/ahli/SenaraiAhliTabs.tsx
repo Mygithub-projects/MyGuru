@@ -13,6 +13,7 @@ interface Ahli {
   markahPajskT6: number | null;
   gred: string | null;
   statusButiran: string;
+  unitSU: string[];
 }
 interface Unit {
   namaUnit: string;
@@ -205,6 +206,11 @@ export function SenaraiAhliTabs({
                   {a.subRole !== "Pelajar" && (
                     <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
                       {a.subRole}
+                    </span>
+                  )}
+                  {a.unitSU.length > 0 && (
+                    <span className="mt-0.5 block text-[11px] font-normal text-slate-500">
+                      ({a.subRole} {a.unitSU.join(", ")})
                     </span>
                   )}
                 </td>

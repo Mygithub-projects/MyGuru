@@ -20,7 +20,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if ("response" in auth) return auth.response;
   const projek = await muat(id);
   if (!projek) return fail("Projek tidak dijumpai", 404);
-  if (!(await bolehUrusProjek(auth.guru, auth.session.userId, projek))) return fail("Projek ini di luar skop anda", 403);
+  if (!(await bolehUrusProjek(auth.guru, auth.session.userId, projek))) return fail("Hanya guru yang mencipta projek ini boleh mengubah atau memadamnya", 403);
 
   let body: unknown;
   try { body = await request.json(); } catch { return fail("Format tidak sah", 400); }
@@ -41,7 +41,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   if ("response" in auth) return auth.response;
   const projek = await muat(id);
   if (!projek) return fail("Projek tidak dijumpai", 404);
-  if (!(await bolehUrusProjek(auth.guru, auth.session.userId, projek))) return fail("Projek ini di luar skop anda", 403);
+  if (!(await bolehUrusProjek(auth.guru, auth.session.userId, projek))) return fail("Hanya guru yang mencipta projek ini boleh mengubah atau memadamnya", 403);
   if (projek._count.laporan > 0) return fail("Projek sudah mempunyai laporan dan tidak boleh dipadam", 409);
   await prisma.projek.delete({ where: { id } });
   return ok(null, "Projek dipadam");

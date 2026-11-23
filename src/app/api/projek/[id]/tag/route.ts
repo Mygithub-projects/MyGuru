@@ -17,7 +17,7 @@ async function semak(id: string) {
   const projek = await prisma.projek.findUnique({ where: { id } });
   if (!projek) return { response: fail("Projek tidak dijumpai", 404) };
   if (!(await bolehUrusProjek(auth.guru, auth.session.userId, projek)))
-    return { response: fail("Projek ini di luar skop anda", 403) };
+    return { response: fail("Hanya guru yang mencipta projek ini boleh mengubah atau memadamnya", 403) };
   return { projek };
 }
 
