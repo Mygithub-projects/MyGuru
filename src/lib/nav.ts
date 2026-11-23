@@ -14,7 +14,14 @@ export function stripEmoji(label: string): string {
 }
 
 /** `adaProjek`: pelajar di-tag SU/NSU bagi sekurang-kurangnya satu projek (akses Laporan Projek). */
-export function getNavForRole(role: string, subRole: string | null | undefined, t: Dict, adaProjek = false): NavItem[] {
+export function getNavForRole(
+  role: string,
+  subRole: string | null | undefined,
+  t: Dict,
+  adaProjek = false,
+  /** Guru KUPP/Pemantau atau Penyelaras — boleh mengesahkan kehadiran guru. */
+  sahkanKehadiranGuru = false,
+): NavItem[] {
   const notifChat: NavItem[] = [
     { label: t.header.notifications, icon: "bell", action: "notif" },
     { label: t.header.chatbot, icon: "chat", action: "chat" },
@@ -44,6 +51,9 @@ export function getNavForRole(role: string, subRole: string | null | undefined, 
       { href: "/guru/ahli", label: stripEmoji(t.guru.linkMembers), icon: "members" },
       { href: "/guru/kehadiran", label: stripEmoji(t.guru.linkAttendance), icon: "attendance" },
       { href: "/guru/kehadiran-saya", label: t.kehadiranGuru.navGuru, icon: "attendance" },
+      ...(sahkanKehadiranGuru
+        ? [{ href: "/guru/semak-kehadiran-guru", label: t.kehadiranGuru.navAdmin, icon: "attendance" } as NavItem]
+        : []),
       { href: "/guru/analitik", label: stripEmoji(t.guru.linkAnalytics), icon: "analytics" },
       { href: "/guru/pemilihan", label: stripEmoji(t.guru.linkSelection), icon: "trophy" },
       { href: "/guru/laporan", label: t.laporan.semakan.title, icon: "reports" },

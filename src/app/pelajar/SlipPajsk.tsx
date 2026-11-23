@@ -19,11 +19,16 @@ export function SlipPajsk({
   markahEkstra,
   t,
   label,
+  disahkan = true,
+  teksBelumDisahkan = "",
 }: {
   rows: BarisRumusan[];
   markah: number | null;
   gred: string | null;
   markahEkstra: number;
+  /** Butiran disahkan guru? Jika belum, jumlah & gred tidak dipaparkan (markah belum dikira). */
+  disahkan?: boolean;
+  teksBelumDisahkan?: string;
   t: Dict["pelajar"]["slip"];
   label: Record<string, string>;
 }) {
@@ -113,14 +118,16 @@ export function SlipPajsk({
             <tr>
               <td colSpan={2} className={`${td} text-right font-bold`}>{t.jumlahSkor}</td>
               {lajur.map((r, i) => (
-                <td key={i} className={`${td} text-center font-bold`}>{r?.jumlah != null ? `${r.jumlah} (${r.jumlah}%)` : "—"}</td>
+                <td key={i} className={`${td} text-center font-bold`}>{disahkan && r?.jumlah != null ? `${r.jumlah} (${r.jumlah}%)` : "—"}</td>
               ))}
-              <td className={`${td} text-center font-bold`}>{markahEkstra}</td>
+              <td className={`${td} text-center font-bold`}>{disahkan ? markahEkstra : "—"}</td>
             </tr>
             <tr>
               <td colSpan={2} className={`${td} text-right font-bold`}>{t.gred10}</td>
               <td colSpan={4} className={`${td} text-center text-sm font-bold text-brand-dark`}>
-                {markah == null ? "—" : `${Math.round(markah * 10) / 100} / ${gred ?? "-"}`}
+                {!disahkan ? (
+                  <span className="text-xs font-semibold text-amber-700">{teksBelumDisahkan}</span>
+                ) : markah == null ? "—" : `${Math.round(markah * 10) / 100} / ${gred ?? "-"}`}
               </td>
             </tr>
           </tbody>

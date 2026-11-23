@@ -19,7 +19,11 @@ export default async function AktivitiPage() {
 
   const [pencapaian, aktivitiLuar, koko] = await Promise.all([
     prisma.pencapaian.findMany({ where: { pelajarId: pid }, orderBy: { createdAt: "desc" } }),
-    prisma.aktivitiLuar.findMany({ where: { pelajarId: pid }, orderBy: { createdAt: "desc" } }),
+    prisma.aktivitiLuar.findMany({
+      where: { pelajarId: pid },
+      orderBy: { createdAt: "desc" },
+      include: { guruPengiring: { select: { nama: true } } },
+    }),
     prisma.kokurikulum.findMany({ where: { pelajarId: pid } }),
   ]);
   const tarikhStr = (d: Date | null) => (d ? d.toLocaleDateString("ms-MY") : "");
@@ -40,6 +44,11 @@ export default async function AktivitiPage() {
       include: { aktiviti: { select: { namaAktiviti: true, namaUnit: true, peringkat: true, tarikh: true, statusPengesahan: true } } },
     }),
   ]);
+  const senaraiGuru = await prisma.guru.findMany({
+    where: { statusAktif: true },
+    select: { id: true, nama: true },
+    orderBy: { nama: "asc" },
+  });
   const kedLabel: Record<string, string> = en
     ? { Penyertaan: "Participation", Johan: "Champion", "Naib Johan": "Runner-up", Ketiga: "Third" }
     : { Penyertaan: "Penyertaan", Johan: "Johan", "Naib Johan": "Naib Johan", Ketiga: "Ketiga" };
@@ -55,6 +64,7 @@ export default async function AktivitiPage() {
       <AktivitiForm
         pelajarId={pid}
         units={units}
+        guru={senaraiGuru}
         su={unitSU.length ? { units: unitSU, calon: calon.map((c) => ({ id: c.id, nama: c.nama, kelas: c.kelasT6 })) } : undefined}
       />
 
@@ -140,7 +150,13 @@ export default async function AktivitiPage() {
                   </div>
                   <p className="text-xs text-slate-400">
                     {a.namaUnit ? `${a.namaUnit} · ` : ""}{a.peringkat}{a.tarikh ? ` · ${tarikhStr(a.tarikh)}` : ""}
-                    {a.statusPengesahan === "Approved" ? ` · ${a.markahLuar} ${t.pelajar.commentLabel} · ${a.noSiriECert}` : ""}
+                    {a.kedudukan ? ` · ${kedLabel[a.kedudukan] ?? a.kedudukan}` : ""}
+                    {a.guruPengiring ? ` · ${en ? "Escort" : "Pengiring"}: ${a.guruPengiring.nama}` : ""}
+                    {a.statusPengesahan === "Approved"
+                      ? a.kedudukan
+                        ? ` · ${en ? "Involvement" : "Penglibatan"} ${a.markahPenglibatan} · ${en ? "Achievement" : "Pencapaian"} ${a.markahPencapaian} · ${a.noSiriECert}`
+                        : ` · ${a.markahLuar} ${t.pelajar.commentLabel} · ${a.noSiriECert}`
+                      : ""}
                   </p>
                   {a.laporan && <p className="mt-1 line-clamp-3 text-xs text-slate-500">{a.laporan}</p>}
                   {a.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.pelajar.commentLabel}: {a.komenGuru}</p>}

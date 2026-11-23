@@ -15,6 +15,7 @@ import {
   markahJawatan,
   markahJawatanUnit,
   markahPenglibatan,
+  markahPencapaian,
   markahProjekJawatan,
   markahProjekPeringkat,
   markahEkstra,
@@ -548,12 +549,25 @@ export async function sahkanAktivitiLuar(input: {
     throw new Error("Eviden tidak lengkap: eviden diperlukan sebelum kelulusan.");
   }
 
-  const markah = input.status === "Approved" ? markahAktivitiLuar(aktiviti.peringkat) : 0;
+  // Jadual D (penglibatan ikut peringkat) & Jadual E (pencapaian ikut peringkat
+  // + kedudukan). Rekod lama tanpa kedudukan: pencapaian kekal ikut peringkat.
+  const lulus = input.status === "Approved";
+  const mPglb = lulus ? markahPenglibatan(aktiviti.peringkat) : 0;
+  const mPcp = !lulus
+    ? 0
+    : aktiviti.kedudukan == null
+      ? markahAktivitiLuar(aktiviti.peringkat)
+      : aktiviti.kedudukan === "Penyertaan"
+        ? 0
+        : markahPencapaian(aktiviti.peringkat, aktiviti.kedudukan);
+  const markah = mPcp;
   const updated = await prisma.aktivitiLuar.update({
     where: { id: input.aktivitiId },
     data: {
       statusPengesahan: input.status,
       markahLuar: markah,
+      markahPenglibatan: mPglb,
+      markahPencapaian: mPcp,
       komenGuru: input.komen,
       // Aktifkan e-Cert hanya bila diluluskan
       noSiriECert:
@@ -568,7 +582,7 @@ export async function sahkanAktivitiLuar(input: {
     tajuk: input.status === "Approved" ? "Aktiviti luar disahkan" : "Aktiviti luar dikuiri",
     mesej:
       input.status === "Approved"
-        ? `"${updated.namaAktiviti}" disahkan — ${markah} markah, e-Cert sedia dijana.`
+        ? `"${updated.namaAktiviti}" disahkan — penglibatan ${mPglb}, pencapaian ${mPcp} markah; e-Cert sedia dijana.`
         : `"${updated.namaAktiviti}" perlu pembetulan.${input.komen ? " " + input.komen : ""}`,
     jenis: input.status === "Approved" ? "lulus" : "kuiri",
     pautan: "/pelajar/aktiviti",

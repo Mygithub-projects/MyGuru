@@ -3,14 +3,12 @@ import { getSession } from "@/lib/auth";
 import { getPelajarProfil } from "@/lib/pelajar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { HeroBanner } from "@/components/HeroBanner";
-import { StatCard } from "@/components/StatCard";
 import { senaraiUnitBerpenasihat } from "@/lib/unit-list";
 import { getT } from "@/lib/locale";
 import { dataRumusan } from "@/lib/rumusan";
 import { UnitSection } from "./UnitSection";
 import { SlipPajsk } from "./SlipPajsk";
 import { KadPenyertaan } from "@/components/KadPenyertaan";
-import { markahT6Skala50 } from "@/lib/pajsk";
 
 export default async function PelajarDashboard() {
   const session = await getSession();
@@ -23,7 +21,7 @@ export default async function PelajarDashboard() {
     senaraiUnitBerpenasihat(),
     dataRumusan({ pelajarId: pelajar.id }),
   ]);
-  const { t } = await getT();
+  const { t, locale } = await getT();
   const unitLabel: Record<string, string> = {
     Kelab: t.common.kelab, Sukan: t.common.sukan, Uniform: t.common.uniform, Perkhidmatan: t.common.perkhidmatan,
   };
@@ -38,19 +36,16 @@ export default async function PelajarDashboard() {
         <a href={`/api/pelajar/${pelajar.id}/butiran-diri`} target="_blank" className="rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-hover">{t.pelajar.linkButiran}</a>
       </div>
 
-      {/* Ringkasan markah (T6) */}
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard label={t.pelajar.scoreT6} value={markahT6Skala50(pelajar.markahPajskT6) ?? "-"} sub={`${t.pelajar.fullMarks50} · ${t.pelajar.systemComputed}`} />
-        <StatCard label={t.pelajar.pctT6} value={`${pelajar.peratusPajskT6 ?? "-"}%`} sub={t.pelajar.fullMarks100} />
-        <StatCard label={t.pelajar.gred} value={pelajar.gredPajskT6 ?? "-"} sub={t.pelajar.finalGrade} />
-      </div>
-
       {/* Slip PAJSK — rujukan pelajar, setiap bahagian (sama data dengan Borang Rumusan guru) */}
       <SlipPajsk
         rows={slipRows}
         markah={pelajar.markahPajskT6}
         gred={pelajar.gredPajskT6}
         markahEkstra={pelajar.markahEkstra}
+        disahkan={pelajar.statusButiran === "Approved"}
+        teksBelumDisahkan={locale === "en"
+          ? "Marks are computed once your particulars are confirmed by the Head/Assistant Head Advisor Teacher."
+          : "Markah dikira selepas butiran anda disahkan oleh Ketua GP / Penolong Ketua GP."}
         t={t.pelajar.slip}
         label={unitLabel}
       />

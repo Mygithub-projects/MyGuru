@@ -27,13 +27,14 @@ function fmtTarikh(iso: string) {
   }).format(new Date(iso));
 }
 
-export function SemakKehadiranGuru({ rows, t }: { rows: Row[]; t: Dict }) {
+export function SemakKehadiranGuru({ rows, t, bolehSahkan = true }: { rows: Row[]; t: Dict; bolehSahkan?: boolean }) {
   const router = useRouter();
   const [dipilih, setDipilih] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [ralat, setRalat] = useState<string | null>(null);
 
-  const pending = rows.filter((r) => r.statusSemakan === "Pending");
+  // Mod lihat sahaja (Admin): tiada pilihan pukal & tiada butang tindakan.
+  const pending = bolehSahkan ? rows.filter((r) => r.statusSemakan === "Pending") : [];
 
   async function hantar(ids: string[], status: "Approved" | "Rejected") {
     let komen: string | undefined;
@@ -122,7 +123,7 @@ export function SemakKehadiranGuru({ rows, t }: { rows: Row[]; t: Dict }) {
               return (
                 <tr key={r.id} className="border-b border-slate-100 align-top last:border-0">
                   <td className="py-2 pr-2">
-                    {r.statusSemakan === "Pending" && (
+                    {bolehSahkan && r.statusSemakan === "Pending" && (
                       <input type="checkbox" aria-label={r.guru} checked={dipilih.has(r.id)} onChange={() => togol(r.id)} />
                     )}
                   </td>
@@ -145,7 +146,7 @@ export function SemakKehadiranGuru({ rows, t }: { rows: Row[]; t: Dict }) {
                   </td>
                   <td className="py-2">
                     <span className="flex gap-1.5">
-                      {r.statusSemakan !== "Approved" && (
+                      {bolehSahkan && r.statusSemakan !== "Approved" && (
                         <button
                           disabled={busy}
                           onClick={() => hantar([r.id], "Approved")}
@@ -154,7 +155,7 @@ export function SemakKehadiranGuru({ rows, t }: { rows: Row[]; t: Dict }) {
                           {t.approve}
                         </button>
                       )}
-                      {r.statusSemakan !== "Rejected" && (
+                      {bolehSahkan && r.statusSemakan !== "Rejected" && (
                         <button
                           disabled={busy}
                           onClick={() => hantar([r.id], "Rejected")}

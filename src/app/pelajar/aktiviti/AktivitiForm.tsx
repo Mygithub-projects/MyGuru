@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDict } from "@/lib/i18n";
 import { useLocale } from "@/components/LocaleProvider";
-import { PERINGKAT_KOLEJ, PERINGKAT_LUAR } from "@/lib/enums";
+import { KEDUDUKAN_AKTIVITI, PERINGKAT_KOLEJ, PERINGKAT_LUAR } from "@/lib/enums";
 import type { CalonPelajar } from "@/components/CariPelajar";
 import { AktivitiUnitForm } from "./AktivitiUnitForm";
 
@@ -17,10 +17,13 @@ interface Unit { jenisKoko: string; namaUnit: string; }
 export function AktivitiForm({
   pelajarId,
   units,
+  guru,
   su,
 }: {
   pelajarId: string;
   units: Unit[];
+  /** Senarai guru aktif — pilihan Guru Pengiring (Aktiviti Luar). */
+  guru: { id: string; nama: string }[];
   /** SU/NSU sahaja: unit seliaan (bukan Perkhidmatan) & calon peserta. */
   su?: { units: Unit[]; calon: CalonPelajar[] };
 }) {
@@ -32,6 +35,8 @@ export function AktivitiForm({
   const unitLabel: Record<string, string> = {
     Sukan: common.sukan, Kelab: common.kelab, Uniform: common.uniform, Perkhidmatan: common.perkhidmatan,
   };
+  const en = locale === "en";
+  const KED_EN: Record<string, string> = { Penyertaan: "Participation", Johan: "Champion", "Naib Johan": "Runner-up", Ketiga: "Third" };
   const [tab, setTab] = useState<"pencapaian" | "luar" | "unit">(su ? "unit" : "pencapaian");
   const tabs = su ? (["unit", "pencapaian", "luar"] as const) : (["pencapaian", "luar"] as const);
   const labelTab = (k: string) =>
@@ -133,9 +138,36 @@ export function AktivitiForm({
         <label className="text-sm sm:col-span-2">{t.activityForm.reportLabel}
           <textarea name="laporan" rows={4} maxLength={2000} className={`${inputCls} mt-1`} required />
         </label>
-        <label className="text-sm sm:col-span-2">{t.activityForm.evidenceLabel}
-          <input name="eviden" type="file" className={`${inputCls} mt-1`} required />
-        </label>
+        {tab === "luar" && (
+          <>
+            <label className="text-sm">{en ? "Placing / achievement" : "Kedudukan / pencapaian"}
+              <select name="kedudukan" className={`${inputCls} mt-1`} required defaultValue="">
+                <option value="" disabled>{en ? "— Placing —" : "— Kedudukan —"}</option>
+                {KEDUDUKAN_AKTIVITI.map((k) => <option key={k} value={k}>{en ? KED_EN[k] : k}</option>)}
+              </select>
+            </label>
+            <label className="text-sm">{en ? "Escort teacher (will confirm)" : "Guru pengiring (akan mengesahkan)"}
+              <select name="guruPengiringId" className={`${inputCls} mt-1`} required defaultValue="">
+                <option value="" disabled>{en ? "— Choose teacher —" : "— Pilih guru —"}</option>
+                {guru.map((g) => <option key={g.id} value={g.id}>{g.nama}</option>)}
+              </select>
+            </label>
+          </>
+        )}
+        {tab === "luar" ? (
+          <>
+            <label className="text-sm">{en ? "KPM recognition letter" : "Surat pengiktirafan KPM"}
+              <input name="surat" type="file" className={`${inputCls} mt-1`} required />
+            </label>
+            <label className="text-sm">{en ? "Certificate" : "Sijil"}
+              <input name="sijil" type="file" className={`${inputCls} mt-1`} required />
+            </label>
+          </>
+        ) : (
+          <label className="text-sm sm:col-span-2">{t.activityForm.evidenceLabel}
+            <input name="eviden" type="file" className={`${inputCls} mt-1`} required />
+          </label>
+        )}
         <button disabled={busy} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-50 sm:w-auto">
           {busy ? "..." : t.activityForm.submit}
         </button>

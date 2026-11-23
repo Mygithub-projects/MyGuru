@@ -92,8 +92,8 @@ function SahkanButiranCell({
   );
 }
 
-// §5 — senarai pelajar dashboard guru dipaparkan ikut TAB (satu tab per unit)
-// bukan senarai panjang leper. Setiap tab papar kiraan & status ringkas.
+// §5 — senarai pelajar dashboard guru: pilih Bahagian (KP/BU/SP/UP) dan Unit
+// melalui dropdown, kemudian papar kiraan, status ringkas & jadual ahli unit itu.
 export function SenaraiAhliTabs({
   units,
   labels,
@@ -108,49 +108,59 @@ export function SenaraiAhliTabs({
   locale: Locale;
   unitLabel?: Record<string, string>;
 }) {
-  const [aktif, setAktif] = useState(0);
-  const unit = units[aktif] ?? units[0];
+  // Bahagian: KP (Kelab/Persatuan), BU (Badan Beruniform), SP (Sukan/Permainan), UP (Unit Perkhidmatan).
+  const BAHAGIAN: { jenis: string; kod: string }[] = [
+    { jenis: "Kelab", kod: "KP" },
+    { jenis: "Uniform", kod: "BU" },
+    { jenis: "Sukan", kod: "SP" },
+    { jenis: "Perkhidmatan", kod: "UP" },
+  ];
+  const adaBahagian = BAHAGIAN.filter((b) => units.some((u) => u.jenisKoko === b.jenis));
+  const [bahagian, setBahagian] = useState<string>(adaBahagian[0]?.jenis ?? "");
+  const dalamBahagian = units.filter((u) => u.jenisKoko === bahagian);
+  const [namaAktif, setNamaAktif] = useState<string>(dalamBahagian[0]?.namaUnit ?? units[0]?.namaUnit ?? "");
+  const unit = units.find((u) => u.namaUnit === namaAktif && u.jenisKoko === bahagian) ?? dalamBahagian[0] ?? units[0];
   if (!unit) return null;
 
   const lengkap = unit.ahli.filter((a) => (a.markahPajskT6 ?? 0) > 0).length;
   const belum = unit.ahli.length - lengkap;
+  const labelBahagian = (jenis: string, kod: string) =>
+    `${kod} — ${locale === "ms" ? jenis : unitLabel?.[jenis] ?? jenis}`;
+  const selCls =
+    "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-brand focus:ring-2 focus:ring-brand/30";
 
   return (
     <div className="space-y-4">
-      {/* Tab bar — satu tab per unit seliaan */}
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.tabsAriaLabel}>
-        {units.map((u, i) => {
-          const on = i === aktif;
-          return (
-            <button
-              key={u.namaUnit}
-              role="tab"
-              aria-selected={on}
-              onClick={() => setAktif(i)}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ring-1 ${
-                on
-                  ? "bg-brand text-white ring-brand shadow-sm"
-                  : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase ${
-                  on ? "bg-white/20 text-white" : "bg-brand-light text-brand-dark"
-                }`}
-              >
-                {locale === "ms" ? u.jenisKoko : unitLabel?.[u.jenisKoko] ?? u.jenisKoko}
-              </span>
-              <span className="max-w-[14rem] truncate">{u.namaUnit}</span>
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[11px] font-bold ${
-                  on ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
-                }`}
-              >
-                {u.ahli.length}
-              </span>
-            </button>
-          );
-        })}
+      {/* Pilih bahagian (KP/BU/SP/UP) → pilih unit dalam bahagian itu */}
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]" aria-label={t.tabsAriaLabel}>
+        <label className="text-xs font-semibold uppercase text-slate-500">
+          {locale === "ms" ? "Bahagian" : "Section"}
+          <select
+            value={bahagian}
+            onChange={(e) => {
+              const j = e.target.value;
+              setBahagian(j);
+              setNamaAktif(units.find((u) => u.jenisKoko === j)?.namaUnit ?? "");
+            }}
+            className={`${selCls} mt-1`}
+          >
+            {adaBahagian.map((b) => (
+              <option key={b.jenis} value={b.jenis}>
+                {labelBahagian(b.jenis, b.kod)} ({units.filter((u) => u.jenisKoko === b.jenis).length})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs font-semibold uppercase text-slate-500">
+          {locale === "ms" ? "Unit" : "Unit"}
+          <select value={unit.namaUnit} onChange={(e) => setNamaAktif(e.target.value)} className={`${selCls} mt-1`}>
+            {dalamBahagian.map((u) => (
+              <option key={u.namaUnit} value={u.namaUnit}>
+                {u.namaUnit} ({u.ahli.length})
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {/* Status ringkas unit aktif */}
