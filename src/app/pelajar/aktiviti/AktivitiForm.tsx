@@ -37,8 +37,10 @@ export function AktivitiForm({
   };
   const en = locale === "en";
   const KED_EN: Record<string, string> = { Penyertaan: "Participation", Johan: "Champion", "Naib Johan": "Runner-up", Ketiga: "Third" };
-  const [tab, setTab] = useState<"pencapaian" | "luar" | "unit">(su ? "unit" : "pencapaian");
-  const tabs = su ? (["unit", "pencapaian", "luar"] as const) : (["pencapaian", "luar"] as const);
+  // Tab "Aktiviti Peringkat Kolej" dibuang — aktiviti kolej kini didaftar oleh SU/NSU
+  // melalui tab "Aktiviti Unit". Pelajar biasa hanya ada tab Aktiviti Luar.
+  const [tab, setTab] = useState<"pencapaian" | "luar" | "unit">(su ? "unit" : "luar");
+  const tabs = su ? (["unit", "luar"] as const) : (["luar"] as const);
   const labelTab = (k: string) =>
     k === "unit" ? (locale === "en" ? "Unit Activity (SU/NSU)" : "Aktiviti Unit (SU/NSU)")
     : k === "pencapaian" ? t.activityTabs.achievements : t.activityTabs.externalActivities;

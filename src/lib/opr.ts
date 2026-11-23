@@ -24,7 +24,7 @@ const LINE = rgb(0.8, 0.84, 0.87);
 const INSTITUSI = process.env.NEXT_PUBLIC_INSTITUSI || "KTE (Prauniversiti) Desa Mahkota";
 
 export interface OprData {
-  jenis: "Mingguan" | "Projek";
+  jenis: "Mingguan" | "Projek" | "Aktiviti";
   namaProgram: string;
   namaUnit: string;
   jenisKoko: string;
@@ -69,13 +69,14 @@ function jenisImej(buf: Uint8Array): "jpg" | "png" | null {
  */
 export async function bacaOprDariForm(
   form: FormData,
-  jenis: "Mingguan" | "Projek",
+  jenis: "Mingguan" | "Projek" | "Aktiviti",
   pelajar: { id: string; subRole: string | null | undefined },
   /** Laporan Projek: nama projek rasmi (dari tag guru) & peserta yang telah disahkan. */
   projek?: { nama: string; peranan: string; peserta: OprData["peserta"] },
 ): Promise<{ data: OprData } | { ralat: string }> {
-  const namaProgram = projek?.nama ?? str(form, jenis === "Mingguan" ? "namaProgram" : "namaProjek", 200);
-  const peringkat = str(form, jenis === "Mingguan" ? "peringkat" : "peringkatProjek", 60);
+  const namaProgram =
+    projek?.nama ?? str(form, jenis === "Mingguan" ? "namaProgram" : jenis === "Aktiviti" ? "namaAktiviti" : "namaProjek", 200);
+  const peringkat = str(form, jenis === "Projek" ? "peringkatProjek" : "peringkat", 60);
   const tarikh = str(form, "tarikh", 20);
   const namaUnit = str(form, "namaUnit", 200);
   const aktiviti = str(form, "laporan", OPR_HAD.aktiviti);
@@ -254,7 +255,8 @@ export async function janaOprPDF(d: OprData): Promise<Uint8Array> {
     ["Peringkat", d.peringkat === "Sekolah" ? "Kolej / Sekolah" : d.peringkat || "-"],
   ];
   if (d.jawatanProjek) sel.push(["Jawatan dalam Projek", d.jawatanProjek]);
-  if (d.peserta.length) sel.push(["Bil. Peserta", `${d.peserta.length + 1} orang (termasuk penyedia laporan)`]);
+  if (d.peserta.length)
+    sel.push(["Bil. Peserta", d.jenis === "Aktiviti" ? `${d.peserta.length} orang` : `${d.peserta.length + 1} orang (termasuk penyedia laporan)`]);
   if (d.kehadiran) sel.push(["Kehadiran Ahli", `${d.kehadiran.hadir}/${d.kehadiran.total} orang (${d.kehadiran.peratus}%) - Perjumpaan ${d.kehadiran.bil}`]);
   const lajurW = W / 2;
   const labelW = 78;
@@ -292,7 +294,7 @@ export async function janaOprPDF(d: OprData): Promise<Uint8Array> {
 
   let noSeksyen = 5;
   if (d.peserta.length) {
-    seksyen(`${noSeksyen++}. PESERTA & JAWATAN`);
+    seksyen(`${noSeksyen++}. ${d.jenis === "Aktiviti" ? "PESERTA & KEDUDUKAN" : "PESERTA & JAWATAN"}`);
     const PS = 7.5;
     const PL = 9.5;
     const teksPeserta = d.peserta.map((p, i) => `${i + 1}. ${p.nama}${p.kelas ? ` (${p.kelas})` : ""} - ${p.jawatan}`).join("   ");
