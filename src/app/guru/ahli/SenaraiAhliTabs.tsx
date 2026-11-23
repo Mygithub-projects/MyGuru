@@ -17,6 +17,7 @@ interface Ahli {
 interface Unit {
   namaUnit: string;
   jenisKoko: string;
+  bolehSahkan: boolean;
   ahli: Ahli[];
 }
 interface Labels {
@@ -36,9 +37,9 @@ interface TabsDict {
   };
 }
 
-// Hanya Guru Penasihat/Ketua GP boleh mengesahkan butiran pelajar (bukan
-// Penolong Ketua GP, bukan Admin/skop sekolah) — selaras JAWATAN_BOLEH_SAHKAN_BUTIRAN.
-const JAWATAN_BOLEH_SAHKAN = new Set(["GuruPenasihat", "KetuaGP"]);
+// Hanya Ketua GP/Penolong Ketua GP unit itu boleh mengesahkan butiran pelajar
+// (Guru Penasihat biasa & skop sekolah lihat sahaja) — `unit.bolehSahkan` dikira
+// di pelayan ikut PERANAN_BOLEH_SAHKAN_BUTIRAN.
 
 function SahkanButiranCell({
   pelajarId,
@@ -97,7 +98,6 @@ export function SenaraiAhliTabs({
   units,
   labels,
   t,
-  jawatanKoko,
   locale,
   unitLabel,
 }: {
@@ -110,7 +110,6 @@ export function SenaraiAhliTabs({
 }) {
   const [aktif, setAktif] = useState(0);
   const unit = units[aktif] ?? units[0];
-  const bolehSahkan = JAWATAN_BOLEH_SAHKAN.has(jawatanKoko);
   if (!unit) return null;
 
   const lengkap = unit.ahli.filter((a) => (a.markahPajskT6 ?? 0) > 0).length;
@@ -213,7 +212,7 @@ export function SenaraiAhliTabs({
                   <SahkanButiranCell
                     pelajarId={a.pelajarId}
                     status={a.statusButiran}
-                    boleh={bolehSahkan}
+                    boleh={unit.bolehSahkan}
                     t={t.butiranPelajar}
                   />
                 </td>

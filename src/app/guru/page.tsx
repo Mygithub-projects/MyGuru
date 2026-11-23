@@ -10,6 +10,8 @@ import { AiInsights } from "@/components/AiInsights";
 import { HeroBanner } from "@/components/HeroBanner";
 import { StatCard } from "@/components/StatCard";
 import { ReviewPanel } from "./ReviewPanel";
+import { AktivitiUnitSemakan } from "./AktivitiUnitSemakan";
+import { aktivitiUnitUntukSemakan } from "@/lib/aktiviti-unit";
 import { LivePending } from "./LivePending";
 import { StatusPilihanTable } from "./StatusPilihanTable";
 import { CadanganAiPanel, type CadanganRow } from "./CadanganAiPanel";
@@ -117,6 +119,9 @@ export default async function GuruDashboard() {
       })).length
     : 0;
 
+  // Aktiviti Unit SU/NSU — hanya untuk unit di mana guru ini Ketua GP / Penolong Ketua GP.
+  const aktivitiUnit = guru ? await aktivitiUnitUntukSemakan(guru) : [];
+
   const statusT6 = await getStatusPilihanT6(guruEff);
   const laporanDisahkan = await getLaporanDisahkan(guruEff);
   const { t, locale } = await getT();
@@ -164,7 +169,8 @@ export default async function GuruDashboard() {
     laporanMingguan.length +
     laporanProjek.length +
     sesiKehadiran.length +
-    cadanganJawatan.length;
+    cadanganJawatan.length +
+    aktivitiUnit.length;
 
   return (
     <div className="space-y-6">
@@ -205,6 +211,20 @@ export default async function GuruDashboard() {
         sesiKehadiran={sesiKehadiran.map((s) => ({ id: s.id, namaUnit: s.namaUnit, jenisKoko: s.jenisKoko, bilPerjumpaan: s.bilPerjumpaan, kehadiran: s.kehadiran }))}
         cadanganJawatan={cadanganJawatan.map((c) => ({ id: c.id, jenisKoko: c.jenisKoko, jawatanBaru: c.jawatanBaru, markahJawatan: c.markahJawatan, pelajar: c.pelajar }))}
         t={t.guru.reviewPanel}
+      />
+
+      <AktivitiUnitSemakan
+        rows={aktivitiUnit.map((a) => ({
+          id: a.id,
+          namaAktiviti: a.namaAktiviti,
+          namaUnit: a.namaUnit,
+          peringkat: a.peringkat,
+          tarikh: a.tarikh?.toISOString() ?? null,
+          laporan: a.laporan,
+          lampiranEviden: a.lampiranEviden,
+          setiausaha: a.setiausaha.nama,
+          peserta: a.peserta.map((p) => ({ id: p.id, nama: p.pelajar.nama, kelas: p.pelajar.kelasT6, kedudukan: p.kedudukan })),
+        }))}
       />
 
       {/* Status Pilihan Unit T6 */}

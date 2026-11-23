@@ -3,9 +3,9 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
 import { tetapkanJawatanOlehGuru, guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
-import { JENIS_KOKO, JAWATAN_PELAJAR, JAWATAN_PERKHIDMATAN } from "@/lib/enums";
+import { JENIS_KOKO, pilihanJawatan } from "@/lib/enums";
 
-// Unit Perkhidmatan guna senarai Jadual 1 (ekstra); bidang lain guna JAWATAN_PELAJAR.
+// Unit Perkhidmatan guna senarai Jadual 1 (ekstra); Kelab/Sukan & Uniform ikut Jadual B.
 const schema = z
   .object({
     pelajarId: z.string(),
@@ -14,7 +14,7 @@ const schema = z
   })
   .refine(
     (d) =>
-      ((d.jenisKoko === "Perkhidmatan" ? JAWATAN_PERKHIDMATAN : JAWATAN_PELAJAR) as readonly string[]).includes(d.jawatan),
+      pilihanJawatan(d.jenisKoko).includes(d.jawatan),
     { message: "Jawatan tidak sah untuk bahagian ini", path: ["jawatan"] },
   );
 

@@ -4,6 +4,8 @@
 // ===========================================================================
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
+import { cache } from "react";
+import { prisma } from "./prisma";
 import { SESSION_COOKIE, verifySession, type SessionPayload } from "./auth-core";
 
 export * from "./auth-core";
@@ -52,8 +54,28 @@ export async function clearSessionCookie(): Promise<void> {
   store.delete(SESSION_COOKIE);
 }
 
-/** Baca sesi semasa dari cookie (Server Components / Route Handlers). */
-export async function getSession(): Promise<SessionPayload | null> {
+/**
+ * Baca sesi semasa dari cookie (Server Components / Route Handlers).
+ *
+ * Bagi pelajar, status pengesahan butiran dibaca TERUS dari DB setiap
+ * permintaan (bukan dari JWT) supaya pengesahan guru berkuat kuasa serta-merta
+ * tanpa log masuk semula. Selagi butiran belum disahkan Ketua GP/Penolong Ketua GP,
+ * SU/NSU diturunkan ke "Pelajar" — tiada akses menu/API Setiausaha.
+ */
+export const getSession = cache(async (): Promise<SessionPayload | null> => {
   const store = await cookies();
-  return verifySession(store.get(SESSION_COOKIE)?.value);
-}
+  const session = await verifySession(store.get(SESSION_COOKIE)?.value);
+  if (!session || session.role !== "Pelajar" || !session.pelajarId) return session;
+
+  const p = await prisma.pelajar.findUnique({
+    where: { id: session.pelajarId },
+    select: { statusButiran: true },
+  });
+  const disahkan = p?.statusButiran === "Approved";
+  const out: SessionPayload = { ...session, butiranDisahkan: disahkan };
+  if (!disahkan && (session.subRole === "SU" || session.subRole === "NSU")) {
+    out.subRoleTertangguh = session.subRole;
+    out.subRole = "Pelajar";
+  }
+  return out;
+});

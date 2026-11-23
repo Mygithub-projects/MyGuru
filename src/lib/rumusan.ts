@@ -6,6 +6,7 @@
 //  pencapaian & projek unit tersebut), dikira oleh skorUnit() (skor-unit.ts).
 //  Turut menyediakan analitik ringkas ikut bahagian / unit / kelas untuk Admin.
 // ===========================================================================
+import { INCLUDE_AKTIVITI_UNIT_LULUS, penglibatanAktivitiUnit, pencapaianAktivitiUnit } from "./aktiviti-unit-markah";
 import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import ExcelJS from "exceljs";
 import { prisma } from "./prisma";
@@ -71,6 +72,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
       laporanProjek: { where: { statusPengesahan: "Approved" } },
       projekPeserta: INCLUDE_PESERTA_LULUS,
       programKolej: { include: { program: { select: { nama: true, peringkat: true } } } },
+      aktivitiUnitPeserta: INCLUDE_AKTIVITI_UNIT_LULUS,
     },
   });
 
@@ -81,7 +83,8 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
     const p = {
       ...asal,
       laporanProjek: gabungProjek(asal.laporanProjek, asal.projekPeserta, asal.kokurikulum),
-      programKolej: asal.programKolej.map((x) => x.program),
+      programKolej: [...asal.programKolej.map((x) => x.program), ...penglibatanAktivitiUnit(asal.aktivitiUnitPeserta)],
+      pencapaianBidang: pencapaianAktivitiUnit(asal.aktivitiUnitPeserta),
     };
     // Anugerah khas (ekstra) — dipaparkan dalam borang Unit Perkhidmatan.
     const ekstra = terbaik(

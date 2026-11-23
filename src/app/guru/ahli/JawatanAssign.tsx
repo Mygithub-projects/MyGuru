@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { JAWATAN_PELAJAR, JAWATAN_PELAJAR_LAMA, JAWATAN_PERKHIDMATAN } from "@/lib/enums";
-import { nilaiEkstra } from "@/lib/pajsk";
+import { JAWATAN_PELAJAR_LAMA, pilihanJawatan } from "@/lib/enums";
+import { markahJawatan, bidangDariJenisKoko, nilaiEkstra } from "@/lib/pajsk";
 import { labelJawatan, type Locale } from "@/lib/i18n";
 
 interface JawatanAssignDict { placeholder: string; assignTitle: string; networkError: string }
@@ -23,7 +23,7 @@ export function JawatanAssign({
   const router = useRouter();
   // Unit Perkhidmatan: senarai Jadual 1 (skor ekstra); bidang lain: jawatan kelab/sukan/uniform.
   const up = jenisKoko === "Perkhidmatan";
-  const pilihan: readonly string[] = up ? JAWATAN_PERKHIDMATAN : JAWATAN_PELAJAR;
+  const pilihan = pilihanJawatan(jenisKoko);
   const semasa = up ? current ?? "" : JAWATAN_PELAJAR_LAMA[current ?? ""] ?? current ?? "";
   const [nilai, setNilai] = useState<string>(pilihan.includes(semasa) ? semasa : "");
   const [busy, setBusy] = useState(false);
@@ -65,7 +65,7 @@ export function JawatanAssign({
         {pilihan.map((j) => (
           <option key={j} value={j}>
             {labelJawatan(j, locale)}
-            {up ? ` (${nilaiEkstra(j)})` : ""}
+            {` (${up ? nilaiEkstra(j) : markahJawatan(j, bidangDariJenisKoko(jenisKoko))})`}
           </option>
         ))}
       </select>

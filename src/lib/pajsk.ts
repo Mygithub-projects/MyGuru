@@ -138,6 +138,22 @@ export const MARKAH_JAWATAN_KELABSUKAN: { pattern: RegExp; markah: number }[] = 
   { pattern: /AHLI BIASA|AHLI/, markah: 2 },
 ];
 
+/** Ahli unit tanpa jawatan = "Ahli Biasa" (Jadual B: 2 markah). */
+export const MARKAH_AHLI_BIASA = 2;
+
+/**
+ * Markah jawatan bagi satu baris kokurikulum bidang (Kelab/Sukan/Uniform):
+ * jawatan kosong tetapi berdaftar dalam unit → Ahli Biasa (2).
+ */
+export function markahJawatanUnit(
+  jawatan: string | null | undefined,
+  jenisKoko: string,
+  adaUnit: boolean
+): number {
+  if (jawatan && jawatan.trim()) return markahJawatan(jawatan, bidangDariJenisKoko(jenisKoko));
+  return adaUnit ? MARKAH_AHLI_BIASA : 0;
+}
+
 /** Pilih jadual jawatan mengikut jenis bidang (jenisKoko). */
 export function bidangDariJenisKoko(jenisKoko?: string | null): BidangJawatan {
   return String(jenisKoko).toLowerCase() === "uniform" ? "Uniform" : "KelabSukan";

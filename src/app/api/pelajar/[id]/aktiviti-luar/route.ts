@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireSession, ok, fail } from "@/lib/api";
+import { requireSession, sekatBelumDisahkan, ok, fail } from "@/lib/api";
 import { simpanFailDariForm } from "@/lib/upload";
 import { PERINGKAT_LUAR } from "@/lib/enums";
 
@@ -15,6 +15,8 @@ export async function POST(
   if (session.role === "Pelajar" && session.pelajarId !== id) {
     return fail("Anda hanya boleh menambah untuk akaun sendiri", 403);
   }
+  const sekat = sekatBelumDisahkan(session);
+  if (sekat) return sekat;
 
   const form = await request.formData();
   const namaAktiviti = String(form.get("namaAktiviti") ?? "").trim();

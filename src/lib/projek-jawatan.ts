@@ -6,6 +6,28 @@ export const JAWATAN_PROJEK = [
 ] as const;
 
 /**
+ * Markah jawatan projek (Jadual C(i) Pengurusan Projek, maks 10) — untuk
+ * paparan borang. Mesti sama dengan markahProjekJawatan() (diuji dalam tests).
+ */
+export const MARKAH_JAWATAN_PROJEK: Record<(typeof JAWATAN_PROJEK)[number], number> = {
+  "Pengurus Projek": 10, Pengerusi: 10,
+  "Timbalan Pengerusi": 9, "Naib Pengerusi": 9, Setiausaha: 9,
+  Bendahari: 8,
+  "Penolong Setiausaha": 7, "Naib Setiausaha": 7, "Penolong Bendahari": 7,
+  "Ahli Jawatankuasa": 6,
+  Ahli: 5,
+};
+
+/**
+ * Peringkat pelaksanaan projek (Jadual C(ii), maks 10). Nilai disimpan dalam
+ * LaporanProjek.peringkatProjek & dikenali oleh markahProjekPeringkat().
+ */
+export const PERINGKAT_PROJEK = ["Negeri/Kebangsaan", "Daerah/Komuniti", "Sekolah"] as const;
+export const MARKAH_PERINGKAT_PROJEK: Record<(typeof PERINGKAT_PROJEK)[number], number> = {
+  "Negeri/Kebangsaan": 10, "Daerah/Komuniti": 8, Sekolah: 6,
+};
+
+/**
  * Jawatan teras yang DITETAPKAN guru penasihat semasa tag (ProjekTag.peranan).
  * Hanya SU / NSU boleh mengisi Laporan Projek; jawatan lain diisi SU/NSU.
  */

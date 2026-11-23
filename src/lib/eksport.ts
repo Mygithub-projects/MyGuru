@@ -1,6 +1,7 @@
 // ===========================================================================
 //  Eksport analitik — Excel (exceljs) & PDF (pdf-lib).
 // ===========================================================================
+import { INCLUDE_AKTIVITI_UNIT_LULUS, penglibatanAktivitiUnit, pencapaianAktivitiUnit } from "./aktiviti-unit-markah";
 import { penglibatanUnit } from "./skor-unit";
 import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import ExcelJS from "exceljs";
@@ -342,6 +343,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
       laporanProjek: { where: { statusPengesahan: "Approved" } },
       projekPeserta: INCLUDE_PESERTA_LULUS,
       programKolej: { include: { program: { select: { nama: true, peringkat: true } } } },
+      aktivitiUnitPeserta: INCLUDE_AKTIVITI_UNIT_LULUS,
     },
   });
 
@@ -358,6 +360,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
       const k = p.kokurikulum.find((x) => x.jenisKoko === jenis);
       const unit = k?.namaUnitT6 ?? "";
       const padan = (u: string | null) => !!unit && u === unit;
+      const prog = [...p.programKolej.map((x) => x.program), ...penglibatanAktivitiUnit(p.aktivitiUnitPeserta)];
       // Pencapaian unit: tertinggi antara pencapaian & aktiviti luar yang diluluskan.
       const calon = [
         ...p.pencapaian.filter((c) => c.kategori !== "ekstra" && padan(c.namaUnit))
@@ -365,6 +368,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
         ...p.aktivitiLuar.filter((x) => padan(x.namaUnit))
           .map((x) => ({ tahap: x.peringkat, markah: x.markahLuar })),
       ];
+      if (unit) calon.push(...pencapaianAktivitiUnit(p.aktivitiUnitPeserta).filter((c) => c.jenisKoko === jenis));
       const pcp = terbaik(calon, (c) => c.markah);
       const projek = terbaik(
         gabungProjek(p.laporanProjek, p.projekPeserta, p.kokurikulum).filter((pr) => padan(pr.namaUnit) || (!pr.namaUnit && pr.jenisKoko === jenis)),
@@ -375,8 +379,8 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
         hadir: k ? p.kehadiran.filter((h) => h.jenisKoko === jenis).length : null,
         jawatan: k?.jawatanT6 ?? "",
         mJawatan: k ? k.markahJawatanT6 ?? 0 : null,
-        peringkat: k ? penglibatanUnit(k, p.programKolej.map((x) => x.program)).peringkat : "",
-        mPenglibatan: k ? penglibatanUnit(k, p.programKolej.map((x) => x.program)).markah : null,
+        peringkat: k ? penglibatanUnit(k, prog).peringkat : "",
+        mPenglibatan: k ? penglibatanUnit(k, prog).markah : null,
         pcpTahap: pcp?.tahap ?? "",
         pcpMarkah: pcp ? pcp.markah : k ? 0 : null,
         pjJawatan: projek?.jawatanProjek ?? "",

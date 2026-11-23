@@ -1,6 +1,6 @@
 // Lapisan data Guru — kumpul item menunggu tindakan ikut skop seliaan.
 import { dbKohort } from "./prisma-kohort";
-import { guruSeluruhSekolah, unitSeliaan } from "./workflow";
+import { guruSeluruhSekolah, unitSeliaan, unitBolehSahkan } from "./workflow";
 import { statusPilihanT6 } from "./pajsk";
 import type { Guru } from "@prisma/client";
 
@@ -199,6 +199,8 @@ export interface AhliUnit {
 export interface UnitAhli {
   namaUnit: string;
   jenisKoko: string;
+  /** Guru ini Ketua GP/Penolong Ketua GP unit ini → boleh sahkan butiran ahli. */
+  bolehSahkan: boolean;
   ahli: AhliUnit[];
 }
 
@@ -211,6 +213,7 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
   const seluruh = guruSeluruhSekolah(guru);
   const units = await unitSeliaan(guru);
   if (!seluruh && units.length === 0) return [];
+  const unitSah = new Set(await unitBolehSahkan(guru));
 
   const koko = await db.kokurikulum.findMany({
     where: seluruh
@@ -230,7 +233,7 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
   const map = new Map<string, UnitAhli>();
   for (const k of koko) {
     const namaUnit = k.namaUnitT6 as string;
-    if (!map.has(namaUnit)) map.set(namaUnit, { namaUnit, jenisKoko: k.jenisKoko, ahli: [] });
+    if (!map.has(namaUnit)) map.set(namaUnit, { namaUnit, jenisKoko: k.jenisKoko, bolehSahkan: unitSah.has(namaUnit), ahli: [] });
     map.get(namaUnit)!.ahli.push({
       pelajarId: k.pelajarId,
       nama: k.pelajar.nama,
