@@ -166,6 +166,14 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [edit, setEdit] = useState<Edit | null>(null);
   const [hasilReset, setHasilReset] = useState<{ nama: string; username: string; kataLaluan: string } | null>(null);
+  // Carian: tapis ikut nama, emel atau unit diselia (tidak sensitif huruf besar/kecil).
+  const [cari, setCari] = useState("");
+  const kunci = cari.trim().toLowerCase();
+  const paparan = kunci
+    ? rows.filter((g) =>
+        [g.nama, g.email ?? "", ...g.penasihatKelab.map((p) => p.namaUnit)].join(" ").toLowerCase().includes(kunci),
+      )
+    : rows;
 
   function pilihanUnit(jenis: string, semasa: string): string[] {
     const asas = unitOptions[jenis as keyof UnitOptions] ?? [];
@@ -291,6 +299,22 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
               : "Belum disimpan lagi"}
           </p>
         </div>
+        <div className="relative w-full sm:w-72">
+          <input
+            type="search"
+            value={cari}
+            onChange={(e) => setCari(e.target.value)}
+            placeholder="Cari nama guru, emel atau unit…"
+            aria-label="Cari guru"
+            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-8 pr-3 text-sm text-slate-700 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          />
+          <svg viewBox="0 0 20 20" fill="currentColor" className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true">
+            <path fillRule="evenodd" d="M8.5 3a5.5 5.5 0 014.38 8.82l3.65 3.65a.75.75 0 11-1.06 1.06l-3.65-3.65A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
+          </svg>
+          {kunci && (
+            <p className="mt-1 text-[11px] text-slate-400">{paparan.length} / {rows.length} guru</p>
+          )}
+        </div>
         <button onClick={simpanSemua} disabled={savingAll}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50">
           {savingAll ? <IconSpinner /> : <IconSave />}
@@ -302,8 +326,11 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
         <span>{t.unitDiselia}</span>
         <span className="w-[9.5rem] text-right">Tindakan</span>
       </div>
+      {kunci && paparan.length === 0 && (
+        <p className="px-4 py-6 text-center text-sm text-slate-400">Tiada guru sepadan dengan &ldquo;{cari}&rdquo;.</p>
+      )}
       <ul className="divide-y divide-slate-100 text-sm">
-          {rows.map((g) => (
+          {paparan.map((g) => (
             <li key={g.id} className="grid gap-3 px-4 py-4 transition-colors hover:bg-slate-50/70 lg:grid-cols-[minmax(15rem,18rem)_minmax(0,1fr)_auto] lg:gap-4">
               <div className="min-w-0 space-y-2.5">
                 <div className="flex items-center gap-2.5">
