@@ -30,9 +30,13 @@ export async function PATCH(
   const rec = await prisma.aktivitiLuar.findUnique({ where: { id } });
   if (!rec) return fail("Aktiviti luar tidak dijumpai", 404);
 
-  // Hanya guru penasihat UNIT berkenaan boleh sahkan (rekod lama tanpa
-  // namaUnit kekal guna skop pelajar sebagai jatuhan — lihat §3).
-  if (guru && !guruSeluruhSekolah(guru)) {
+  // Rekod baharu: HANYA guru pengiring yang dipilih pelajar boleh mengesahkan.
+  if (rec.guruPengiringId) {
+    if (!guru || guru.id !== rec.guruPengiringId) {
+      return fail("Hanya guru pengiring yang dipilih boleh mengesahkan aktiviti ini", 403);
+    }
+  } else if (guru && !guruSeluruhSekolah(guru)) {
+    // Rekod lama: guru penasihat UNIT berkenaan (atau skop pelajar jika tiada namaUnit).
     const units = await unitSeliaan(guru);
     const okUnit = rec.namaUnit
       ? units.includes(rec.namaUnit)
@@ -49,7 +53,7 @@ export async function PATCH(
     return ok(
       result,
       parsed.data.status === "Approved"
-        ? `Disahkan — markah ${result.markahLuar} ditambah, e-Cert diaktifkan (${result.noSiriECert})`
+        ? `Disahkan — penglibatan ${result.markahPenglibatan}, pencapaian ${result.markahPencapaian} markah; e-Cert diaktifkan (${result.noSiriECert})`
         : "Kuiri dihantar"
     );
   } catch (e) {

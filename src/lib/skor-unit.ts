@@ -112,7 +112,7 @@ export function skorUnit(
       ...p.pencapaian.filter((c) => c.kategori !== "ekstra" && padan(c.namaUnit))
         .map((c) => ({ tahap: [c.kedudukan, c.peringkat].filter(Boolean).join(" ") || c.namaPencapaian, markah: c.markah })),
       ...p.aktivitiLuar.filter((x) => padan(x.namaUnit))
-        .map((x) => ({ tahap: x.peringkat, markah: x.markahLuar })),
+        .map((x) => ({ tahap: x.kedudukan ? `${x.kedudukan} ${x.peringkat} (${x.namaAktiviti})` : x.peringkat, markah: x.markahLuar })),
       ...(unit ? (p.pencapaianBidang ?? []).filter((c) => c.jenisKoko === jenis) : []),
     ],
     (c) => c.markah,
@@ -122,7 +122,12 @@ export function skorUnit(
   const pjJ = terbaik(projek, (pr) => markahProjekJawatan(pr.jawatanProjek));
   const pjP = terbaik(projek, (pr) => markahProjekPeringkat(pr.peringkatProjek));
 
-  const pglb = penglibatanUnit(k, p.programKolej);
+  // Penglibatan: tertinggi antara peringkat unit, Program Kolej/Aktiviti Unit,
+  // dan Aktiviti Luar yang disahkan bagi unit ini (Jadual D).
+  const pglb = penglibatanUnit(k, [
+    ...(p.programKolej ?? []),
+    ...(jenis === "Perkhidmatan" ? [] : p.aktivitiLuar.filter((x) => padan(x.namaUnit)).map((x) => ({ nama: x.namaAktiviti, peringkat: x.peringkat }))),
+  ]);
   const s: SkorUnit = {
     unit,
     hadir,
@@ -131,7 +136,8 @@ export function skorUnit(
     jumlahGabung: jk.gabung,
     perjumpaan: perjumpaanPajsk(hadirGabung, jk.gabung),
     mKehadiran: markahKehadiran(hadirGabung, jk.gabung),
-    jawatan: k.jawatanT6 ?? "",
+    // Ahli bidang tanpa jawatan dipaparkan sebagai "Ahli Biasa" (Jadual B: 2).
+    jawatan: k.jawatanT6 || (jenis !== "Perkhidmatan" && k.namaUnitT6 ? "Ahli Biasa" : ""),
     mJawatan: markahJawatanUnit(k.jawatanT6, jenis, !!k.namaUnitT6),
     peringkat: pglb.peringkat,
     mPenglibatan: pglb.markah,

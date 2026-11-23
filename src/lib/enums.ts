@@ -18,6 +18,9 @@ export const JAWATAN_GURU = [
 ] as const;
 export type JawatanGuru = (typeof JAWATAN_GURU)[number];
 
+// Hanya Ketua Unit Kokurikulum, KUPP/Pemantau & Penyelaras Kokurikulum boleh mengesahkan kehadiran guru.
+export const JAWATAN_SAHKAN_KEHADIRAN_GURU: readonly string[] = ["KetuaUnitKoko", "PemantauKUPP", "Penyelaras"];
+
 // Guru dengan skop seluruh sekolah (lihat SEMUA data pelajar).
 // Peraturan RBAC: Ketua Unit Kokurikulum, Penyelaras Kokurikulum & Pemantau KUPP lihat semua; PenolongSU
 // dikekalkan seluruh sekolah. KetuaGP, PenolongKetuaGP & GuruPenasihat pula hanya

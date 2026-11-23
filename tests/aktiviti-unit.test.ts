@@ -49,3 +49,21 @@ describe("Aktiviti Unit — kredit ke unit peserta dalam bidang SAMA dengan akti
     expect(s.mPenglibatan).toBe(8);
   });
 });
+
+describe("Aktiviti Luar disahkan — penglibatan (Jadual D) & pencapaian unit berkaitan", () => {
+  const luar = {
+    namaAktiviti: "Kejohanan Catur Negeri", namaUnit: "Catur", peringkat: "Negeri",
+    kedudukan: "Naib Johan", markahLuar: 7, markahPenglibatan: 8, markahPencapaian: 7,
+  } as unknown as RekodPelajar["aktivitiLuar"][number];
+  const rekod: RekodPelajar = { kehadiran: [], pencapaian: [], aktivitiLuar: [luar], laporanProjek: [] };
+  it("unit Catur: penglibatan 8 (Negeri), pencapaian 7 (N.Johan Negeri)", () => {
+    const s = skorUnit(rekod, koko({ jenisKoko: "Sukan", namaUnitT6: "Catur", peringkatT6: "Sekolah" }));
+    expect(s.mPenglibatan).toBe(8);
+    expect(s.pcpMarkah).toBe(7);
+  });
+  it("unit lain tidak menerima kredit", () => {
+    const s = skorUnit(rekod, koko({ jenisKoko: "Kelab", namaUnitT6: "Kelab Komputer", peringkatT6: "Sekolah" }));
+    expect(s.mPenglibatan).toBe(4);
+    expect(s.pcpMarkah).toBe(0);
+  });
+});

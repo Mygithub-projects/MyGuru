@@ -43,7 +43,7 @@ export async function Topbar({
       <SidebarToggleButton />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold leading-tight text-slate-800">{nama}</p>
-        <p className="truncate text-[11px] leading-tight text-slate-500">
+        <p className="truncate text-[11px] leading-tight text-slate-500" title={jawatan ?? undefined}>
           {jawatan || (roleLabel[role] ?? role)}
           {subRole && subRole !== "Pelajar" ? ` · ${subRole}` : ""}
         </p>

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { urlFail } from "@/lib/fail-url";
+import { markahPeserta } from "@/lib/aktiviti-unit-markah";
 
 interface ItemPelajar {
   pelajar: { nama: string; kelasT6: string | null };
@@ -24,6 +25,8 @@ interface AktivitiLuar extends ItemPelajar {
   lampiranSijil: string | null;
   tarikh?: string | Date | null;
   laporan?: string | null;
+  /** Penyertaan | Johan | Naib Johan | Ketiga (null = rekod lama). */
+  kedudukan?: string | null;
 }
 
 const fmtTarikh = (d?: string | Date | null) => (d ? new Date(d).toLocaleDateString("ms-MY") : null);
@@ -400,8 +403,14 @@ function AktivitiLuarRow({
     <Row
       nama={a.pelajar.nama}
       kelas={a.pelajar.kelasT6}
-      tajuk={`${a.namaAktiviti} · ${a.peringkat}`}
-      nota={[fmtTarikh(a.tarikh), lengkap ? t.evidenceComplete : t.evidenceIncomplete].filter(Boolean).join(" · ")}
+      tajuk={`${a.namaAktiviti} · ${a.peringkat}${a.kedudukan ? ` · ${a.kedudukan}` : ""}`}
+      nota={[
+        fmtTarikh(a.tarikh),
+        a.kedudukan
+          ? `Penglibatan ${markahPeserta(a.peringkat, a.kedudukan).penglibatan} · Pencapaian ${markahPeserta(a.peringkat, a.kedudukan).pencapaian}`
+          : null,
+        lengkap ? t.evidenceComplete : t.evidenceIncomplete,
+      ].filter(Boolean).join(" · ")}
       laporan={a.laporan}
     >
       {a.lampiranSurat && (

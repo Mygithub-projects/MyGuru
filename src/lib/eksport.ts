@@ -360,13 +360,17 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
       const k = p.kokurikulum.find((x) => x.jenisKoko === jenis);
       const unit = k?.namaUnitT6 ?? "";
       const padan = (u: string | null) => !!unit && u === unit;
-      const prog = [...p.programKolej.map((x) => x.program), ...penglibatanAktivitiUnit(p.aktivitiUnitPeserta)];
+      const prog = [
+        ...p.programKolej.map((x) => x.program),
+        ...penglibatanAktivitiUnit(p.aktivitiUnitPeserta),
+        ...p.aktivitiLuar.filter((x) => padan(x.namaUnit)).map((x) => ({ nama: x.namaAktiviti, peringkat: x.peringkat })),
+      ];
       // Pencapaian unit: tertinggi antara pencapaian & aktiviti luar yang diluluskan.
       const calon = [
         ...p.pencapaian.filter((c) => c.kategori !== "ekstra" && padan(c.namaUnit))
           .map((c) => ({ tahap: [c.kedudukan, c.peringkat].filter(Boolean).join(" ") || c.namaPencapaian, markah: c.markah })),
         ...p.aktivitiLuar.filter((x) => padan(x.namaUnit))
-          .map((x) => ({ tahap: x.peringkat, markah: x.markahLuar })),
+          .map((x) => ({ tahap: x.kedudukan ? `${x.kedudukan} ${x.peringkat} (${x.namaAktiviti})` : x.peringkat, markah: x.markahLuar })),
       ];
       if (unit) calon.push(...pencapaianAktivitiUnit(p.aktivitiUnitPeserta).filter((c) => c.jenisKoko === jenis));
       const pcp = terbaik(calon, (c) => c.markah);

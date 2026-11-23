@@ -27,6 +27,19 @@ function whereProjek(whereUnit: object, ids: string[] | null, units: string[]) {
   return ids === null ? {} : { OR: [whereUnit, { projek: { units: { hasSome: units } } }] };
 }
 
+/**
+ * Aktiviti luar: rekod dengan guru pengiring → HANYA guru pengiring itu;
+ * rekod lama (tiada pengiring) → skop unit seperti biasa.
+ */
+function whereLuar(guruId: string | null, wherePelajarUnit: object) {
+  return {
+    OR: [
+      ...(guruId ? [{ guruPengiringId: guruId }] : []),
+      { guruPengiringId: null, ...wherePelajarUnit },
+    ],
+  };
+}
+
 /** Bilangan item menunggu tindakan dalam skop (guru = unit seliaan; null = seluruh sekolah). */
 export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const db = await dbKohort(); // data kohort dipilih sahaja
@@ -41,7 +54,7 @@ export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const whereSesi = ids === null ? {} : { namaUnit: { in: units } };
   const [a, b, c, d, e, f, g] = await Promise.all([
     db.pencapaian.count({ where: { statusSemakan: "Pending", ...wherePelajarUnit } }),
-    db.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...wherePelajarUnit } }),
+    db.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...whereLuar(guru?.id ?? null, wherePelajarUnit) } }),
     db.logPertukaran.count({ where: { status: "Pending", ...wherePelajar } }),
     db.laporanMingguan.count({ where: { statusSemakan: "Pending", ...whereUnit } }),
     db.laporanProjek.count({ where: { statusPengesahan: "Pending", ...whereProjek(whereUnit, ids, units) } }),
@@ -68,7 +81,7 @@ export async function getGuruDashboard(guru: Guru) {
         orderBy: { createdAt: "desc" },
       }),
       db.aktivitiLuar.findMany({
-        where: { statusPengesahan: "Pending", ...wherePelajarUnit },
+        where: { statusPengesahan: "Pending", ...whereLuar(guru.id, wherePelajarUnit) },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),

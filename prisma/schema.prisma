@@ -51,11 +51,12 @@ model Guru {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user             User?
-  pertukaranLulus  LogPertukaran[]      @relation("GuruPertukaran")
-  kokurikulumLulus Kokurikulum[]        @relation("GuruKokoLulus")
-  penasihatKelab   GuruPenasihatKelab[]
-  kehadiranGuru    KehadiranGuru[]
+  user                 User?
+  pertukaranLulus      LogPertukaran[]      @relation("GuruPertukaran")
+  kokurikulumLulus     Kokurikulum[]        @relation("GuruKokoLulus")
+  penasihatKelab       GuruPenasihatKelab[]
+  kehadiranGuru        KehadiranGuru[]
+  aktivitiLuarDiiringi AktivitiLuar[]       @relation("GuruPengiringLuar")
 }
 
 // === RBAC: Guru Penasihat ikut kelab/sukan (§3) ===========================
@@ -123,18 +124,18 @@ model Pelajar {
   disahkanOlehId String? // guruId yang mengesahkan
   tarikhSahkan   DateTime?
 
-  user            User?
-  kokurikulum     Kokurikulum[]
-  kehadiran       Kehadiran[]
-  pencapaian      Pencapaian[]
-  aktivitiLuar    AktivitiLuar[]
-  pertukaran      LogPertukaran[]
-  cadanganJawatan CadanganJawatan[]
-  laporanMingguan LaporanMingguan[]     @relation("SetiausahaLaporan")
-  laporanProjek   LaporanProjek[]       @relation("SetiausahaProjek")
-  projekTag       ProjekTag[]
-  projekPeserta   ProjekPeserta[]
-  programKolej    ProgramKolejPeserta[]
+  user                 User?
+  kokurikulum          Kokurikulum[]
+  kehadiran            Kehadiran[]
+  pencapaian           Pencapaian[]
+  aktivitiLuar         AktivitiLuar[]
+  pertukaran           LogPertukaran[]
+  cadanganJawatan      CadanganJawatan[]
+  laporanMingguan      LaporanMingguan[]     @relation("SetiausahaLaporan")
+  laporanProjek        LaporanProjek[]       @relation("SetiausahaProjek")
+  projekTag            ProjekTag[]
+  projekPeserta        ProjekPeserta[]
+  programKolej         ProgramKolejPeserta[]
   aktivitiUnitDihantar AktivitiUnit[]        @relation("SetiausahaAktivitiUnit")
   aktivitiUnitPeserta  AktivitiUnitPeserta[]
 
@@ -572,24 +573,31 @@ model Pencapaian {
 // === Aktiviti Luar (+ e-Cert) =============================================
 
 model AktivitiLuar {
-  id               String    @id @default(cuid())
-  pelajar          Pelajar   @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
-  pelajarId        String
-  namaAktiviti     String
-  namaUnit         String? // unit pelajar berkaitan (padan Kokurikulum.namaUnitT6) — skop pengesahan guru
-  peringkat        String // Sekolah | Daerah | Zon/Daerah | Negeri | Kebangsaan | Antarabangsa
-  tarikh           DateTime?
-  laporan          String? // laporan ringkas pelajar
-  lampiranSurat    String?
-  lampiranSijil    String? // eviden tunggal (borang pelajar) disimpan di sini
-  statusPengesahan String    @default("Pending") // Pending | Approved | Kuiri
-  markahLuar       Float     @default(0)
-  komenGuru        String?
-  noSiriECert      String?   @unique
-  tarikhJanaECert  DateTime?
-  createdAt        DateTime  @default(now())
+  id                String    @id @default(cuid())
+  pelajar           Pelajar   @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId         String
+  namaAktiviti      String
+  namaUnit          String? // unit pelajar berkaitan (padan Kokurikulum.namaUnitT6) — skop pengesahan guru
+  peringkat         String // Sekolah | Daerah | Zon/Daerah | Negeri | Kebangsaan | Antarabangsa
+  tarikh            DateTime?
+  laporan           String? // laporan ringkas pelajar
+  lampiranSurat     String? // surat pengiktirafan KPM (wajib bagi rekod baharu)
+  lampiranSijil     String? // sijil penyertaan/pencapaian (rekod lama: eviden tunggal)
+  kedudukan         String? // Penyertaan | Johan | Naib Johan | Ketiga (null = rekod lama)
+  // Guru pengiring dipilih pelajar — HANYA guru ini boleh mengesahkan (rekod baharu).
+  guruPengiring     Guru?     @relation("GuruPengiringLuar", fields: [guruPengiringId], references: [id], onDelete: SetNull)
+  guruPengiringId   String?
+  statusPengesahan  String    @default("Pending") // Pending | Approved | Kuiri
+  markahLuar        Float     @default(0) // markah pencapaian (rekod lama: ikut peringkat)
+  markahPenglibatan Float     @default(0) // Jadual D — disimpan semasa pengesahan
+  markahPencapaian  Float     @default(0) // Jadual E — disimpan semasa pengesahan
+  komenGuru         String?
+  noSiriECert       String?   @unique
+  tarikhJanaECert   DateTime?
+  createdAt         DateTime  @default(now())
 
   @@index([statusPengesahan])
+  @@index([guruPengiringId])
 }
 
 // === Program Kolej =========================================================
