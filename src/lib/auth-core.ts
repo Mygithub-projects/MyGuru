@@ -24,6 +24,10 @@ export interface SessionPayload extends JWTPayload {
   guruId?: string | null;
   jawatanGuru?: string | null;
   mustChangePw?: boolean;
+  /** Pelajar sahaja — diisi secara langsung dari DB oleh getSession() (bukan dari JWT). */
+  butiranDisahkan?: boolean;
+  /** SU/NSU asal jika subRole diturunkan ke "Pelajar" kerana butiran belum disahkan guru. */
+  subRoleTertangguh?: SubRole;
 }
 
 export async function signSession(

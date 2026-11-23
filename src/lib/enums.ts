@@ -52,20 +52,40 @@ export const JAWATAN_PILIHAN = [
   "Ahli Aktif",
 ] as const;
 
-// Pilihan jawatan pelajar yang DITETAPKAN oleh guru penasihat (spec guru §5).
-// Markah dipetakan dalam MARKAH_JAWATAN (pajsk.ts), cth. Kelab/Sukan: Pengerusi 10,
-// Naib Pengerusi 8, Setiausaha/Bendahari 7, Naib Setiausaha/Naib Bendahari 6, AJK 5.
-// Rekod lama (Ketua, Naib Ketua, Penolong Setiausaha) masih dikira dengan betul.
-export const JAWATAN_PELAJAR = [
-  "Pengerusi",
+// Pilihan jawatan pelajar yang DITETAPKAN oleh guru penasihat — ikut Jadual B
+// (Markah Jawatan, maks 10). Markah dikira oleh markahJawatan() dalam pajsk.ts.
+// Kelab/Persatuan & Sukan/Permainan: Pengerusi/Presiden/Kapten 10, Naib Pengerusi 8,
+// Setiausaha/Bendahari 7, Penolong SU/Bendahari 6, AJK 5, Ahli Aktif 4, Ahli Biasa 2.
+export const JAWATAN_KELAB_SUKAN = [
+  "Pengerusi", "Presiden", "Kapten Pasukan", "Ketua Pasukan", "Ketua Rumah",
   "Naib Pengerusi",
-  "Setiausaha",
-  "Naib Setiausaha",
-  "Bendahari",
-  "Naib Bendahari",
+  "Setiausaha", "Bendahari",
+  "Penolong Setiausaha", "Penolong Bendahari",
   "AJK",
+  "Ahli Aktif",
+  "Ahli Biasa",
 ] as const;
-export type JawatanPelajar = (typeof JAWATAN_PELAJAR)[number];
+
+// Pasukan Badan Beruniform: 10 / 8 / 7 / 5 / 4 / 2 (lihat MARKAH_JAWATAN_UNIFORM).
+export const JAWATAN_UNIFORM = [
+  "Pengerusi", "Pegawai Waran I", "Sub-Inspektor", "Drum Major",
+  "Naib Pengerusi", "Pegawai Waran II", "Bintara Kanan", "Staf Sarjan", "Sarjan Mejar", "Ketua Trup",
+  "Setiausaha", "Bendahari", "Sarjan", "Penolong Trup", "Bintara Muda", "Ketua Platun",
+  "Penolong Setiausaha", "Penolong Bendahari", "Koperal", "Lans Koperal",
+  "Ketua Patrol", "Penolong Ketua Patrol", "Laskar Kanan", "AJK",
+  "Pra-Persetiaan", "Ahli Aktif",
+  "Ahli Biasa",
+] as const;
+
+/** Semua jawatan bidang (Kelab/Sukan/Uniform) yang sah. */
+export const JAWATAN_PELAJAR = [...new Set([...JAWATAN_KELAB_SUKAN, ...JAWATAN_UNIFORM])] as readonly string[];
+export type JawatanPelajar = (typeof JAWATAN_KELAB_SUKAN)[number] | (typeof JAWATAN_UNIFORM)[number];
+
+/** Senarai pilihan jawatan ikut jenis bidang (Perkhidmatan → Jadual 1 ekstra). */
+export function pilihanJawatan(jenisKoko: string): readonly string[] {
+  if (jenisKoko === "Perkhidmatan") return JAWATAN_PERKHIDMATAN;
+  return jenisKoko === "Uniform" ? JAWATAN_UNIFORM : JAWATAN_KELAB_SUKAN;
+}
 
 /**
  * Pilihan jawatan Unit Perkhidmatan — ikut "Perkara" Jadual 1 Panduan KPM
@@ -104,8 +124,8 @@ export const JAWATAN_PERKHIDMATAN = [
 export const JAWATAN_PELAJAR_LAMA: Record<string, JawatanPelajar> = {
   Ketua: "Pengerusi",
   "Naib Ketua": "Naib Pengerusi",
-  "Penolong Setiausaha": "Naib Setiausaha",
-  "Penolong Bendahari": "Naib Bendahari",
+  "Naib Setiausaha": "Penolong Setiausaha",
+  "Naib Bendahari": "Penolong Bendahari",
 };
 
 export const STATUS_SEMAKAN = ["Draft", "Pending", "Approved", "Kuiri"] as const;
@@ -114,13 +134,14 @@ export type StatusSemakan = (typeof STATUS_SEMAKAN)[number];
 export const STATUS_PERTUKARAN = ["None", "Pending", "Approved", "Reject"] as const;
 export type StatusPertukaran = (typeof STATUS_PERTUKARAN)[number];
 
-// Status pengesahan butiran pelajar oleh Guru Penasihat/Ketua GP (skop unit).
+// Status pengesahan butiran pelajar oleh Ketua GP/Penolong Ketua GP (skop unit).
 export const STATUS_BUTIRAN = ["Pending", "Approved"] as const;
 export type StatusButiran = (typeof STATUS_BUTIRAN)[number];
 
-// Jawatan koko yang dibenarkan mengesahkan butiran pelajar — HANYA guru
-// penasihat unit itu sendiri (bukan Penolong Ketua GP, bukan skop sekolah).
-export const JAWATAN_BOLEH_SAHKAN_BUTIRAN: JawatanGuru[] = ["GuruPenasihat", "KetuaGP"];
+// Peranan dalam unit (GuruPenasihatKelab.peranan) yang dibenarkan mengesahkan
+// butiran pelajar — HANYA Ketua GP (K) & Penolong Ketua GP (P) bagi unit pelajar
+// itu sendiri. Guru Penasihat biasa boleh melihat sahaja; skop sekolah tidak.
+export const PERANAN_BOLEH_SAHKAN_BUTIRAN = ["KetuaPenasihat", "PenolongKetuaGP"] as const;
 
 // Peringkat penyertaan -> julat markah rujukan (spec 5.3 / 5.5)
 export const PERINGKAT = [
@@ -132,6 +153,11 @@ export const PERINGKAT = [
   "Antarabangsa",
 ] as const;
 export type Peringkat = (typeof PERINGKAT)[number];
+
+// Aktiviti Unit (dihantar SU/NSU) — peringkat ikut Jadual D/E & kedudukan peserta.
+export const PERINGKAT_AKTIVITI_UNIT = ["Sekolah", "Daerah", "Negeri", "Kebangsaan"] as const;
+export const KEDUDUKAN_AKTIVITI = ["Penyertaan", "Johan", "Naib Johan", "Ketiga"] as const;
+export type KedudukanAktiviti = (typeof KEDUDUKAN_AKTIVITI)[number];
 
 // Borang pelajar: Aktiviti Peringkat Kolej dikunci pada "Sekolah"; Aktiviti Luar
 // ikut senarai peringkat KPM di luar sekolah.

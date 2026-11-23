@@ -5,7 +5,13 @@ import { getDict } from "@/lib/i18n";
 import { useLocale } from "@/components/LocaleProvider";
 import { PERINGKAT } from "@/lib/enums";
 import { OprPratonton } from "./OprPratonton";
-import { JAWATAN_PERANAN, JAWATAN_PESERTA, LABEL_PERANAN } from "@/lib/projek-jawatan";
+import {
+  JAWATAN_PERANAN, JAWATAN_PESERTA, LABEL_PERANAN,
+  MARKAH_JAWATAN_PROJEK, PERINGKAT_PROJEK, MARKAH_PERINGKAT_PROJEK,
+} from "@/lib/projek-jawatan";
+
+/** Markah jawatan projek untuk paparan, cth. "Bendahari (8)". */
+const mj = (j: string) => MARKAH_JAWATAN_PROJEK[j as keyof typeof MARKAH_JAWATAN_PROJEK];
 import { CariPelajar, type CalonPelajar } from "@/components/CariPelajar";
 
 interface Unit { jenisKoko: string; namaUnit: string; }
@@ -210,9 +216,18 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
           </label>
         )}
         <label className="text-sm">{f.levelLabel}
-          <select name={tab === "mingguan" ? "peringkat" : "peringkatProjek"} className={`${inputCls} mt-1`} required defaultValue="Sekolah">
-            {PERINGKAT.map((p) => <option key={p} value={p}>{p === "Sekolah" ? f.collegeLevel : p}</option>)}
-          </select>
+          {tab === "mingguan" ? (
+            <select name="peringkat" className={`${inputCls} mt-1`} required defaultValue="Sekolah">
+              {PERINGKAT.map((p) => <option key={p} value={p}>{p === "Sekolah" ? f.collegeLevel : p}</option>)}
+            </select>
+          ) : (
+            // Jadual C(ii): peringkat pelaksanaan projek & markahnya.
+            <select name="peringkatProjek" className={`${inputCls} mt-1`} required defaultValue="Sekolah">
+              {PERINGKAT_PROJEK.map((p) => (
+                <option key={p} value={p}>{p === "Sekolah" ? f.collegeLevel : p} ({MARKAH_PERINGKAT_PROJEK[p]})</option>
+              ))}
+            </select>
+          )}
         </label>
         <label className="text-sm">{f.dateLabel}
           <input type="date" name="tarikh" className={`${inputCls} mt-1`} required />
@@ -232,7 +247,7 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
         {tab === "projek" && projekDipilih && (
           <div className="text-sm">{o.yourPosition}
             <p className={`${inputCls} mt-1 bg-slate-50 text-slate-600`}>
-              {JAWATAN_PERANAN[projekDipilih.peranan]} <span className="text-xs text-slate-400">({o.setByTeacher})</span>
+              {JAWATAN_PERANAN[projekDipilih.peranan]} ({mj(JAWATAN_PERANAN[projekDipilih.peranan])}) <span className="text-xs text-slate-400">({o.setByTeacher})</span>
             </p>
           </div>
         )}
@@ -253,7 +268,7 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
                 {projekDipilih.ajk.filter((a) => a.id !== pelajarId).map((a) => (
                   <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5">
                     <span className="min-w-0 truncate">{a.nama} <span className="text-xs text-slate-400">({a.kelas ?? "-"})</span></span>
-                    <span className="text-xs font-semibold text-slate-600">🔒 {JAWATAN_PERANAN[a.peranan]} <span className="font-normal text-slate-400">({o.setByTeacher})</span></span>
+                    <span className="text-xs font-semibold text-slate-600">🔒 {JAWATAN_PERANAN[a.peranan]} ({mj(JAWATAN_PERANAN[a.peranan])}) <span className="font-normal text-slate-400">({o.setByTeacher})</span></span>
                   </li>
                 ))}
               </ul>
@@ -276,7 +291,7 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
                       <select value={x.jawatan} aria-label={t.positionLabel}
                         onChange={(e) => { const v = e.target.value; setPeserta((s) => s.map((y) => y.id === x.id ? { ...y, jawatan: v } : y)); tandaBerubah(); }}
                         className="rounded border border-slate-300 px-1.5 py-1 text-xs">
-                        {JAWATAN_PESERTA.map((j) => <option key={j} value={j}>{j}</option>)}
+                        {JAWATAN_PESERTA.map((j) => <option key={j} value={j}>{j} ({mj(j)})</option>)}
                       </select>
                       <button type="button" onClick={() => { setPeserta((s) => s.filter((y) => y.id !== x.id)); tandaBerubah(); }}
                         className="text-xs font-semibold text-red-600 hover:underline">{o.removeParticipant}</button>

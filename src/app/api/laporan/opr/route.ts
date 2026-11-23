@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { requireSession, fail } from "@/lib/api";
+import { requireSession, sekatBelumDisahkan, fail } from "@/lib/api";
 import { bacaOprDariForm, janaOprPDF } from "@/lib/opr";
 import { bacaPeserta, tagProjekPelajar } from "@/lib/projek";
 import { JAWATAN_PERANAN } from "@/lib/projek-jawatan";
@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
   if ("response" in auth) return auth.response;
   const { session } = auth;
   if (session.role !== "Pelajar" || !session.pelajarId) return fail("Hanya pelajar boleh menjana OPR", 403);
+  const sekat = sekatBelumDisahkan(session);
+  if (sekat) return sekat;
 
   const form = await request.formData();
   const pelajar = { id: session.pelajarId, subRole: session.subRole };

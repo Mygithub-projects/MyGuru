@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { getDict } from "@/lib/i18n";
 import { useLocale } from "@/components/LocaleProvider";
 import { PERINGKAT_KOLEJ, PERINGKAT_LUAR } from "@/lib/enums";
+import type { CalonPelajar } from "@/components/CariPelajar";
+import { AktivitiUnitForm } from "./AktivitiUnitForm";
 
 // Had platform Vercel untuk badan permintaan ialah 4.5MB. Guna 4MB sebagai had
 // klien (beri margin untuk overhead multipart) supaya fail besar ditolak DI SINI
@@ -12,7 +14,16 @@ const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 interface Unit { jenisKoko: string; namaUnit: string; }
 
-export function AktivitiForm({ pelajarId, units }: { pelajarId: string; units: Unit[] }) {
+export function AktivitiForm({
+  pelajarId,
+  units,
+  su,
+}: {
+  pelajarId: string;
+  units: Unit[];
+  /** SU/NSU sahaja: unit seliaan (bukan Perkhidmatan) & calon peserta. */
+  su?: { units: Unit[]; calon: CalonPelajar[] };
+}) {
   const router = useRouter();
   const locale = useLocale();
   const dict = getDict(locale);
@@ -21,7 +32,11 @@ export function AktivitiForm({ pelajarId, units }: { pelajarId: string; units: U
   const unitLabel: Record<string, string> = {
     Sukan: common.sukan, Kelab: common.kelab, Uniform: common.uniform, Perkhidmatan: common.perkhidmatan,
   };
-  const [tab, setTab] = useState<"pencapaian" | "luar">("pencapaian");
+  const [tab, setTab] = useState<"pencapaian" | "luar" | "unit">(su ? "unit" : "pencapaian");
+  const tabs = su ? (["unit", "pencapaian", "luar"] as const) : (["pencapaian", "luar"] as const);
+  const labelTab = (k: string) =>
+    k === "unit" ? (locale === "en" ? "Unit Activity (SU/NSU)" : "Aktiviti Unit (SU/NSU)")
+    : k === "pencapaian" ? t.activityTabs.achievements : t.activityTabs.externalActivities;
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
@@ -67,14 +82,17 @@ export function AktivitiForm({ pelajarId, units }: { pelajarId: string; units: U
   return (
     <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <div className="mb-4 flex gap-2">
-        {(["pencapaian", "luar"] as const).map((tabKey) => (
-          <button key={tabKey} onClick={() => setTab(tabKey)}
+        {tabs.map((tabKey) => (
+          <button key={tabKey} onClick={() => { setTab(tabKey); setMsg(null); }}
             className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${tab === tabKey ? "bg-brand text-white" : "bg-slate-100 text-slate-600"}`}>
-            {tabKey === "pencapaian" ? t.activityTabs.achievements : t.activityTabs.externalActivities}
+            {labelTab(tabKey)}
           </button>
         ))}
       </div>
 
+      {tab === "unit" && su ? (
+        <AktivitiUnitForm units={su.units} calon={su.calon} />
+      ) : (<>
       {msg && (
         <div className={`mb-3 rounded-md px-3 py-2 text-sm ${msg.ok ? "bg-brand-light text-brand-dark ring-1 ring-brand/30" : "bg-red-50 text-red-700 ring-1 ring-red-200"}`}>
           {msg.text}
@@ -122,6 +140,7 @@ export function AktivitiForm({ pelajarId, units }: { pelajarId: string; units: U
           {busy ? "..." : t.activityForm.submit}
         </button>
       </form>
+      </>)}
     </section>
   );
 }

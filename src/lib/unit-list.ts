@@ -15,8 +15,10 @@ const BASELINE: Record<string, string[]> = {
   Kelab: [
     "Persatuan Sains dan Matematik", "Persatuan Bahasa", "Kelab Kebudayaan dan Kesenian",
     "Kelab Pencegahan Jenayah", "Kelab Bimbingan dan Kerjaya", "Kelab Alam Sekitar dan Keceriaan",
-    "Kelab Komputer", "Kelab Kewangan dan Pengguna", "Kelab Pelancongan dan Rekreasi",
-    "Kelab Fotografi", "Kelab Rukun Negara", "Kelab Falak", "Kelab Muzik",
+    "Kelab Komputer", "Kelab Kewangan dan Pengguna",
+    // Kelab Muzik → digabung ke Kelab Kebudayaan dan Kesenian;
+    // Kelab Pelancongan dan Rekreasi → digabung ke Kelab Rukun Negara (2026-11-23).
+    "Kelab Fotografi", "Kelab Rukun Negara", "Kelab Falak",
     "Kelab Informasi", "Kelab Koperasi",
   ],
   Uniform: ["Pengakap Kelana", "St. John Ambulans Malaysia", "Briged Bomba", "PISPA"],

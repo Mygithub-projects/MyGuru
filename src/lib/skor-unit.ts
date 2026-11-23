@@ -5,10 +5,9 @@
 // ===========================================================================
 import type { AktivitiLuar, Kokurikulum, LaporanProjek, Pencapaian } from "@prisma/client";
 import {
-  bidangDariJenisKoko,
   JUMLAH_PERJUMPAAN_WAJIB,
   kiraSkor,
-  markahJawatan,
+  markahJawatanUnit,
   markahKehadiran,
   perjumpaanPajsk,
   markahPenglibatan,
@@ -25,11 +24,18 @@ export interface RekodPelajar {
   pencapaian: Pencapaian[];
   aktivitiLuar: AktivitiLuar[];
   laporanProjek: LaporanProjek[];
-  /** Program Kolej yang disertai (Admin) — menyumbang markah penglibatan semua unit bidang. */
+  /**
+   * Program Kolej (Admin) & Aktiviti Unit (SU) yang disertai — menyumbang markah
+   * penglibatan. Tanpa jenisKoko → semua unit bidang; dengan jenisKoko → unit
+   * bidang itu sahaja.
+   */
   programKolej?: ProgramPenglibatan[];
+  /** Pencapaian dari Aktiviti Unit (SU) yang disahkan — dikredit ikut bidang. */
+  pencapaianBidang?: PencapaianBidang[];
 }
 
-export interface ProgramPenglibatan { nama: string; peringkat: string; }
+export interface ProgramPenglibatan { nama: string; peringkat: string; jenisKoko?: string; }
+export interface PencapaianBidang { jenisKoko: string; tahap: string; markah: number; }
 
 /**
  * Penglibatan (§1.4) satu unit: tertinggi antara peringkat unit itu dan
@@ -43,6 +49,7 @@ export function penglibatanUnit(
   let terbaik = { peringkat: k.peringkatT6 ?? "", markah: markahPenglibatan(k.peringkatT6) };
   if (k.jenisKoko === "Perkhidmatan") return terbaik;
   for (const pr of program) {
+    if (pr.jenisKoko && pr.jenisKoko !== k.jenisKoko) continue;
     const m = markahPenglibatan(pr.peringkat);
     if (m > terbaik.markah) terbaik = { peringkat: `${pr.peringkat === "Sekolah" ? "Kolej" : pr.peringkat} (${pr.nama})`, markah: m };
   }
@@ -106,6 +113,7 @@ export function skorUnit(
         .map((c) => ({ tahap: [c.kedudukan, c.peringkat].filter(Boolean).join(" ") || c.namaPencapaian, markah: c.markah })),
       ...p.aktivitiLuar.filter((x) => padan(x.namaUnit))
         .map((x) => ({ tahap: x.peringkat, markah: x.markahLuar })),
+      ...(unit ? (p.pencapaianBidang ?? []).filter((c) => c.jenisKoko === jenis) : []),
     ],
     (c) => c.markah,
   );
@@ -124,7 +132,7 @@ export function skorUnit(
     perjumpaan: perjumpaanPajsk(hadirGabung, jk.gabung),
     mKehadiran: markahKehadiran(hadirGabung, jk.gabung),
     jawatan: k.jawatanT6 ?? "",
-    mJawatan: k.jawatanT6 ? markahJawatan(k.jawatanT6, bidangDariJenisKoko(jenis)) : 0,
+    mJawatan: markahJawatanUnit(k.jawatanT6, jenis, !!k.namaUnitT6),
     peringkat: pglb.peringkat,
     mPenglibatan: pglb.markah,
     pcpTahap: pcp?.tahap ?? "",

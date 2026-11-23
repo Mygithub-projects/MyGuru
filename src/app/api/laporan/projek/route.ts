@@ -1,11 +1,11 @@
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireSession, ok, fail } from "@/lib/api";
+import { requireSession, sekatBelumDisahkan, ok, fail } from "@/lib/api";
 import { simpanFailDariForm } from "@/lib/upload";
-import { PERINGKAT } from "@/lib/enums";
+
 import { bacaOprDariForm, janaOprPDF, simpanOpr, teksLaporanOpr } from "@/lib/opr";
 import { bacaPeserta, tagProjekPelajar } from "@/lib/projek";
-import { JAWATAN_PERANAN } from "@/lib/projek-jawatan";
+import { JAWATAN_PERANAN, PERINGKAT_PROJEK } from "@/lib/projek-jawatan";
 
 // POST: laporan projek — HANYA pelajar yang di-tag guru sebagai SU/NSU bagi
 // projek itu (projekId). Borang OPR: butiran + gambar → PDF OPR sebagai eviden,
@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
   if ("response" in auth) return auth.response;
   const { session } = auth;
   if (session.role !== "Pelajar" || !session.pelajarId) return fail("Hanya pelajar boleh menghantar laporan projek", 403);
+  const sekat = sekatBelumDisahkan(session);
+  if (sekat) return sekat;
 
   const form = await request.formData();
   const tag = await tagProjekPelajar(session.pelajarId, String(form.get("projekId") ?? ""));
@@ -40,7 +42,7 @@ export async function POST(request: NextRequest) {
   const tarikh = String(form.get("tarikh") ?? "");
   const laporan = String(form.get("laporan") ?? "").trim();
 
-  if (!PERINGKAT.includes(peringkatProjek as (typeof PERINGKAT)[number])) return fail("Peringkat tidak sah", 422);
+  if (!PERINGKAT_PROJEK.includes(peringkatProjek as (typeof PERINGKAT_PROJEK)[number])) return fail("Peringkat pelaksanaan projek tidak sah", 422);
   if (!tarikh) return fail("Tarikh program/aktiviti diperlukan", 422);
   if (!laporan) return fail("Laporan ringkas diperlukan", 422);
 

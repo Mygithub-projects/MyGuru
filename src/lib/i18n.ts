@@ -523,7 +523,7 @@ const ms: Dict = {
     butiranPelajar: {
       colLabel: "Butiran Pelajar", statusPending: "Belum Disahkan", statusApproved: "Disahkan",
       confirmBtn: "Sahkan", confirming: "Mengesahkan…", networkError: "Ralat rangkaian.",
-      notAllowed: "Hanya Guru Penasihat/Ketua GP unit ini boleh mengesahkan.",
+      notAllowed: "Hanya Ketua GP/Penolong Ketua GP unit ini boleh mengesahkan.",
     },
     livePending: {
       title: "Menunggu Tindakan (Langsung)", updatedAt: "Dikemas kini:", autoOn: "Auto: ON", autoOff: "Auto: OFF",
@@ -1059,7 +1059,7 @@ const en: Dict = {
     butiranPelajar: {
       colLabel: "Student Particulars", statusPending: "Not Confirmed", statusApproved: "Confirmed",
       confirmBtn: "Confirm", confirming: "Confirming…", networkError: "Network error.",
-      notAllowed: "Only the Advisor Teacher/Head Advisor Teacher of this unit can confirm.",
+      notAllowed: "Only the Head/Assistant Head Advisor Teacher of this unit can confirm.",
     },
     livePending: {
       title: "Pending Actions (Live)", updatedAt: "Updated:", autoOn: "Auto: ON", autoOff: "Auto: OFF",

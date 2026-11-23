@@ -3,6 +3,7 @@
 //  (Spesifikasi §4, §5.5, §7). Semua peralihan status & kemas kini T6 di sini.
 // ===========================================================================
 import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
+import { INCLUDE_AKTIVITI_UNIT_LULUS, penglibatanAktivitiUnit, pencapaianAktivitiUnit } from "./aktiviti-unit-markah";
 import { prisma } from "./prisma";
 import { itemEkstra, penglibatanUnit, skorUnit, type RekodPelajar } from "./skor-unit";
 import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
@@ -12,6 +13,7 @@ import {
   markahKeseluruhan,
   markahAktivitiLuar,
   markahJawatan,
+  markahJawatanUnit,
   markahPenglibatan,
   markahProjekJawatan,
   markahProjekPeringkat,
@@ -19,7 +21,7 @@ import {
   nilaiEkstra,
   bidangDariJenisKoko,
 } from "./pajsk";
-import { JAWATAN_GURU_SELURUH_SEKOLAH, JAWATAN_BOLEH_SAHKAN_BUTIRAN, type JenisKoko } from "./enums";
+import { JAWATAN_GURU_SELURUH_SEKOLAH, PERANAN_BOLEH_SAHKAN_BUTIRAN, type JenisKoko } from "./enums";
 import { notifyPelajar, notifyGuruUntukUnit } from "./notifikasi";
 import type { Guru } from "@prisma/client";
 
@@ -135,27 +137,29 @@ export async function bolehGuruAksesPelajar(
   return bolehAksesUnit({ seluruhSekolah: false, unitSeliaan: units, unitPelajar });
 }
 
+/** Unit di mana guru ini Ketua GP / Penolong Ketua GP (boleh sahkan butiran ahli). */
+export async function unitBolehSahkan(guru: Pick<Guru, "id">): Promise<string[]> {
+  const rows = await prisma.guruPenasihatKelab.findMany({
+    where: { guruId: guru.id, peranan: { in: [...PERANAN_BOLEH_SAHKAN_BUTIRAN] } },
+    select: { namaUnit: true },
+  });
+  return rows.map((r) => r.namaUnit);
+}
+
 /**
- * Adakah guru boleh mengesahkan BUTIRAN pelajar ini? Berbeza daripada
- * bolehGuruAksesPelajar() — hanya Guru Penasihat/Ketua GP unit yang
- * ditugaskan boleh sahkan (bukan Penolong Ketua GP, bukan skop sekolah),
- * dan hanya untuk pelajar yang telah disenaraikan dalam unit seliaan mereka.
+ * Adakah guru boleh mengesahkan BUTIRAN pelajar ini? Hanya Ketua GP /
+ * Penolong Ketua GP bagi unit yang pelajar itu sertai (ikut peranan dalam
+ * GuruPenasihatKelab, bukan jawatan umum guru). Guru Penasihat biasa dan
+ * skop seluruh sekolah boleh melihat sahaja.
  */
 export async function bolehGuruSahkanButiran(
-  guru: Pick<Guru, "id" | "jawatanKoko">,
+  guru: Pick<Guru, "id">,
   pelajarId: string
 ): Promise<boolean> {
-  if (!JAWATAN_BOLEH_SAHKAN_BUTIRAN.includes(guru.jawatanKoko as (typeof JAWATAN_BOLEH_SAHKAN_BUTIRAN)[number])) {
-    return false;
-  }
-  const units = await unitSeliaan(guru);
+  const units = await unitBolehSahkan(guru);
   if (units.length === 0) return false;
-  const koko = await prisma.kokurikulum.findMany({
-    where: { pelajarId },
-    select: { namaUnitT6: true },
-  });
-  const unitPelajar = koko.map((k) => k.namaUnitT6).filter((u): u is string => !!u);
-  return bolehAksesUnit({ seluruhSekolah: false, unitSeliaan: units, unitPelajar });
+  const n = await prisma.kokurikulum.count({ where: { pelajarId, namaUnitT6: { in: units } } });
+  return n > 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -173,10 +177,16 @@ export async function kiraSemulaT6(pelajarId: string) {
       laporanProjek: true,
       projekPeserta: INCLUDE_PESERTA_LULUS,
       programKolej: { include: { program: { select: { nama: true, peringkat: true } } } },
+      aktivitiUnitPeserta: INCLUDE_AKTIVITI_UNIT_LULUS,
     },
   });
   if (!pelajar) return null;
-  const programKolej = pelajar.programKolej.map((x) => x.program);
+  // Program Kolej (semua bidang) + Aktiviti Unit SU yang disahkan (bidang aktiviti sahaja).
+  const programKolej = [
+    ...pelajar.programKolej.map((x) => x.program),
+    ...penglibatanAktivitiUnit(pelajar.aktivitiUnitPeserta),
+  ];
+  const pencapaianBidang = pencapaianAktivitiUnit(pelajar.aktivitiUnitPeserta);
 
   const maks = (arr: number[]) => arr.reduce((m, n) => Math.max(m, n), 0);
 
@@ -187,7 +197,8 @@ export async function kiraSemulaT6(pelajarId: string) {
   for (const k of pelajar.kokurikulum) {
     const up = k.jenisKoko === "Perkhidmatan";
     // Unit Perkhidmatan: Jadual 1 (ekstra), tidak dikira dalam jawatan bidang.
-    const mj = !k.jawatanT6 ? 0 : up ? nilaiEkstra(k.jawatanT6) : markahJawatan(k.jawatanT6, bidangDariJenisKoko(k.jenisKoko));
+    // Bidang: tiada jawatan tetapi berdaftar → Ahli Biasa (2), ikut Jadual B.
+    const mj = up ? (k.jawatanT6 ? nilaiEkstra(k.jawatanT6) : 0) : markahJawatanUnit(k.jawatanT6, k.jenisKoko, !!k.namaUnitT6);
     const mp = penglibatanUnit(k, programKolej).markah;
     if (!up) markahJwt = Math.max(markahJwt, mj);
     if (mj !== (k.markahJawatanT6 ?? -1) || mp !== (k.markahPeringkatT6 ?? -1)) {
@@ -214,6 +225,7 @@ export async function kiraSemulaT6(pelajarId: string) {
   const markahPcp = maks([
     ...luarLulus.map((a) => a.markahLuar),
     ...pencapaianLulus.filter((p) => p.kategori !== "ekstra").map((p) => p.markah),
+    ...pencapaianBidang.map((c) => c.markah),
   ]);
 
   // --- PROJEK (§1.6 & §1.7): tertinggi merentas laporan projek yang diluluskan.
@@ -233,6 +245,7 @@ export async function kiraSemulaT6(pelajarId: string) {
     aktivitiLuar: luarLulus,
     laporanProjek: projekLulus,
     programKolej,
+    pencapaianBidang,
   };
   const markahEks = markahEkstra(itemEkstra(rekod, pelajar.kokurikulum));
 
@@ -255,12 +268,16 @@ export async function kiraSemulaT6(pelajarId: string) {
     .map((k) => skorUnit(rekod, k, jumlahKehadiranUntuk(jumlah, k.jenisKoko)).jumlah ?? 0);
   const keseluruhan = markahKeseluruhan(skorBidang, markahEks);
 
+  // Markah keseluruhan hanya dikira selepas butiran pelajar disahkan Guru
+  // Penasihat/Ketua GP. Sebelum itu ia dikosongkan (null → dipaparkan "-").
+  const disahkan = pelajar.statusButiran === "Approved";
+
   await prisma.pelajar.update({
     where: { id: pelajarId },
     data: {
-      markahPajskT6: keseluruhan,
-      peratusPajskT6: keseluruhan, // markah penuh = 100
-      gredPajskT6: gred(keseluruhan),
+      markahPajskT6: disahkan ? keseluruhan : null,
+      peratusPajskT6: disahkan ? keseluruhan : null, // markah penuh = 100
+      gredPajskT6: disahkan ? gred(keseluruhan) : null,
       markahPenglibatan: skor.penglibatan,
       markahPencapaian: skor.pencapaian,
       markahProjekJawatan: skor.projekJawatan,

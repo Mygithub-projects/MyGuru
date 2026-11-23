@@ -22,6 +22,18 @@ export async function requireSession(): Promise<
   return { session };
 }
 
+export const MESEJ_BELUM_DISAHKAN =
+  "Butiran anda belum disahkan oleh Ketua GP/Penolong Ketua GP. Sila minta guru mengesahkan sebelum mengisi maklumat.";
+
+/**
+ * Pelajar yang butirannya belum disahkan guru tidak boleh menghantar/mengisi
+ * maklumat (pencapaian, aktiviti, laporan). Pulangkan respons 403 atau null.
+ */
+export function sekatBelumDisahkan(session: SessionPayload): NextResponse | null {
+  if (session.role === "Pelajar" && !session.butiranDisahkan) return fail(MESEJ_BELUM_DISAHKAN, 403);
+  return null;
+}
+
 /** Pastikan sesi sah DAN peranan dibenarkan. */
 export async function requireRole(
   ...roles: Role[]

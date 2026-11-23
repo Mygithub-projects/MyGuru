@@ -4,6 +4,7 @@ import { prisma } from "./prisma";
 import { ringkasanKehadiranPelajar } from "./kehadiran";
 import { markahEkstra, nilaiEkstra } from "./pajsk";
 import { itemEkstra, skorUnit, type RekodPelajar, type SkorUnit } from "./skor-unit";
+import { INCLUDE_AKTIVITI_UNIT_LULUS, penglibatanAktivitiUnit, pencapaianAktivitiUnit } from "./aktiviti-unit-markah";
 import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
 
 export interface BarisPenyertaan {
@@ -62,6 +63,7 @@ export async function getPelajarProfil(pelajarId: string) {
       laporanProjek: { where: { statusPengesahan: "Approved" } },
       projekPeserta: INCLUDE_PESERTA_LULUS,
       programKolej: { include: { program: { select: { nama: true, peringkat: true } } } },
+      aktivitiUnitPeserta: INCLUDE_AKTIVITI_UNIT_LULUS,
     },
   });
   if (!pelajar) return null;
@@ -96,7 +98,8 @@ export async function getPelajarProfil(pelajarId: string) {
     pencapaian: pelajar.pencapaian.filter((p) => p.statusSemakan === "Approved"),
     aktivitiLuar: pelajar.aktivitiLuar.filter((a) => a.statusPengesahan === "Approved"),
     laporanProjek: gabungProjek(pelajar.laporanProjek, pelajar.projekPeserta, pelajar.kokurikulum),
-    programKolej: pelajar.programKolej.map((x) => x.program),
+    programKolej: [...pelajar.programKolej.map((x) => x.program), ...penglibatanAktivitiUnit(pelajar.aktivitiUnitPeserta)],
+    pencapaianBidang: pencapaianAktivitiUnit(pelajar.aktivitiUnitPeserta),
   };
   const itemEks = itemEkstra(rekod, pelajar.kokurikulum);
   const ekstra = markahEkstra(itemEks);

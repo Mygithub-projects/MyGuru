@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { JAWATAN_KELAB_SUKAN, JAWATAN_UNIFORM } from "../src/lib/enums";
+import { markahJawatanUnit } from "../src/lib/pajsk";
+import { JAWATAN_PROJEK, MARKAH_JAWATAN_PROJEK, PERINGKAT_PROJEK, MARKAH_PERINGKAT_PROJEK } from "../src/lib/projek-jawatan";
 import {
   floorTo,
   bundarTo,
@@ -172,6 +175,15 @@ describe("§1.7 Projek (Peringkat) — 10 markah", () => {
     expect(markahProjekPeringkat("Sekolah")).toBe(6);
   });
   it("kes tepi: tak dikenali → 0", () => expect(markahProjekPeringkat("xyz")).toBe(0));
+  it("pilihan borang sepadan jadual C(ii)", () => {
+    for (const p of PERINGKAT_PROJEK) expect(markahProjekPeringkat(p)).toBe(MARKAH_PERINGKAT_PROJEK[p]);
+  });
+});
+
+describe("Paparan markah jawatan projek sepadan jadual C(i)", () => {
+  it("MARKAH_JAWATAN_PROJEK = markahProjekJawatan()", () => {
+    for (const j of JAWATAN_PROJEK) expect(markahProjekJawatan(j)).toBe(MARKAH_JAWATAN_PROJEK[j]);
+  });
 });
 
 describe("§1.8 Ekstra Kurikulum — bonus 10, MAX antara (a) & (b)", () => {
@@ -280,5 +292,34 @@ describe("utiliti & status pilihan unit", () => {
     expect(statusPilihanT6({ namaUnitT5: "SILAT", namaUnitT6: "SILAT", statusPertukaran: "None" })).toBe(
       "Kekal"
     );
+  });
+});
+
+describe("Jadual B — pilihan jawatan guru = markah jadual", () => {
+  const KS: Record<string, number> = {
+    Pengerusi: 10, Presiden: 10, "Kapten Pasukan": 10, "Ketua Pasukan": 10, "Ketua Rumah": 10,
+    "Naib Pengerusi": 8, Setiausaha: 7, Bendahari: 7, "Penolong Setiausaha": 6, "Penolong Bendahari": 6,
+    AJK: 5, "Ahli Aktif": 4, "Ahli Biasa": 2,
+  };
+  const UN: Record<string, number> = {
+    Pengerusi: 10, "Pegawai Waran I": 10, "Sub-Inspektor": 10, "Drum Major": 10,
+    "Naib Pengerusi": 8, "Pegawai Waran II": 8, "Bintara Kanan": 8, "Staf Sarjan": 8, "Sarjan Mejar": 8, "Ketua Trup": 8,
+    Setiausaha: 7, Bendahari: 7, Sarjan: 7, "Penolong Trup": 7, "Bintara Muda": 7, "Ketua Platun": 7,
+    "Penolong Setiausaha": 5, "Penolong Bendahari": 5, Koperal: 5, "Lans Koperal": 5,
+    "Ketua Patrol": 5, "Penolong Ketua Patrol": 5, "Laskar Kanan": 5, AJK: 5,
+    "Pra-Persetiaan": 4, "Ahli Aktif": 4, "Ahli Biasa": 2,
+  };
+  it("Kelab/Sukan", () => {
+    for (const j of JAWATAN_KELAB_SUKAN) expect([j, markahJawatan(j, "Kelab")]).toEqual([j, KS[j]]);
+    for (const j of JAWATAN_KELAB_SUKAN) expect([j, markahJawatan(j, "Sukan")]).toEqual([j, KS[j]]);
+  });
+  it("Uniform", () => {
+    for (const j of JAWATAN_UNIFORM) expect([j, markahJawatan(j, "Uniform")]).toEqual([j, UN[j]]);
+  });
+  it("ahli tanpa jawatan = Ahli Biasa (2); tiada unit = 0", () => {
+    expect(markahJawatanUnit(null, "Kelab", true)).toBe(2);
+    expect(markahJawatanUnit("", "Uniform", true)).toBe(2);
+    expect(markahJawatanUnit(null, "Sukan", false)).toBe(0);
+    expect(markahJawatanUnit("Setiausaha", "Kelab", true)).toBe(7);
   });
 });

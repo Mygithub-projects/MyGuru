@@ -135,6 +135,8 @@ model Pelajar {
   projekTag       ProjekTag[]
   projekPeserta   ProjekPeserta[]
   programKolej    ProgramKolejPeserta[]
+  aktivitiUnitDihantar AktivitiUnit[]        @relation("SetiausahaAktivitiUnit")
+  aktivitiUnitPeserta  AktivitiUnitPeserta[]
 
   @@index([kohort])
 }
@@ -620,5 +622,49 @@ model ProgramKolejPeserta {
   createdAt DateTime     @default(now())
 
   @@unique([programId, pelajarId])
+  @@index([pelajarId])
+}
+
+// === Aktiviti Unit (dihantar SU/NSU) =======================================
+// SU/NSU unit mendaftarkan satu aktiviti (peringkat kolej atau luar) bersama
+// senarai peserta dari mana-mana unit dan kedudukan masing-masing. Selepas
+// Ketua GP / Penolong Ketua GP unit SU mengesahkan, setiap peserta menerima
+// markah PENGLIBATAN (Jadual D, ikut peringkat) dan PENCAPAIAN (Jadual E,
+// ikut peringkat + kedudukan) — dikredit ke unit peserta dalam bidang
+// (jenisKoko) yang sama dengan unit SU.
+model AktivitiUnit {
+  id               String    @id @default(cuid())
+  namaAktiviti     String
+  peringkat        String // Sekolah | Daerah | Negeri | Kebangsaan
+  tarikh           DateTime?
+  namaUnit         String // unit SU (skop pengesahan)
+  jenisKoko        String // bidang unit SU (Kelab | Sukan | Uniform) — bidang kredit
+  kohort           String?
+  laporan          String?
+  lampiranEviden   String?
+  setiausaha       Pelajar   @relation("SetiausahaAktivitiUnit", fields: [setiausahaId], references: [id], onDelete: Cascade)
+  setiausahaId     String
+  statusPengesahan String    @default("Pending") // Pending | Approved | Kuiri
+  komenGuru        String?
+  disahkanOlehId   String?
+  tarikhSahkan     DateTime?
+  createdAt        DateTime  @default(now())
+
+  peserta AktivitiUnitPeserta[]
+
+  @@index([namaUnit, statusPengesahan])
+}
+
+model AktivitiUnitPeserta {
+  id                String       @id @default(cuid())
+  aktiviti          AktivitiUnit @relation(fields: [aktivitiId], references: [id], onDelete: Cascade)
+  aktivitiId        String
+  pelajar           Pelajar      @relation(fields: [pelajarId], references: [id], onDelete: Cascade)
+  pelajarId         String
+  kedudukan         String       @default("Penyertaan") // Penyertaan | Johan | Naib Johan | Ketiga
+  markahPenglibatan Float        @default(0)
+  markahPencapaian  Float        @default(0)
+
+  @@unique([aktivitiId, pelajarId])
   @@index([pelajarId])
 }
