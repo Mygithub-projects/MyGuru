@@ -4,6 +4,7 @@ import { getT } from "@/lib/locale";
 import { AppShell } from "@/components/shell/AppShell";
 import { AgentChat } from "@/components/AgentChat";
 import { prisma } from "@/lib/prisma";
+import { unitSeliaanSU } from "@/lib/pelajar";
 
 export default async function PelajarLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -14,9 +15,15 @@ export default async function PelajarLayout({ children }: { children: React.Reac
     ? (await prisma.projekTag.count({ where: { pelajarId: session.pelajarId, peranan: { in: ["SU", "NSU"] } } })) > 0
     : false;
 
+  // Label header: "SU Kelab Komputer" / "NSU Bola Jaring" (unit sebenar SU/NSU).
+  const isSU = session.subRole === "SU" || session.subRole === "NSU";
+  const unitSU = isSU && session.pelajarId ? await unitSeliaanSU(session.pelajarId, session.subRole) : [];
+  const subRoleLabel = unitSU.length ? `${session.subRole} ${unitSU.join(", ")}` : null;
+
   return (
     <>
       <AppShell
+        subRoleLabel={subRoleLabel}
         nama={session.nama}
         role={session.role}
         subRole={session.subRole}
