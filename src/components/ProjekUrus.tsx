@@ -9,7 +9,7 @@ import { StatusBadge } from "./StatusBadge";
 
 type T = Dict["laporan"]["projekUrus"];
 interface Tag { pelajarId: string; nama: string; kelas: string | null; peranan: string; }
-interface ProjekRow { id: string; nama: string; units: string[]; dibuatOleh: string | null; laporan: string[]; tag: Tag[]; }
+interface ProjekRow { id: string; nama: string; units: string[]; dibuatOleh: string | null; bolehUrus: boolean; laporan: string[]; tag: Tag[]; }
 
 const JENIS = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"] as const;
 
@@ -113,6 +113,7 @@ function KadProjek({ p, pelajar, unit, seliaan, t, busy, laksana }: {
   const berubah = sig(ajk) !== sig(p.tag);
   const kecuali = new Set(ajk.map((x) => x.pelajarId));
   const kiraStatus = p.laporan.reduce<Record<string, number>>((m, s) => ({ ...m, [s]: (m[s] ?? 0) + 1 }), {});
+  const lihatSahaja = !p.bolehUrus;
 
   return (
     <article className="space-y-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
@@ -124,7 +125,12 @@ function KadProjek({ p, pelajar, unit, seliaan, t, busy, laksana }: {
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="text-slate-500">{t.reports}: {p.laporan.length}</span>
           {Object.entries(kiraStatus).map(([s, n]) => <span key={s} className="inline-flex items-center gap-1"><StatusBadge status={s} />×{n}</span>)}
-          {p.laporan.length === 0 && (
+          {lihatSahaja && (
+            <span className="rounded-md bg-slate-100 px-2 py-1 font-semibold text-slate-500">
+              👁 Lihat sahaja
+            </span>
+          )}
+          {p.bolehUrus && p.laporan.length === 0 && (
             <button type="button" disabled={busy}
               onClick={() => { if (confirm(t.confirmDelete)) laksana(() => hantar(`/api/projek/${p.id}`, "DELETE")); }}
               className="rounded-md px-2 py-1 font-semibold text-red-600 hover:bg-red-50">{t.deleteProject}</button>
@@ -148,13 +154,27 @@ function KadProjek({ p, pelajar, unit, seliaan, t, busy, laksana }: {
           {p.units.map((u) => (
             <span key={u} className={`rounded-full px-2 py-0.5 text-xs ${seliaan?.includes(u) ? "bg-brand-light font-semibold text-brand-dark" : "bg-slate-100 text-slate-600"}`}>{u}</span>
           ))}
-          <button type="button" onClick={() => setEdit(true)} className="text-xs font-semibold text-brand-dark hover:underline">{t.editUnits}</button>
+          {p.bolehUrus && (
+            <button type="button" onClick={() => setEdit(true)} className="text-xs font-semibold text-brand-dark hover:underline">{t.editUnits}</button>
+          )}
         </div>
       )}
 
       <div>
         <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500">{t.tagTitle}</h3>
         <p className="mb-1 text-xs text-slate-400">{t.tagHint}</p>
+        {lihatSahaja ? (
+          p.tag.length === 0 ? <p className="text-sm text-slate-400">{t.noTag}</p> : (
+            <ul className="divide-y divide-slate-100 text-sm">
+              {p.tag.map((x) => (
+                <li key={x.pelajarId} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
+                  <span className="min-w-0 truncate text-slate-700">{x.nama} <span className="text-xs text-slate-400">({x.kelas ?? "-"})</span></span>
+                  <span className="text-xs font-semibold text-slate-600">{LABEL_PERANAN[x.peranan] ?? x.peranan}</span>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : (<>
         {ajk.length === 0 ? <p className="text-sm text-slate-400">{t.noTag}</p> : (
           <ul className="divide-y divide-slate-100 text-sm">
             {ajk.map((x) => (
@@ -199,6 +219,7 @@ function KadProjek({ p, pelajar, unit, seliaan, t, busy, laksana }: {
             <span className="text-xs font-semibold text-emerald-700">✓ {t.saved}</span>
           )}
         </div>
+        </>)}
       </div>
     </article>
   );

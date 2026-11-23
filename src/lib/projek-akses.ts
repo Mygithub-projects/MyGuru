@@ -3,10 +3,23 @@ import type { Guru } from "@prisma/client";
 import { guruSeluruhSekolah, unitSeliaan } from "./workflow";
 
 /**
- * Boleh urus projek (edit, tag SU/NSU, padam): Admin, guru berskop seluruh
- * sekolah, pencipta projek, atau guru penasihat salah satu unit projek.
+ * Boleh urus projek (ubah unit, tetapkan AJK, padam): HANYA guru pencipta
+ * projek (dan Admin). Guru lain yang terlibat melihat sahaja.
  */
 export async function bolehUrusProjek(
+  guru: Guru | null,
+  userId: string,
+  projek: { dibuatOlehId: string | null },
+): Promise<boolean> {
+  if (!guru) return true; // Admin
+  return projek.dibuatOlehId === userId;
+}
+
+/**
+ * Boleh lihat projek: pencipta, guru berskop seluruh sekolah, atau guru
+ * penasihat salah satu unit projek (semua yang terlibat).
+ */
+export async function bolehLihatProjek(
   guru: Guru | null,
   userId: string,
   projek: { units: string[]; dibuatOlehId: string | null },

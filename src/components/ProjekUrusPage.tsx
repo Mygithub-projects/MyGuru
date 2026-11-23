@@ -42,6 +42,8 @@ export async function ProjekUrusPage({ guru, userId }: { guru: Guru | null; user
           nama: p.nama,
           units: p.units,
           dibuatOleh: p.dibuatOleh,
+          // Hanya pencipta (atau Admin) boleh urus; guru lain yang terlibat lihat sahaja.
+          bolehUrus: !guru || p.dibuatOlehId === userId,
           laporan: p.laporan.map((l) => l.statusPengesahan),
           tag: p.tag.map((x) => ({ pelajarId: x.pelajar.id, nama: x.pelajar.nama, kelas: x.pelajar.kelasT6, peranan: x.peranan })),
         }))}

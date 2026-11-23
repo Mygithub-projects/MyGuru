@@ -208,6 +208,8 @@ export interface AhliUnit {
   markahPajskT6: number | null;
   gred: string | null;
   statusButiran: string;
+  /** SU/NSU sahaja: unit di mana pelajar memegang jawatan SU/NSU. */
+  unitSU: string[];
 }
 export interface UnitAhli {
   namaUnit: string;
@@ -243,6 +245,21 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
     orderBy: [{ namaUnitT6: "asc" }],
   });
 
+  // Unit di mana setiap SU/NSU memegang jawatan itu (merentas semua unit pelajar).
+  const idSU = [...new Set(koko.filter((k) => k.pelajar.subRole === "SU" || k.pelajar.subRole === "NSU").map((k) => k.pelajarId))];
+  const kokoSU = idSU.length
+    ? await db.kokurikulum.findMany({ where: { pelajarId: { in: idSU } }, select: { pelajarId: true, namaUnitT6: true, jawatanT6: true } })
+    : [];
+  const unitSUOf = (pelajarId: string, subRole: string) =>
+    kokoSU
+      .filter((k) => {
+        if (k.pelajarId !== pelajarId || !k.namaUnitT6 || !k.jawatanT6) return false;
+        const j = k.jawatanT6.toUpperCase();
+        const nsu = j.includes("PENOLONG SETIAUSAHA") || j.includes("NAIB SETIAUSAHA");
+        return subRole === "NSU" ? nsu : j.includes("SETIAUSAHA") && !nsu;
+      })
+      .map((k) => k.namaUnitT6 as string);
+
   const map = new Map<string, UnitAhli>();
   for (const k of koko) {
     const namaUnit = k.namaUnitT6 as string;
@@ -258,6 +275,7 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
       markahPajskT6: k.pelajar.markahPajskT6,
       gred: k.pelajar.gredPajskT6,
       statusButiran: k.pelajar.statusButiran,
+      unitSU: k.pelajar.subRole === "SU" || k.pelajar.subRole === "NSU" ? unitSUOf(k.pelajarId, k.pelajar.subRole) : [],
     });
   }
   for (const u of map.values()) u.ahli.sort((a, b) => a.nama.localeCompare(b.nama));
