@@ -42,10 +42,12 @@ export async function Topbar({
   const dashHref = role === "Admin" ? "/admin" : "/guru";
 
   return (
-    <header className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:px-6 dark:border-white/10 dark:bg-ez-ink-2/90">
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-ez-red via-ez-flame to-ez-amber opacity-80" />
       <SidebarToggleButton />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold leading-tight text-slate-800">{nama}</p>
+        <p className="truncate text-[11px] font-medium leading-tight text-slate-400">{locale === "en" ? "Welcome," : "Selamat datang,"}</p>
+        <p className="truncate text-sm font-bold leading-tight text-slate-800">{nama}</p>
         <p className="truncate text-[11px] leading-tight text-slate-500" title={jawatan ?? subRoleLabel ?? undefined}>
           {jawatan || (roleLabel[role] ?? role)}
           {subRole && subRole !== "Pelajar" ? ` · ${subRoleLabel || subRole}` : ""}
@@ -63,7 +65,7 @@ export async function Topbar({
         <ThemeToggle />
         <NotifBell onLight t={t.chrome} />
         <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-light text-xs font-bold text-brand-dark"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-ez-amber via-ez-flame to-ez-red text-xs font-extrabold text-white shadow-md ring-2 ring-white"
           title={nama}
         >
           {initials(nama)}

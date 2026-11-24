@@ -34,21 +34,27 @@ export function Sidebar({
         <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setOpen(false)} aria-hidden />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col bg-ink text-white transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden bg-ink text-white transition-transform duration-200 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
+        {/* Jalur serong api — gema blok perisai logo */}
+        <div aria-hidden className="ez-slash -right-16 -top-6 flex h-40 gap-1.5 opacity-90">
+          <i className="w-10 bg-ez-red" /><i className="w-5 bg-ez-flame" /><i className="w-2 bg-ez-amber" />
+        </div>
+        <div className="relative flex items-center gap-3 px-5 pb-5 pt-6">
           <Image
-            src="/logo-kpm.png"
-            alt="Logo KPM"
-            width={40}
-            height={40}
-            className="rounded-lg bg-white p-1 ring-2 ring-gold/40"
+            src="/logo-ezkoko.webp"
+            alt="Logo EzKoko KTEDM"
+            width={52}
+            height={56}
+            className="h-14 w-auto drop-shadow-[0_6px_10px_rgba(0,0,0,0.6)]"
           />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold leading-tight text-white">{brandTitle}</p>
-            <p className="truncate text-[11px] leading-tight text-gold">{brandSubtitle}</p>
+            <p className="truncate font-[family-name:var(--font-display)] text-2xl font-extrabold uppercase italic leading-none text-white">
+              {brandTitle.replace(/T6$/, "")}<span className="text-ez-red">{brandTitle.endsWith("T6") ? "T6" : ""}</span>
+            </p>
+            <p className="mt-1 text-[10px] font-semibold uppercase leading-tight tracking-[0.08em] text-gold">{brandSubtitle}</p>
           </div>
           <button
             type="button"
@@ -60,7 +66,9 @@ export function Sidebar({
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        <div className="relative mx-5 h-px bg-gradient-to-r from-ez-red via-ez-flame to-transparent" />
+        <p className="relative px-5 pb-1 pt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">Menu</p>
+        <nav className="relative flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
           {items.map((item, i) => {
             if (item.action) {
               return (
@@ -71,7 +79,7 @@ export function Sidebar({
                     window.dispatchEvent(new Event(item.action === "notif" ? OPEN_NOTIF_EVENT : OPEN_CHAT_EVENT));
                     setOpen(false);
                   }}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white"
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-white/65 transition hover:bg-white/5 hover:text-white"
                 >
                   <NavIcon name={item.icon} className="h-5 w-5 shrink-0" />
                   <span className="truncate">{item.label}</span>
@@ -86,20 +94,22 @@ export function Sidebar({
                 href={item.href!}
                 title={item.label}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-sm font-medium transition ${
+                aria-current={active ? "page" : undefined}
+                className={`group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition ${
                   active
-                    ? "border-gold bg-white/10 text-white"
-                    : "border-transparent text-white/70 hover:bg-white/5 hover:text-white"
+                    ? "bg-gradient-to-r from-ez-red to-ez-red/70 text-white shadow-lg shadow-ez-red/20"
+                    : "text-white/65 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <NavIcon name={item.icon} className="h-5 w-5 shrink-0" />
+                <NavIcon name={item.icon} className={`h-5 w-5 shrink-0 ${active ? "text-white" : "text-white/45 group-hover:text-ez-amber"}`} />
                 <span className="truncate">{item.label}</span>
+                {active && <span aria-hidden className="ml-auto h-4 w-1.5 -skew-x-12 rounded-sm bg-ez-amber" />}
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-t border-white/10 px-5 py-3 text-[10px] text-white/40">{institusi}</div>
+        <div className="relative border-t border-white/10 px-5 py-3 text-[10px] leading-snug text-white/40">{institusi}</div>
       </aside>
     </>
   );

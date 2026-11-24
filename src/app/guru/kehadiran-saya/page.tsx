@@ -11,7 +11,7 @@ function fmtTarikh(iso: string) {
   }).format(new Date(iso));
 }
 
-const WARNA: Record<string, string> = { Uniform: "#059669", Sukan: "#d97706", Kelab: "#2563eb" };
+const WARNA: Record<string, string> = { Uniform: "#059669", Sukan: "#d97706", Kelab: "#d4141c" };
 
 const SAIZ_HALAMAN = 10;
 const STATUS_TAPIS = ["semua", "belum", "Pending", "Approved"] as const;

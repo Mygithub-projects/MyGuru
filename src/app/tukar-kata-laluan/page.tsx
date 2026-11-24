@@ -11,17 +11,19 @@ export default async function TukarKataLaluanPage() {
   const { t } = await getT();
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-ink via-ink-2 to-brand-dark px-4 py-10">
+    <div className="flex flex-1 items-center justify-center ez-bg px-4 py-10">
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-white">
-          <Image src="/logo-kpm.png" alt="Logo KPM" width={72} height={72} className="mb-3 rounded-2xl bg-white p-1.5 shadow-lg ring-2 ring-white/30" />
-          <h1 className="text-xl font-bold text-white">{t.tukarKataLaluan.title}</h1>
+          <Image src="/logo-ezkoko.webp" alt="Logo EzKoko KTEDM" width={96} height={102} className="mb-3 h-24 w-auto drop-shadow-[0_12px_20px_rgba(0,0,0,0.5)]" />
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-extrabold uppercase italic text-white">{t.tukarKataLaluan.title}</h1>
           <p className="text-sm text-white/85">
             {session.mustChangePw ? t.tukarKataLaluan.subtitleForced : t.tukarKataLaluan.subtitleUpdate}
           </p>
         </div>
         <div className="rounded-2xl bg-white p-6 shadow-xl sm:p-8">
-          <TukarKataLaluanForm t={t.tukarKataLaluan} />
+          <TukarKataLaluanForm
+            t={{ ...t.tukarKataLaluan, showPassword: t.login.showPassword, hidePassword: t.login.hidePassword }}
+          />
         </div>
         {!session.mustChangePw && (
           <Link href={session.role === "Admin" ? "/admin" : session.role === "Guru" ? "/guru" : "/pelajar"}

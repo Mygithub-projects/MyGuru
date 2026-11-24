@@ -1,43 +1,57 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Suspense } from "react";
 import { LoginForm } from "./LoginForm";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { getT } from "@/lib/locale";
 
+const display = "font-[family-name:var(--font-display)]";
+
 export default async function LoginPage() {
   const { locale, t } = await getT();
   const institusi = process.env.NEXT_PUBLIC_INSTITUSI || "KTE (Prauniversiti) Desa Mahkota";
   return (
-    <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-ink via-ink-2 to-brand-dark px-4 py-8 sm:py-12">
-      {/* Hiasan latar */}
-      <div aria-hidden className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-gold/20 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-40 -right-24 h-[28rem] w-[28rem] rounded-full bg-brand/25 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.07)_1px,transparent_0)] [background-size:28px_28px]" />
+    <div className="ez-bg relative flex flex-1 items-center justify-center overflow-hidden px-4 py-8 sm:py-12">
+      {/* Jalur serong seperti blok perisai logo */}
+      <div aria-hidden className="ez-slash -left-40 top-0 hidden h-full gap-3 lg:flex">
+        <i className="w-28 bg-ez-red/80" />
+        <i className="w-14 bg-ez-flame/70" />
+        <i className="w-6 bg-ez-amber/60" />
+      </div>
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:26px_26px]" />
 
       <div className="relative w-full max-w-5xl">
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex items-center justify-between">
+          <Link href="/" className="text-sm font-semibold text-ez-cream/70 transition hover:text-ez-cream">← Laman utama</Link>
           <LanguageToggle locale={locale} />
         </div>
 
-        <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+        <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
           {/* Panel jenama */}
-          <div className="flex flex-col items-center text-center text-white lg:items-start lg:text-left">
-            <Image
-              src="/logo-kpm.png"
-              alt="Logo KPM"
-              width={112}
-              height={112}
-              priority
-              className="mb-5 h-24 w-24 rounded-3xl bg-white p-2 shadow-2xl ring-4 ring-white/20 sm:h-28 sm:w-28"
-            />
-            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">EzKokoT6</h1>
-            <p className="mt-2 text-sm font-bold uppercase tracking-[0.2em] text-gold sm:text-base">Active Hands, Brilliant Minds</p>
-            <p className="mt-4 text-lg font-medium text-white/90 sm:text-xl">{t.login.subtitle}</p>
-            <p className="mt-1 text-sm text-white/70 sm:text-base">{institusi}</p>
-            <ul className="mt-8 hidden space-y-3 lg:block">
+          <div className="flex flex-col items-center text-center text-ez-cream lg:items-start lg:pl-10 lg:text-left">
+            <div className="relative mb-4">
+              <div aria-hidden className="absolute inset-4 rounded-full bg-ez-flame/45 blur-3xl" />
+              <Image
+                src="/logo-ezkoko.webp"
+                alt="Logo EzKoko KTEDM"
+                width={260}
+                height={277}
+                priority
+                className="relative h-36 w-auto drop-shadow-[0_16px_24px_rgba(0,0,0,0.55)] sm:h-44 lg:h-56"
+              />
+            </div>
+            <h1 className={`${display} text-5xl font-extrabold uppercase italic leading-none sm:text-6xl`}>
+              EzKoko<span className="ez-flame-text pr-1">T6</span>
+            </h1>
+            <p className="mt-2 text-xs font-bold uppercase tracking-[0.25em] text-ez-amber sm:text-sm">Active Hands, Brilliant Minds</p>
+            <p className="mt-4 text-lg font-medium text-ez-cream/90">{t.login.subtitle}</p>
+            <p className="mt-0.5 text-sm text-ez-cream/60">{institusi}</p>
+            <ul className="mt-7 hidden space-y-3 lg:block">
               {t.login.highlights.map((h) => (
-                <li key={h} className="flex items-center gap-3 text-base text-white/85">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/20 text-sm font-bold text-gold ring-1 ring-gold/40">✓</span>
+                <li key={h} className="flex items-center gap-3 text-base text-ez-cream/85">
+                  <span className="flex h-6 w-6 shrink-0 -skew-x-12 items-center justify-center rounded-sm bg-ez-red text-xs font-bold text-white">
+                    <span className="skew-x-12">✓</span>
+                  </span>
                   {h}
                 </li>
               ))}
@@ -46,12 +60,13 @@ export default async function LoginPage() {
 
           {/* Kad log masuk */}
           <div className="mx-auto w-full max-w-lg">
-            <div className="rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-white/10 sm:p-10">
+            <div className="relative overflow-hidden rounded-2xl bg-ez-cream p-6 shadow-2xl ring-4 ring-black/40 sm:p-9">
+              <div aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-ez-red via-ez-flame to-ez-amber" />
               <Suspense fallback={<p className="text-sm text-slate-400">{t.login.loading}</p>}>
                 <LoginForm locale={locale} />
               </Suspense>
             </div>
-            <p className="mt-5 text-center text-sm text-white/70">{t.login.footer}</p>
+            <p className="mt-5 text-center text-sm text-ez-cream/60">{t.login.footer}</p>
           </div>
         </div>
       </div>

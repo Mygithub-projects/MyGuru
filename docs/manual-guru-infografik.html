@@ -1,0 +1,357 @@
+<title>Manual Guru EzKokoT6</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: poster-style vertical infographic, one column of "panels" on a field-green band, 2-up grids that collapse on phones */
+:root{
+  --bg:#f3f6f2; --panel:#ffffff; --ink:#15261f; --muted:#56685f; --line:#d6e0d9;
+  --field:#0f4d3a; --field-ink:#eaf4ee; --amber:#e8a317; --amber-soft:#fcf1d6;
+  --chip:#e4efe8; --red:#b6402c; --red-soft:#f8e3de; --ok:#1f7a4d;
+  --f-display:"Bricolage Grotesque",system-ui,sans-serif;
+  --f-body:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1612; --panel:#14211b; --ink:#e3ece6; --muted:#9db0a5; --line:#26382f;
+  --field:#0a3729; --field-ink:#e3f1e8; --amber:#f0b43a; --amber-soft:#3a2f14;
+  --chip:#1c2e25; --red:#ec8a77; --red-soft:#3a1d18; --ok:#5cc88f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1612; --panel:#14211b; --ink:#e3ece6; --muted:#9db0a5; --line:#26382f;
+  --field:#0a3729; --field-ink:#e3f1e8; --amber:#f0b43a; --amber-soft:#3a2f14;
+  --chip:#1c2e25; --red:#ec8a77; --red-soft:#3a1d18; --ok:#5cc88f; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+p{margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.ui{font-weight:700;background:var(--chip);border-radius:5px;padding:1px 6px;white-space:nowrap;font-size:.92em}
+
+/* hero */
+.hero{background:var(--field);color:var(--field-ink);margin-top:calc(-1 * env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 2.6rem);padding-bottom:2.4rem;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-120px;top:-60px;width:420px;height:420px;border:44px solid color-mix(in srgb,var(--amber) 70%,transparent);border-radius:50%;opacity:.35}
+.hero .wrap{position:relative;z-index:1;display:grid;gap:1.2rem}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.hero h1{font-size:clamp(2.2rem,6vw,3.8rem);font-weight:800}
+.hero h1 span{color:var(--amber)}
+.hero p.lede{max-width:60ch;font-size:1.05rem;opacity:.92}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:.6rem}
+.fact{border:1px solid color-mix(in srgb,var(--field-ink) 25%,transparent);border-radius:10px;padding:12px 14px}
+.fact b{display:block;font-family:var(--f-display);font-size:1.6rem;color:var(--amber)}
+.fact small{font-size:12.5px;opacity:.85}
+
+/* sections */
+main{padding-block:2rem 3rem;display:grid;gap:2.2rem}
+section{display:grid;gap:1rem}
+.sh{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.sh .tag{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.1em}
+.sh h2{font-size:clamp(1.4rem,3vw,1.9rem)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}
+.panel h3{font-size:1.1rem;margin-bottom:6px}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;counter-reset:s}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;position:relative;min-width:0}
+.step::before{counter-increment:s;content:counter(s);font-family:var(--f-display);font-weight:800;font-size:1.05rem;width:32px;height:32px;border-radius:50%;background:var(--field);color:var(--field-ink);display:grid;place-items:center;margin-bottom:10px}
+.step h3{font-size:1rem;margin-bottom:4px}
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--amber-soft);border-radius:10px;padding:12px 14px;font-size:14px}
+.note b.k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;background:var(--amber);color:#1b1404;border-radius:4px;padding:2px 6px;flex:none;margin-top:2px}
+.note.red{background:var(--red-soft)} .note.red b.k{background:var(--red);color:#fff}
+
+/* topbar mock */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.bar .pill{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;display:flex;gap:6px;align-items:center}
+.bar .pill.hl{border-color:var(--amber);background:var(--amber-soft)}
+.bar .sp{flex:1}
+.legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.legend div{font-size:13.5px}
+.legend b{display:block;font-size:14px}
+
+/* menu map */
+.menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.mi .path{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.mi h3{font-size:1.05rem}
+.mi ul{margin:0;padding-left:18px;font-size:13.5px;display:grid;gap:3px}
+.mi .who{font-size:12px;font-weight:600;color:var(--red)}
+
+/* flow */
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;align-items:stretch;gap:8px}
+.fbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.fbox.me{border:2px solid var(--field)}
+.fbox .who{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.fbox h3{font-size:1rem;margin:4px 0}
+.arrow{display:grid;place-items:center;color:var(--muted);font-size:20px}
+.fork{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.btn{font-size:12.5px;font-weight:700;border-radius:6px;padding:3px 9px}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.q{background:var(--amber);color:#1b1404}
+.btn.no{background:var(--red);color:#fff}
+.chk{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.chk li{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:14px}
+.chk li::before{content:"";width:16px;height:16px;border:2px solid var(--field);border-radius:4px;margin-top:3px}
+
+/* table */
+.tbl{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tr:last-child td{border-bottom:0}
+.scope{font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.scope.u{background:var(--chip)} .scope.s{background:var(--amber-soft)}
+.y{color:var(--ok);font-weight:700} .n{color:var(--muted)}
+
+/* marks */
+.comp{display:grid;gap:8px}
+.cr{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;font-size:14px}
+.track{height:14px;background:var(--chip);border-radius:4px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--field)}
+.track i.a{background:var(--amber)}
+.formula{font-family:var(--f-mono);font-size:clamp(.95rem,2.4vw,1.15rem);background:var(--field);color:var(--field-ink);border-radius:12px;padding:16px 18px;line-height:1.7}
+.formula em{font-style:normal;color:var(--amber)}
+.ex{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-family:var(--f-mono);font-size:14px}
+.ex span{border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:var(--panel)}
+.ex span.best{border-color:var(--field);background:var(--chip);font-weight:700}
+.ex span.drop{text-decoration:line-through;color:var(--muted)}
+.grades{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.grades div{padding:10px 6px;text-align:center;background:var(--panel);border-right:1px solid var(--line)}
+.grades div:last-child{border-right:0}
+.grades b{display:block;font-family:var(--f-display);font-size:1.5rem}
+.grades small{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.grades .gA{background:var(--field);color:var(--field-ink)} .grades .gA small{color:var(--field-ink);opacity:.8}
+
+/* ai */
+.ai{display:grid;gap:8px;align-content:start}
+.ai .badge{justify-self:start;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;border:1px solid var(--field);color:var(--field);border-radius:4px;padding:2px 7px}
+:root .ai .badge{color:var(--ok);border-color:var(--ok)}
+.chat{display:grid;gap:6px;font-size:13.5px}
+.chat p{background:var(--chip);border-radius:10px 10px 10px 2px;padding:7px 10px;justify-self:start;max-width:95%}
+.chat p.me{background:var(--amber-soft);border-radius:10px 10px 2px 10px;justify-self:end}
+
+footer{border-top:1px solid var(--line);padding-block:1.2rem 2rem;font-size:13px;color:var(--muted)}
+
+@media (max-width:860px){
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .menu,.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .flow{grid-template-columns:1fr}
+  .arrow{transform:rotate(90deg);height:20px}
+  .legend{grid-template-columns:1fr 1fr}
+}
+@media (max-width:560px){
+  .steps,.menu,.grid2,.grid3,.legend{grid-template-columns:1fr}
+  .cr{grid-template-columns:110px 1fr 38px}
+  .grades b{font-size:1.2rem}
+}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Manual Pengguna · Guru · Tingkatan 6</div>
+    <h1>Manual Guru <span>EzKokoT6</span></h1>
+    <p class="lede">Panduan ringkas untuk guru penasihat dan penyelaras kokurikulum: log masuk, semak dan sahkan kerja pelajar, isi kehadiran sendiri, dan faham bagaimana markah PAJSK T6 dikira.</p>
+    <div class="facts">
+      <div class="fact"><b>9</b><small>menu di sidebar guru</small></div>
+      <div class="fact"><b>8 jam</b><small>tempoh sesi log masuk</small></div>
+      <div class="fact"><b>0</b><small>markah yang perlu dikira manual</small></div>
+      <div class="fact"><b>2 + 1</b><small>2 bidang terbaik + ekstra UP</small></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- 1 LOGIN -->
+<section>
+  <div class="sh"><span class="tag">BAHAGIAN 1</span><h2>Log masuk kali pertama</h2></div>
+  <div class="steps">
+    <div class="step"><h3>Buka /login</h3><p class="small">Pilih tab <span class="ui">Guru</span>. Tab asal ialah Pelajar, jadi tukar dahulu.</p></div>
+    <div class="step"><h3>Isi emel &amp; kata laluan</h3><p class="small">Guna emel sekolah dan kata laluan sementara daripada Pentadbir. Klik <span class="ui">Log Masuk</span>.</p></div>
+    <div class="step"><h3>Tukar kata laluan</h3><p class="small">Sistem akan bawa anda ke halaman <span class="ui">Tukar Kata Laluan</span>. Minimum 6 aksara dan mesti berbeza daripada yang lama.</p></div>
+    <div class="step"><h3>Pilih kohort</h3><p class="small">Di bar atas, pilih kohort pelajar yang ingin dilihat. Semua halaman akan ikut kohort ini.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="note red"><b class="k">RALAT</b><p>"Akaun ini bukan akaun Guru" bermaksud anda berada di tab yang salah. Pilih tab <span class="ui">Guru</span> dan cuba semula.</p></div>
+    <div class="note"><b class="k">LUPA?</b><p>Tiada pautan reset sendiri. Hubungi Pentadbir sekolah; anda akan terima kata laluan baharu dan perlu menukarnya semasa log masuk seterusnya.</p></div>
+  </div>
+</section>
+
+<!-- 2 TOPBAR -->
+<section>
+  <div class="sh"><span class="tag">BAHAGIAN 2</span><h2>Kenali bar atas</h2></div>
+  <div class="bar" aria-label="Contoh bar atas">
+    <span class="pill hl">Kohort ▾</span>
+    <span class="pill hl">Tindakan <span class="mono">12</span></span>
+    <span class="sp"></span>
+    <span class="pill">BM / EN</span>
+    <span class="pill">Terang / Gelap</span>
+    <span class="pill">Notifikasi</span>
+    <span class="pill">Tukar Kata Laluan</span>
+    <span class="pill">Log Keluar</span>
+  </div>
+  <div class="legend">
+    <div class="panel"><b>Kohort</b>Penapis utama. Kohort yang sudah tamat ditanda "(arkib)". Pilihan disimpan untuk lawatan seterusnya.</div>
+    <div class="panel"><b>Tindakan</b>Bilangan item yang menunggu semakan anda. Klik untuk terus ke Dashboard.</div>
+    <div class="panel"><b>Nama &amp; jawatan</b>Dipaparkan mengikut unit, cth. "Ketua Guru Penasihat (Kelab Komputer)".</div>
+  </div>
+</section>
+
+<!-- 3 MENU -->
+<section>
+  <div class="sh"><span class="tag">BAHAGIAN 3</span><h2>Peta menu guru</h2></div>
+  <div class="menu">
+    <div class="mi"><span class="path">/guru</span><h3>Dashboard</h3><ul><li>Kad ringkasan pelajar diselia</li><li><b>Menunggu Tindakan</b>: semua item untuk disahkan</li><li>Analitik Pintar dan Cadangan AI</li><li>Muat turun dokumen laporan disahkan (PDF)</li></ul></div>
+    <div class="mi"><span class="path">/guru/ahli</span><h3>Senarai Ahli &amp; Jawatan</h3><ul><li>Satu tab bagi setiap unit</li><li><span class="ui">Tetapkan</span> jawatan pelajar; markah dikira semula serta-merta</li><li>Sahkan Butiran Pelajar</li><li>Muat turun Borang Rumusan Markah (Excel)</li></ul></div>
+    <div class="mi"><span class="path">/guru/kehadiran</span><h3>Kehadiran Perjumpaan</h3><ul><li>Lihat sahaja: senarai hadir / tidak hadir setiap perjumpaan</li><li>Kehadiran diambil oleh SU/NSU (senarai atau QR)</li><li>Pengesahan sesi dibuat di Dashboard</li></ul></div>
+    <div class="mi"><span class="path">/guru/kehadiran-saya</span><h3>Kehadiran Saya</h3><ul><li>Isi kehadiran anda sendiri: <span class="ui">Hadir</span> / <span class="ui">Tidak Hadir</span> → <span class="ui">Hantar</span></li><li>Sebab wajib jika tidak hadir</li><li>Hanya boleh diisi pada atau selepas tarikh perjumpaan</li><li>Dikunci selepas disahkan</li></ul></div>
+    <div class="mi"><span class="path">/guru/semak-kehadiran-guru</span><h3>Kehadiran Guru</h3><span class="who">Ketua Unit Koko · KUPP/Pemantau · Penyelaras sahaja</span><ul><li>Sahkan atau tolak kehadiran guru lain</li><li><span class="ui">Sahkan Dipilih</span> untuk banyak rekod sekali gus</li><li>Tidak boleh sahkan rekod sendiri</li></ul></div>
+    <div class="mi"><span class="path">/guru/analitik</span><h3>Lihat Analitik</h3><ul><li>KPI: jumlah pelajar, purata PAJSK, gred A, kehadiran</li><li>Carta taburan gred, kehadiran, laporan, pilihan unit</li><li>Tapis BU / KP / SP</li><li><span class="ui">Eksport Excel</span> dan <span class="ui">Eksport PDF</span></li></ul></div>
+    <div class="mi"><span class="path">/guru/pemilihan</span><h3>Pilih Pelajar untuk Pertandingan</h3><ul><li>Isi nama pertandingan, peringkat dan tarikh</li><li>Tandakan pelajar, klik <span class="ui">Pilih n Pelajar</span></li><li>Pelajar dimaklumkan untuk muat naik surat &amp; sijil</li><li>Markah dan e-Cert diberi selepas anda sahkan</li></ul></div>
+    <div class="mi"><span class="path">/guru/laporan</span><h3>Laporan SU/NSU</h3><ul><li>Laporan mingguan dan laporan projek</li><li>Tapis ikut status: Menunggu / Disahkan / Kuiri</li><li>Lihat eviden atau kertas kerja, kemudian Sahkan atau Kuiri</li></ul></div>
+    <div class="mi"><span class="path">/guru/projek</span><h3>Projek</h3><ul><li><span class="ui">Cipta projek</span> dan pilih unit terlibat</li><li>Tetapkan AJK teras: Pengerusi, Naib, SU, NSU</li><li>Hanya SU/NSU yang ditag boleh hantar Laporan Projek</li><li>Hanya pencipta projek boleh ubah atau padam</li></ul></div>
+  </div>
+</section>
+
+<!-- 4 FLOW -->
+<section>
+  <div class="sh"><span class="tag">BAHAGIAN 4</span><h2>Aliran semakan &amp; pengesahan</h2></div>
+  <div class="flow">
+    <div class="fbox"><span class="who">Pelajar / SU / NSU</span><h3>Hantar</h3><p class="small">Pencapaian, aktiviti luar, laporan, sesi kehadiran, permohonan tukar unit.</p></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="fbox me"><span class="who">Anda</span><h3>Semak eviden</h3><p class="small">Butang Sahkan hanya aktif selepas anda membuka eviden atau senarai kehadiran.</p></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="fbox me"><span class="who">Anda</span><h3>Buat keputusan</h3><div class="fork"><span class="btn ok">Sahkan</span><span class="btn q">Kuiri</span><span class="btn no">Tolak</span></div><p class="small" style="margin-top:6px">Kuiri memulangkan item kepada pelajar dengan komen anda.</p></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="fbox"><span class="who">Sistem</span><h3>Auto</h3><p class="small">Markah PAJSK dikira semula, pelajar menerima notifikasi, e-Cert dibuka (aktiviti luar).</p></div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Apa yang perlu dibuka sebelum Sahkan</h3>
+      <ul class="chk">
+        <li><span><b>Pencapaian</b>: klik "Lihat eviden". Tiada eviden? Gunakan Kuiri.</span></li>
+        <li><span><b>Aktiviti Luar</b>: buka <b>kedua-dua</b> Surat dan Sijil.</span></li>
+        <li><span><b>Sesi Kehadiran</b>: klik "Semak kehadiran (x/y hadir)".</span></li>
+        <li><span><b>Laporan</b>: baca laporan atau kertas kerja yang dilampirkan.</span></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Perkara yang mudah terlepas</h3>
+      <ul class="chk">
+        <li><span>Kotak Markah untuk pencapaian sudah diisi mengikut peringkat. Semak dan ubah jika perlu.</span></li>
+        <li><span>Hanya sesi kehadiran yang <b>disahkan</b> dikira dalam markah.</span></li>
+        <li><span>Lulus tukar unit akan set semula jawatan pelajar kepada "Ahli Aktif".</span></li>
+        <li><span>Aktiviti luar yang ada guru pengiring hanya boleh disahkan oleh guru pengiring itu.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5 ROLES -->
+<section>
+  <div class="sh"><span class="tag">BAHAGIAN 5</span><h2>Siapa nampak apa</h2></div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Jawatan</th><th>Skop pelajar</th><th>Sahkan Butiran Pelajar &amp; Aktiviti Unit</th><th>Menu Kehadiran Guru</th></tr></thead>
+      <tbody>
+        <tr><td>Guru Penasihat</td><td><span class="scope u">Unit seliaan</span></td><td class="n">Lihat sahaja</td><td class="n">Tidak</td></tr>
+        <tr><td>Penolong Ketua Guru Penasihat</td><td><span class="scope u">Unit seliaan</span></td><td class="y">Ya, untuk unitnya</td><td class="n">Tidak</td></tr>
+        <tr><td>Ketua Guru Penasihat</td><td><span class="scope u">Unit seliaan</span></td><td class="y">Ya, untuk unitnya</td><td class="n">Tidak</td></tr>
+        <tr><td>Penolong SU Kokurikulum</td><td><span class="scope s">Seluruh sekolah</span></td><td class="n">Lihat sahaja</td><td class="n">Tidak</td></tr>
+        <tr><td>KUPP / Pemantau</td><td><span class="scope s">Seluruh sekolah</span></td><td class="n">Lihat sahaja</td><td class="y">Ya</td></tr>
+        <tr><td>Penyelaras Kokurikulum</td><td><span class="scope s">Seluruh sekolah</span></td><td class="n">Lihat sahaja</td><td class="y">Ya</td></tr>
+        <tr><td>Ketua Unit Kokurikulum</td><td><span class="scope s">Seluruh sekolah</span></td><td class="n">Lihat sahaja</td><td class="y">Ya</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><b class="k">PENTING</b><p>Markah keseluruhan dan gred pelajar kekal "-" sehingga Ketua GP atau Penolong Ketua GP unit itu menekan <span class="ui">Sahkan</span> pada Butiran Pelajar di menu Senarai Ahli &amp; Jawatan.</p></div>
+</section>
+
+<!-- 6 MARKS -->
+<section>
+  <div class="sh"><span class="tag">BAHAGIAN 6</span><h2>Bagaimana markah PAJSK T6 dikira</h2></div>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Satu bidang = 100 markah</h3>
+      <p class="small muted" style="margin-bottom:10px">Dikira berasingan untuk Sukan (SP), Badan Beruniform (BU) dan Kelab (KP).</p>
+      <div class="comp">
+        <div class="cr"><span>Kehadiran</span><span class="track"><i style="width:100%"></i></span><span class="mono">50</span></div>
+        <div class="cr"><span>Jawatan</span><span class="track"><i style="width:20%"></i></span><span class="mono">10</span></div>
+        <div class="cr"><span>Penglibatan</span><span class="track"><i style="width:20%"></i></span><span class="mono">10</span></div>
+        <div class="cr"><span>Pencapaian</span><span class="track"><i style="width:20%"></i></span><span class="mono">10</span></div>
+        <div class="cr"><span>Projek: jawatan</span><span class="track"><i style="width:20%"></i></span><span class="mono">10</span></div>
+        <div class="cr"><span>Projek: peringkat</span><span class="track"><i style="width:20%"></i></span><span class="mono">10</span></div>
+      </div>
+      <p class="small muted" style="margin-top:10px">Kehadiran: setiap 2 aktiviti dihadiri = 1 perjumpaan, maksimum 15 perjumpaan = 50 markah.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:12px;align-content:start">
+      <h3>Markah keseluruhan T6</h3>
+      <div class="formula">(<em>bidang terbaik #1</em> + <em>bidang terbaik #2</em>) ÷ 2<br>+ ekstra kurikulum (maks 10)<br>= markah T6 (maks 100)</div>
+      <p class="small muted">Ekstra = nilai tertinggi antara jawatan Unit Perkhidmatan (UP) atau anugerah khas. Bidang yang tidak disertai dikira 0.</p>
+      <div>
+        <p class="small" style="margin-bottom:6px"><b>Contoh</b></p>
+        <div class="ex"><span class="best">SP 93</span><span class="best">KP 83</span><span class="drop">BU 80</span><span>→ (93 + 83) ÷ 2 = 88</span><span>+ UP 7</span><span class="best">= 95</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="grades" aria-label="Skala gred">
+    <div class="gA"><b>A</b><small>80 – 100</small></div>
+    <div><b>B</b><small>60 – 79</small></div>
+    <div><b>C</b><small>40 – 59</small></div>
+    <div><b>D</b><small>20 – 39</small></div>
+    <div><b>E</b><small>0 – 19</small></div>
+  </div>
+  <p class="small muted">Anda tidak perlu mengira markah. Setiap kali anda Sahkan, Tetapkan Jawatan atau Luluskan, sistem mengira semula dan memaklumkan pelajar.</p>
+</section>
+
+<!-- 7 AI -->
+<section>
+  <div class="sh"><span class="tag">BAHAGIAN 7</span><h2>Pembantu AI</h2></div>
+  <div class="grid3">
+    <div class="panel ai">
+      <span class="badge">SIDEBAR</span>
+      <h3>Chatbot EzKokoT6 AI</h3>
+      <p class="small">Tanya dalam bahasa biasa. Jawapan hanya meliputi pelajar dalam skop anda.</p>
+      <div class="chat">
+        <p class="me">Berapa item menunggu semakan?</p>
+        <p>Ada 7 item: 3 pencapaian, 2 laporan mingguan, 2 sesi kehadiran.</p>
+        <p class="me">Terangkan formula PAJSK</p>
+      </div>
+      <p class="small muted" style="margin-top:4px">Contoh di atas ialah ilustrasi.</p>
+    </div>
+    <div class="panel ai">
+      <span class="badge">DASHBOARD</span>
+      <h3>Cadangan AI</h3>
+      <p class="small">Chatbot boleh mencadangkan kelulusan tukar unit, pengesahan pencapaian, kira semula markah atau jana e-Cert.</p>
+      <div class="fork"><span class="btn ok">Luluskan</span><span class="btn no">Tolak</span></div>
+      <div class="note" style="margin-top:6px"><b class="k">JAMINAN</b><p>Tiada markah, kelulusan atau e-Cert berubah sehingga anda luluskan.</p></div>
+    </div>
+    <div class="panel ai">
+      <span class="badge">DASHBOARD</span>
+      <h3>Analitik Pintar</h3>
+      <p class="small">KPI unit anda serta <b>Ringkasan AI</b>: 2–3 ayat tafsiran data dan satu cadangan tindakan.</p>
+      <p class="small muted">Jika AI tidak tersedia, panel ini tetap memaparkan KPI biasa.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 QUICK -->
+<section>
+  <div class="sh"><span class="tag">BAHAGIAN 8</span><h2>Rutin mingguan yang disyorkan</h2></div>
+  <div class="grid3">
+    <div class="panel"><h3>Setiap kali log masuk</h3><p class="small">Semak nombor <span class="ui">Tindakan</span> di bar atas dan kosongkan senarai Menunggu Tindakan di Dashboard.</p></div>
+    <div class="panel"><h3>Selepas setiap perjumpaan</h3><p class="small">Sahkan sesi kehadiran pelajar, kemudian isi <span class="ui">Kehadiran Saya</span> untuk diri sendiri.</p></div>
+    <div class="panel"><h3>Hujung bulan</h3><p class="small">Buka <span class="ui">Lihat Analitik</span>, semak pelajar yang belum ada markah, dan muat turun Borang Rumusan Markah.</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">Manual Guru EzKokoT6 · Edisi November 2026 · Untuk masalah akaun atau kata laluan, hubungi Pentadbir sekolah.</div>
+</footer>
