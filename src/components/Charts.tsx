@@ -1,6 +1,6 @@
 // Carta SVG/CSS ringan — tiada dependency luaran.
 
-const PALETTE = ["#2563eb", "#1e3a5f", "#059669", "#d97706", "#dc2626", "#0891b2", "#7c3aed"];
+const PALETTE = ["#d4141c", "#f36c12", "#059669", "#e0a00c", "#7c1d12", "#0891b2", "#7c3aed"];
 
 export function BarChart({ data, emptyLabel }: { data: { nama: string; nilai: number; sufiks?: string }[]; emptyLabel?: string }) {
   const max = Math.max(1, ...data.map((d) => d.nilai));
@@ -91,11 +91,11 @@ export function LineChart({ data, sufiks = "%", emptyLabel, valueInLabel = "Nila
             <text x={4} y={y(g) + 3} className="fill-slate-400" style={{ fontSize: 9 }}>{g}</text>
           </g>
         ))}
-        <polygon points={area} fill="#2563eb" fillOpacity={0.08} />
-        <polyline points={pts} fill="none" stroke="#2563eb" strokeWidth={2} strokeLinejoin="round" />
+        <polygon points={area} fill="#d4141c" fillOpacity={0.08} />
+        <polyline points={pts} fill="none" stroke="#d4141c" strokeWidth={2} strokeLinejoin="round" />
         {data.map((d, i) => (
           <g key={d.label}>
-            <circle cx={x(i)} cy={y(d.nilai)} r={3} fill="#2563eb" />
+            <circle cx={x(i)} cy={y(d.nilai)} r={3} fill="#d4141c" />
             <text x={x(i)} y={H - 4} textAnchor="middle" className="fill-slate-500" style={{ fontSize: 9 }}>{d.label}</text>
           </g>
         ))}

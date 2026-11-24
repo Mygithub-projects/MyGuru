@@ -6,7 +6,7 @@ import { KehadiranTable } from "./KehadiranTable";
 const MYT_MS = 8 * 3_600_000;
 // Empat bahagian PAJSK, setiap satu dengan warna tetap untuk carta harian.
 const BAHAGIAN = [
-  { jenis: "Kelab", warna: "#2563eb" },
+  { jenis: "Kelab", warna: "#d4141c" },
   { jenis: "Uniform", warna: "#059669" },
   { jenis: "Sukan", warna: "#d97706" },
   { jenis: "Perkhidmatan", warna: "#7c3aed" },

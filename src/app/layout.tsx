@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Barlow_Condensed, Inter } from "next/font/google";
 import Script from "next/script";
 import { getLocale } from "@/lib/locale";
 import { LocaleProvider } from "@/components/LocaleProvider";
@@ -9,6 +9,15 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// Barlow Condensed — huruf tajuk bergaya jersi sukan, padan dengan logo EzKoko.
+const barlow = Barlow_Condensed({
+  variable: "--font-barlow",
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -25,7 +34,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   return (
-    <html lang={locale} className={`${inter.variable} h-full antialiased`}>
+    <html lang={locale} className={`${inter.variable} ${barlow.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <LocaleProvider locale={locale}>{children}</LocaleProvider>
         {/* Terapkan tema tersimpan sebelum paint (elak kilat). strategy

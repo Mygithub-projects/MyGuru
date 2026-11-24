@@ -35,7 +35,7 @@ export async function AppShell({
         <Sidebar items={items} brandTitle="EzKokoT6" brandSubtitle="Active Hands, Brilliant Minds" institusi={institusi} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar nama={nama} role={role} subRole={subRole} jawatan={jawatan} subRoleLabel={subRoleLabel} />
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">{children}</main>
+          <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
           {footer}
         </div>
       </div>

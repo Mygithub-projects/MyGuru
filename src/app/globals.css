@@ -4,22 +4,32 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* === Governance Platform · navy + gold === */
-  --background: #f5f7fa;     /* kelabu muda */
-  --foreground: #1e293b;     /* slate-800 */
+  /* === Jenama EzKoko · hitam hangat + merah api (ikut logo KTEDM) === */
+  --background: #f7f3ee;     /* kertas hangat */
+  --foreground: #1f1714;     /* hitam hangat */
 
-  /* Gold/amber untuk tindakan/butang utama (teks PUTIH). */
-  --brand: #d97706;          /* amber-600 (CTA/butang) */
-  --brand-hover: #b45309;    /* hover butang (amber-700) */
-  --brand-dark: #1e3a5f;     /* navy — pautan, tajuk, struktur */
-  --brand-light: #fef3e2;    /* isian gold pucat (cip/banner) */
-  --gold-bright: #f5a524;    /* gold terang — teks aksen atas navy */
+  /* Merah logo untuk tindakan/butang utama (teks PUTIH). */
+  --brand: #d4141c;          /* merah EzKoko (CTA/butang) */
+  --brand-hover: #a90f15;    /* hover butang */
+  --brand-dark: #7c1d12;     /* merah bata gelap — pautan, tajuk, struktur */
+  --brand-light: #fdece6;    /* isian merah-krim pucat (cip/banner) */
+  --gold-bright: #fdb515;    /* kuning api — teks aksen atas latar gelap */
 
-  /* Navy gelap untuk sidebar, header, footer, skrin log masuk */
-  --ink: #0f1c33;
-  --ink-2: #182b4a;
+  /* Hitam hangat untuk sidebar, header, footer */
+  --ink: #150d0b;
+  --ink-2: #24160f;
 
-  --accent: #d97706;
+  --accent: #f36c12;         /* oren api */
+
+  /* === Jenama EzKoko (logo KTEDM) — halaman utama & log masuk === */
+  --ez-red: #e0161e;
+  --ez-red-hover: #b80f16;
+  --ez-flame: #f36c12;
+  --ez-amber: #fdb515;
+  --ez-ink: #150d0b;      /* hitam hangat garis logo */
+  --ez-ink-2: #22150f;
+  --ez-cream: #fff7ea;    /* krim huruf logo */
+  --ez-paper: #fbf5ec;    /* latar terang halaman utama */
 }
 
 @theme inline {
@@ -33,6 +43,15 @@
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-accent: var(--accent);
+  --color-ez-red: var(--ez-red);
+  --color-ez-red-hover: var(--ez-red-hover);
+  --color-ez-flame: var(--ez-flame);
+  --color-ez-amber: var(--ez-amber);
+  --color-ez-ink: var(--ez-ink);
+  --color-ez-ink-2: var(--ez-ink-2);
+  --color-ez-cream: var(--ez-cream);
+  --color-ez-paper: var(--ez-paper);
+  --font-display: var(--font-barlow), "Arial Narrow", "Roboto Condensed", ui-sans-serif, sans-serif;
   /* Font antara muka: Inter (sans-serif), dimuatkan via next/font di layout.tsx */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -63,13 +82,13 @@ body {
    `dark:` sendiri. Peraturan tidak-berlapis ini mengatasi utiliti Tailwind.
    ========================================================================== */
 :root {
-  --d-bg: #0f1a2b;        /* latar halaman gelap */
-  --d-surface: #1b2a44;   /* kad */
-  --d-surface-2: #243450; /* isian/hover/input */
+  --d-bg: #120b09;        /* latar halaman gelap (hangat) */
+  --d-surface: #1f1612;   /* kad */
+  --d-surface-2: #2b1f19; /* isian/hover/input */
   --d-border: rgba(255, 255, 255, 0.10);
-  --d-text: #e2e8f0;
-  --d-text-strong: #f8fafc;
-  --d-muted: #94a3b8;
+  --d-text: #ede4da;
+  --d-text-strong: #fff7ea;
+  --d-muted: #a8988c;
 }
 
 .dark body { background: var(--d-bg); }
@@ -95,7 +114,7 @@ body {
 
 /* Aksen biru: brand-light terlalu cerah pada gelap; teks navy → biru muda */
 .dark .app-shell .bg-brand-light { background-color: rgba(37, 99, 235, 0.18); }
-.dark .app-shell .text-brand-dark { color: #93c5fd; }
+.dark .app-shell .text-brand-dark { color: #fb9a6a; }
 
 /* Input borang */
 .dark .app-shell input,
@@ -121,3 +140,35 @@ body {
 .dark .app-shell .fill-slate-700 { fill: var(--d-text-strong); }
 .dark .app-shell .fill-slate-500,
 .dark .app-shell .fill-slate-400 { fill: var(--d-muted); }
+
+/* ==========================================================================
+   EzKoko — latar & hiasan halaman utama / log masuk
+   Jalur serong merah-oren-kuning meniru blok perisai pada logo.
+   ========================================================================== */
+.ez-bg {
+  background-color: var(--ez-ink);
+  background-image:
+    radial-gradient(60rem 30rem at 85% -10%, rgba(243, 108, 18, 0.28), transparent 60%),
+    radial-gradient(40rem 26rem at -10% 110%, rgba(224, 22, 30, 0.30), transparent 60%);
+}
+.ez-slash {
+  position: absolute;
+  pointer-events: none;
+  transform: skewX(-18deg);
+}
+.ez-slash > i { display: block; height: 100%; }
+.ez-flame-text {
+  background: linear-gradient(100deg, var(--ez-amber) 0%, var(--ez-flame) 45%, var(--ez-red) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ez-cut {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3.5rem), 0 100%);
+}
+@keyframes ez-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(-1deg); }
+}
+.ez-float { animation: ez-float 6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .ez-float { animation: none; } }
