@@ -209,7 +209,7 @@ export interface Dict {
     pelajarDetail: {
       backToList: string; downloadPdf: string; viewPdf: string; attendanceLabel: string;
       participationTitle: string; notRegistered: string; totalLabel: string;
-      breakdownTitle: string; assessmentComponent: string; marksCol: string;
+      breakdownTitle: string; breakdownNote: string; assessmentComponent: string; marksCol: string;
       achievementsTitle: string;
     };
     back: string; backToGuru: string; backToPelajarList: string; backToDashboard: string;
@@ -609,7 +609,7 @@ const ms: Dict = {
     pelajarDetail: {
       backToList: "← Senarai Pelajar", downloadPdf: "⬇ Muat turun PDF", viewPdf: "👁 Papar PDF", attendanceLabel: "Kehadiran",
       participationTitle: "Penyertaan & Markah (T6)", notRegistered: "Belum berdaftar dalam mana-mana unit.", totalLabel: "Jumlah",
-      breakdownTitle: "Pecahan Markah PAJSK (T6)", assessmentComponent: "Komponen Pentaksiran", marksCol: "Markah",
+      breakdownTitle: "Pecahan Markah PAJSK (T6)", breakdownNote: "Purata setiap komponen bagi 2 bidang terbaik yang dikira, ditambah markah ekstra.", assessmentComponent: "Komponen Pentaksiran", marksCol: "Markah",
       achievementsTitle: "Pencapaian & Aktiviti",
     },
     back: "← Kembali", backToGuru: "← Kembali ke Urus Guru", backToPelajarList: "← Kembali ke Senarai Pelajar", backToDashboard: "← Kembali ke Dashboard",
@@ -1145,7 +1145,7 @@ const en: Dict = {
     pelajarDetail: {
       backToList: "← Student List", downloadPdf: "⬇ Download PDF", viewPdf: "👁 View PDF", attendanceLabel: "Attendance",
       participationTitle: "Participation & Marks (F6)", notRegistered: "Not registered in any unit yet.", totalLabel: "Total",
-      breakdownTitle: "PAJSK Score Breakdown (F6)", assessmentComponent: "Assessment Component", marksCol: "Marks",
+      breakdownTitle: "PAJSK Score Breakdown (F6)", breakdownNote: "Average of each component over the best 2 counted divisions, plus extra marks.", assessmentComponent: "Assessment Component", marksCol: "Marks",
       achievementsTitle: "Achievements & Activities",
     },
     back: "← Back", backToGuru: "← Back to Manage Teachers", backToPelajarList: "← Back to Student List", backToDashboard: "← Back to Dashboard",

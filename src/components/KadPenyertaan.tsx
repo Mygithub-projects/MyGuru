@@ -7,9 +7,10 @@ import type { Dict } from "@/lib/i18n";
 function Baris({ label, sub, nilai, maks }: { label: string; sub?: string; nilai: number; maks: number }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
+      {/* Sub-label pada baris sendiri (truncate) supaya tidak bertindih dengan nilai dalam kad sempit. */}
       <dt className="min-w-0 text-slate-500">
         {label}
-        {sub && <span className="ml-1 truncate text-[11px] text-slate-400">({sub})</span>}
+        {sub && <span className="block truncate text-[11px] leading-tight text-slate-400" title={sub}>({sub})</span>}
       </dt>
       <dd className="shrink-0 font-semibold text-slate-700">
         {nilai}
@@ -45,8 +46,8 @@ export function KadPenyertaan({
             key={p.jenisKoko}
             className={`rounded-lg border p-3 ${p.dikira ? "border-brand/50 ring-1 ring-brand/20" : "border-slate-200"}`}
           >
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-xs font-semibold uppercase text-brand-dark">{label[p.jenisKoko] ?? p.label}</p>
+            <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+              <p className="min-w-0 break-words text-xs font-semibold uppercase text-brand-dark">{label[p.jenisKoko] ?? p.label}</p>
               {p.dikira && (
                 <span className="shrink-0 rounded bg-brand-light px-1.5 py-0.5 text-[10px] font-semibold text-brand-dark">{t.best2}</span>
               )}
