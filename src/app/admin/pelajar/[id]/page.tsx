@@ -4,7 +4,7 @@ import { getPelajarProfil } from "@/lib/pelajar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getT } from "@/lib/locale";
 import { KadPenyertaan } from "@/components/KadPenyertaan";
-import { markahT6Skala50 } from "@/lib/pajsk";
+import { bundarTo, markahT6Skala50 } from "@/lib/pajsk";
 
 const JENIS_LABEL_KEY = { Kelab: "kelab", Sukan: "sukan", Uniform: "uniform", Perkhidmatan: "perkhidmatan" } as const;
 
@@ -65,7 +65,8 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
 
       {/* Pecahan Markah PAJSK (T6) */}
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-600">{d.breakdownTitle}</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{d.breakdownTitle}</h2>
+        <p className="mb-3 mt-1 text-xs text-slate-400">{d.breakdownNote}</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -81,6 +82,12 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
                   <td className="py-2 font-semibold text-brand-dark">{m.nilai} / {m.maks}</td>
                 </tr>
               ))}
+              <tr className="border-t-2 border-slate-200">
+                <td className="py-2 pr-3 font-bold text-slate-800">{d.totalLabel}</td>
+                <td className="py-2 font-bold text-brand-dark">
+                  {bundarTo(Math.min(100, markah.reduce((m, x) => m + x.nilai, 0)), 2)} / 100
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

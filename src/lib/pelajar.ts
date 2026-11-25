@@ -2,7 +2,7 @@
 import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import { prisma } from "./prisma";
 import { ringkasanKehadiranPelajar } from "./kehadiran";
-import { markahEkstra, nilaiEkstra } from "./pajsk";
+import { bundarTo, markahEkstra, nilaiEkstra } from "./pajsk";
 import { itemEkstra, skorUnit, type RekodPelajar, type SkorUnit } from "./skor-unit";
 import { INCLUDE_AKTIVITI_UNIT_LULUS, penglibatanAktivitiUnit, pencapaianAktivitiUnit } from "./aktiviti-unit-markah";
 import { jumlahAktiviti, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
@@ -76,22 +76,6 @@ export async function getPelajarProfil(pelajarId: string) {
     Perkhidmatan: "Unit Perkhidmatan",
   };
 
-  // Jawatan tertinggi merentas unit (T6)
-  const maxJawT6 = Math.max(0, ...pelajar.kokurikulum.filter((k) => k.jenisKoko !== "Perkhidmatan").map((k) => k.markahJawatanT6 ?? 0));
-
-  // Pecahan komponen model baharu (§1.1): Kehadiran(50) + Jawatan(10) +
-  // Penglibatan(10) + Pencapaian(10) + Projek Jawatan(10) + Projek Peringkat(10)
-  // = 100 ; Ekstra Kurikulum(10) bonus berasingan.
-  const markah: BarisMarkah[] = [
-    { kunci: "kehadiran", kategori: "Kehadiran", nilai: pelajar.markahKehadiran, maks: 50 },
-    { kunci: "jawatan", kategori: "Jawatan", nilai: maxJawT6, maks: 10 },
-    { kunci: "penglibatan", kategori: "Penglibatan", nilai: pelajar.markahPenglibatan, maks: 10 },
-    { kunci: "pencapaian", kategori: "Pencapaian", nilai: pelajar.markahPencapaian, maks: 10 },
-    { kunci: "projekJawatan", kategori: "Projek — Jawatan", nilai: pelajar.markahProjekJawatan, maks: 10 },
-    { kunci: "projekPeringkat", kategori: "Projek — Peringkat", nilai: pelajar.markahProjekPeringkat, maks: 10 },
-    { kunci: "ekstra", kategori: "Ekstra Kurikulum (bonus)", nilai: pelajar.markahEkstra, maks: 10 },
-  ];
-
   // Skor bagi SETIAP bidang (/100) — sumber sama dengan slip PAJSK & Borang Rumusan.
   const rekod: RekodPelajar = {
     kehadiran: pelajar.kehadiran,
@@ -126,6 +110,21 @@ export async function getPelajarProfil(pelajarId: string) {
     dikira: duaTerbaik.has(p.jenisKoko),
     ekstra: p.jenisKoko === "Perkhidmatan" ? ekstra : null,
   }));
+
+  // Pecahan komponen (§1.1) = PURATA setiap komponen bagi 2 bidang terbaik yang
+  // dikira (bidang kurang daripada 2 → 0, sama seperti markahKeseluruhan), supaya
+  // jumlah pecahan = markah keseluruhan. Ekstra Kurikulum (10) bonus berasingan.
+  const dikira = penyertaan.filter((p) => p.dikira).map((p) => p.skor);
+  const purata = (f: (s: SkorUnit) => number) => bundarTo(dikira.reduce((m, s) => m + f(s), 0) / 2, 2);
+  const markah: BarisMarkah[] = [
+    { kunci: "kehadiran", kategori: "Kehadiran", nilai: purata((s) => s.mKehadiran), maks: 50 },
+    { kunci: "jawatan", kategori: "Jawatan", nilai: purata((s) => s.mJawatan), maks: 10 },
+    { kunci: "penglibatan", kategori: "Penglibatan", nilai: purata((s) => s.mPenglibatan), maks: 10 },
+    { kunci: "pencapaian", kategori: "Pencapaian", nilai: purata((s) => s.pcpMarkah), maks: 10 },
+    { kunci: "projekJawatan", kategori: "Projek — Jawatan", nilai: purata((s) => s.pjMJ), maks: 10 },
+    { kunci: "projekPeringkat", kategori: "Projek — Peringkat", nilai: purata((s) => s.pjMP), maks: 10 },
+    { kunci: "ekstra", kategori: "Ekstra Kurikulum (bonus)", nilai: ekstra, maks: 10 },
+  ];
 
   // Ringkasan kehadiran keseluruhan (atas 30 perjumpaan/tahun — spec pelajar §2)
   const kehadiran = await ringkasanKehadiranPelajar(pelajarId);
