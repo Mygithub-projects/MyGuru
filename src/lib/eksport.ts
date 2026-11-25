@@ -7,8 +7,8 @@ import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { dbKohort } from "./prisma-kohort";
-import { markahKehadiran, markahProjekJawatan, markahProjekPeringkat } from "./pajsk";
-import { jumlahAktiviti, jumlahKeseluruhan } from "./tetapan-kehadiran";
+import { markahProjekJawatan, markahProjekPeringkat } from "./pajsk";
+import { jumlahAktiviti, jumlahKeseluruhan, markahKehadiranTertinggi } from "./tetapan-kehadiran";
 import { kohortDipilih } from "./kohort-pilihan";
 import {
   analitikKehadiran,
@@ -332,7 +332,8 @@ function isiTabKelas(ws: ExcelJS.Worksheet, kelas: string, baris: BarisPelajar[]
  */
 export async function eksportRawDataExcel(): Promise<Buffer> {
   const db = await dbKohort(); // data kohort dipilih sahaja
-  const jumlahSemua = jumlahKeseluruhan(await jumlahAktiviti(await kohortDipilih())); // tetapan Admin (kohort dipilih)
+  const jumlahBahagian = await jumlahAktiviti(await kohortDipilih()); // tetapan Admin (kohort dipilih)
+  const jumlahSemua = jumlahKeseluruhan(jumlahBahagian);
   const pelajar = await db.pelajar.findMany({
     orderBy: [{ kelasT6: "asc" }, { nama: "asc" }],
     include: {
@@ -408,7 +409,7 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
       anugerah: p.pencapaian.filter((c) => c.kategori === "ekstra").map((c) => c.namaPencapaian).join("; "),
       mEkstra: p.markahEkstra,
       hadir,
-      mKehadiran: markahKehadiran(hadir, jumlahSemua),
+      mKehadiran: markahKehadiranTertinggi(p.kehadiran, jumlahBahagian),
       mJawatan: Math.max(0, ...p.kokurikulum.map((k) => k.markahJawatanT6 ?? 0)),
       mPenglibatan: p.markahPenglibatan,
       mPencapaian: p.markahPencapaian,

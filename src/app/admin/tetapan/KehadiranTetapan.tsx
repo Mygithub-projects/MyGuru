@@ -57,8 +57,8 @@ export function KehadiranTetapan({
         <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{L("Jumlah Aktiviti Kehadiran (Penuh)", "Full Attendance Activity Totals")}{kohort ? ` · ${kohort}` : ""}</h2>
         <p className="mt-1 text-xs text-slate-500">
           {L(
-            "Bilangan aktiviti kokurikulum (80 minit) penuh bagi setiap bahagian. Kehadiran dikira GABUNGAN semua bahagian: hadir KP + SP + BU ÷ 2 = perjumpaan PAJSK, maksimum 15 (KPM); markah = perjumpaan ÷ 15 × 50, dipakai dalam skor setiap bidang.",
-            "Full number of co-curricular activities (80 min) per division. Attendance is COMBINED across divisions: attended KP + SP + BU ÷ 2 = PAJSK meetings, max 15 (KPM); mark = meetings ÷ 15 × 50, used in every division score.",
+            "Bilangan aktiviti kokurikulum (80 minit) penuh bagi setiap bahagian. Kehadiran dikira IKUT UNIT (seperti Borang Rumusan Markah): hadir unit ÷ 2 = perjumpaan PAJSK, maksimum 15 (KPM); markah = perjumpaan ÷ 15 × 50 bagi bidang itu.",
+            "Full number of co-curricular activities (80 min) per division. Attendance is counted PER UNIT (as in the Borang Rumusan Markah): unit attendance ÷ 2 = PAJSK meetings, max 15 (KPM); mark = meetings ÷ 15 × 50 for that division.",
           )}
         </p>
       </div>
