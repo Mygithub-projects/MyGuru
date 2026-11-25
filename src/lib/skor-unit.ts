@@ -61,7 +61,7 @@ export interface SkorUnit {
   /** Aktiviti dihadiri dalam bahagian ini / jumlah penuh bahagian (paparan). */
   hadir: number;
   jumlahAktiviti: number;
-  /** Kehadiran GABUNGAN KP + SP + BU — asas markah kehadiran (had 15 perjumpaan). */
+  /** Kehadiran GABUNGAN KP + SP + BU — paparan sahaja (markah dikira ikut unit). */
   hadirGabung: number;
   jumlahGabung: number;
   perjumpaan: number;
@@ -104,7 +104,8 @@ export function skorUnit(
   const padan = (u: string | null) => !!unit && u === unit;
 
   const hadir = p.kehadiran.filter((h) => h.jenisKoko === jenis).length;
-  // Markah kehadiran = gabungan semua bahagian (KPM: maks 15 perjumpaan).
+  // Markah kehadiran IKUT UNIT (seperti Borang Rumusan Markah): hadir unit ini
+  // ÷ 2 = perjumpaan, maks 15 → /15 × 50. Gabungan hanya untuk paparan.
   const hadirGabung = p.kehadiran.filter((h) => BIDANG_KEHADIRAN.includes(h.jenisKoko)).length;
   // Pencapaian unit: tertinggi antara pencapaian & aktiviti luar yang diluluskan.
   const pcp = terbaik(
@@ -134,8 +135,8 @@ export function skorUnit(
     jumlahAktiviti: jk.bidang,
     hadirGabung,
     jumlahGabung: jk.gabung,
-    perjumpaan: perjumpaanPajsk(hadirGabung, jk.gabung),
-    mKehadiran: markahKehadiran(hadirGabung, jk.gabung),
+    perjumpaan: perjumpaanPajsk(hadir, jk.bidang),
+    mKehadiran: markahKehadiran(hadir, jk.bidang),
     // Ahli bidang tanpa jawatan dipaparkan sebagai "Ahli Biasa" (Jadual B: 2).
     jawatan: k.jawatanT6 || (jenis !== "Perkhidmatan" && k.namaUnitT6 ? "Ahli Biasa" : ""),
     mJawatan: markahJawatanUnit(k.jawatanT6, jenis, !!k.namaUnitT6),

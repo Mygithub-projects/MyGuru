@@ -5,9 +5,9 @@
 // ===========================================================================
 import { randomBytes } from "node:crypto";
 import { prisma } from "./prisma";
-import { markahKehadiran, peratusKehadiran, MARKAH_KEHADIRAN_PENUH, JUMLAH_PERJUMPAAN_WAJIB } from "./pajsk";
+import { peratusKehadiran, MARKAH_KEHADIRAN_PENUH, JUMLAH_PERJUMPAAN_WAJIB } from "./pajsk";
 import { kiraSemulaT6 } from "./workflow";
-import { jumlahAktiviti, jumlahKeseluruhan } from "./tetapan-kehadiran";
+import { jumlahAktiviti, jumlahKeseluruhan, markahKehadiranTertinggi } from "./tetapan-kehadiran";
 import type { JenisKoko } from "./enums";
 import { kohortPelajar } from "./kohort-pilihan";
 
@@ -167,9 +167,12 @@ export async function sahkanSesi(sesiId: string, guruId: string | null) {
 export async function kiraSemulaKehadiran(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
   if (recs.length === 0) return;
-  const hadir = recs.filter((r) => r.statusHadir && r.disahkan).length;
-  const denom = jumlahKeseluruhan(await jumlahAktiviti(await kohortPelajar(pelajarId))); // cth 16 + 17 + 14 = 47
-  const markah = markahKehadiran(hadir, denom);
+  const hadirRecs = recs.filter((r) => r.statusHadir && r.disahkan);
+  const hadir = hadirRecs.length;
+  const j = await jumlahAktiviti(await kohortPelajar(pelajarId));
+  const denom = jumlahKeseluruhan(j);
+  // Markah ringkasan = tertinggi antara kehadiran setiap unit (dikira ikut unit).
+  const markah = markahKehadiranTertinggi(hadirRecs, j);
   await prisma.pelajar.update({ where: { id: pelajarId }, data: { markahKehadiran: markah } });
   await kiraSemulaT6(pelajarId);
   return { hadir, denom, markah };
@@ -199,10 +202,12 @@ export async function kiraSemulaSemuaPelajar(kohort?: string | null) {
 export async function ringkasanKehadiranPelajar(pelajarId: string) {
   const recs = await prisma.kehadiran.findMany({ where: { pelajarId } });
   // Hadir & markah hanya daripada sesi yang telah disahkan.
-  const hadir = recs.filter((r) => r.statusHadir && r.disahkan).length;
-  const jumlahSetahun = jumlahKeseluruhan(await jumlahAktiviti(await kohortPelajar(pelajarId)));
+  const hadirRecs = recs.filter((r) => r.statusHadir && r.disahkan);
+  const hadir = hadirRecs.length;
+  const j = await jumlahAktiviti(await kohortPelajar(pelajarId));
+  const jumlahSetahun = jumlahKeseluruhan(j);
   const direkod = Math.min(recs.length, jumlahSetahun);
-  const markah = markahKehadiran(hadir, jumlahSetahun);
+  const markah = markahKehadiranTertinggi(hadirRecs, j);
   const peratus = peratusKehadiran(hadir, jumlahSetahun);
   return { hadir, direkod, jumlahSetahun, markah, peratus, markahPenuh: MARKAH_KEHADIRAN_PENUH };
 }

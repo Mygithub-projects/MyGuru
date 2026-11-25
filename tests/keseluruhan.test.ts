@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Kokurikulum, Pencapaian } from "@prisma/client";
 import { kiraSkor, markahKehadiran, markahKeseluruhan, markahEkstra, perjumpaanPajsk } from "../src/lib/pajsk";
 import { itemEkstra, skorUnit, type RekodPelajar } from "../src/lib/skor-unit";
+import { markahKehadiranTertinggi } from "../src/lib/tetapan-kehadiran";
 
 const koko = (k: Partial<Kokurikulum>) =>
   ({ id: "k", pelajarId: "p", jenisKoko: "Kelab", namaUnitT6: null, jawatanT6: null, peringkatT6: null, ...k }) as Kokurikulum;
@@ -80,7 +81,7 @@ describe("contoh pengiraan panduan KPM — jumlah komponen sebenar", () => {
   });
 });
 
-describe("kehadiran GABUNGAN KP + SP + BU, maks 15 perjumpaan (KPM)", () => {
+describe("kehadiran ikut unit, maks 15 perjumpaan (KPM)", () => {
   it("contoh: tetapan 16 + 17 + 14 = 47, hadir 44 → 22 → had 15 → 50", () => {
     expect(perjumpaanPajsk(44, 47)).toBe(15);
     expect(markahKehadiran(44, 47)).toBe(50);
@@ -95,7 +96,7 @@ describe("kehadiran GABUNGAN KP + SP + BU, maks 15 perjumpaan (KPM)", () => {
     expect(markahKehadiran(29)).toBe(46.67);
     expect(markahKehadiran(30)).toBe(50);
   });
-  it("skorUnit: markah kehadiran sama dalam setiap bidang (gabungan)", () => {
+  it("skorUnit: markah kehadiran IKUT UNIT (seperti BRM)", () => {
     const rekod = {
       ...kosong,
       kehadiran: [
@@ -104,13 +105,19 @@ describe("kehadiran GABUNGAN KP + SP + BU, maks 15 perjumpaan (KPM)", () => {
         ...[...Array(13)].map(() => ({ jenisKoko: "Uniform" })),
       ],
     };
-    const kp = skorUnit(rekod, koko({ namaUnitT6: "Kelab Muzik" }), { bidang: 16, gabung: 47 });
-    const bu = skorUnit(rekod, koko({ jenisKoko: "Uniform", namaUnitT6: "PISPA" }), { bidang: 14, gabung: 47 });
+    const kp = skorUnit(rekod, koko({ namaUnitT6: "Kelab Muzik" }), { bidang: 35, gabung: 117 });
+    const bu = skorUnit(rekod, koko({ jenisKoko: "Uniform", namaUnitT6: "PISPA" }), { bidang: 36, gabung: 117 });
     expect(kp.hadir).toBe(16);
     expect(bu.hadir).toBe(13);
-    expect(kp.hadirGabung).toBe(44);
-    expect(kp.perjumpaan).toBe(15);
-    expect(kp.mKehadiran).toBe(50);
-    expect(bu.mKehadiran).toBe(50);
+    expect(kp.hadirGabung).toBe(44); // paparan sahaja
+    expect(kp.perjumpaan).toBe(8); // 16 ÷ 2
+    expect(kp.mKehadiran).toBe(26.67);
+    expect(bu.perjumpaan).toBe(6); // floor(13 ÷ 2)
+    expect(bu.mKehadiran).toBe(20);
+  });
+  it("markahKehadiranTertinggi: tertinggi antara unit", () => {
+    const h = [...Array(16)].map(() => ({ jenisKoko: "Kelab" })).concat([...Array(30)].map(() => ({ jenisKoko: "Sukan" })));
+    expect(markahKehadiranTertinggi(h, { Kelab: 35, Sukan: 46, Uniform: 36 })).toBe(50);
+    expect(markahKehadiranTertinggi(h.slice(0, 16), { Kelab: 35, Sukan: 46, Uniform: 36 })).toBe(26.67);
   });
 });

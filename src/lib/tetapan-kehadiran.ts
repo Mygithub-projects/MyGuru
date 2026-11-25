@@ -1,13 +1,13 @@
 // ===========================================================================
 //  Tetapan jumlah aktiviti kokurikulum (penuh) bagi setiap bahagian — Admin.
-//  Cth: Kelab 16, Sukan 17, Badan Beruniform 14 → jumlah 47. Kehadiran dikira
-//  GABUNGAN: hadir KP + SP + BU (≤ 47) / 2 = perjumpaan, had 15 (KPM);
-//  markah = perjumpaan / 15 × 50 — dipakai dalam skor setiap bidang.
+//  Cth: Kelab 16, Sukan 17, Badan Beruniform 14. Kehadiran dikira IKUT UNIT
+//  (seperti Borang Rumusan Markah, keputusan 2026-11-25): hadir unit (≤ jumlah
+//  bahagian) / 2 = perjumpaan, had 15 (KPM); markah = perjumpaan / 15 × 50.
 //  Disimpan dalam TetapanMarkah: kategori "Kehadiran:<kohort>" bagi setiap
 //  kohort, dengan jatuhan ke kategori umum "Kehadiran" (tetapan asal).
 // ===========================================================================
 import { prisma } from "./prisma";
-import { JUMLAH_PERJUMPAAN_WAJIB } from "./pajsk";
+import { JUMLAH_PERJUMPAAN_WAJIB, markahKehadiran } from "./pajsk";
 
 export const BAHAGIAN_KEHADIRAN = ["Kelab", "Sukan", "Uniform"] as const;
 export type BahagianKehadiran = (typeof BAHAGIAN_KEHADIRAN)[number];
@@ -63,7 +63,18 @@ export async function simpanJumlahAktiviti(j: JumlahAktiviti, kohort?: string | 
 /** Jumlah semua bahagian (cth 16 + 17 + 14 = 47). */
 export const jumlahKeseluruhan = (j: JumlahAktiviti) => j.Kelab + j.Sukan + j.Uniform;
 
-/** Jumlah untuk skorUnit: bahagian ini (paparan) + gabungan semua (asas markah). */
+/**
+ * Markah kehadiran ringkasan pelajar (/50) = TERTINGGI antara markah kehadiran
+ * setiap bahagian (KP/SP/BU), setiap satu dikira ikut unit sendiri.
+ */
+export function markahKehadiranTertinggi(kehadiranHadir: { jenisKoko: string }[], j: JumlahAktiviti): number {
+  return BAHAGIAN_KEHADIRAN.reduce(
+    (m, b) => Math.max(m, markahKehadiran(kehadiranHadir.filter((h) => h.jenisKoko === b).length, j[b])),
+    0,
+  );
+}
+
+/** Jumlah untuk skorUnit: bahagian ini (asas markah) + gabungan semua (paparan). */
 export function jumlahKehadiranUntuk(j: JumlahAktiviti, jenisKoko: string) {
   return { bidang: jumlahUntuk(j, jenisKoko), gabung: jumlahKeseluruhan(j) };
 }
