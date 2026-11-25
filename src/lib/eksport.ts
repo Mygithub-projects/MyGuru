@@ -2,13 +2,13 @@
 //  Eksport analitik — Excel (exceljs) & PDF (pdf-lib).
 // ===========================================================================
 import { INCLUDE_AKTIVITI_UNIT_LULUS, penglibatanAktivitiUnit, pencapaianAktivitiUnit } from "./aktiviti-unit-markah";
-import { penglibatanUnit } from "./skor-unit";
+import { skorUnit, type RekodPelajar } from "./skor-unit";
 import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import ExcelJS from "exceljs";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { dbKohort } from "./prisma-kohort";
-import { markahProjekJawatan, markahProjekPeringkat } from "./pajsk";
-import { jumlahAktiviti, jumlahKeseluruhan, markahKehadiranTertinggi } from "./tetapan-kehadiran";
+import { analisisKelas, bundarTo, catatanGred } from "./pajsk";
+import { jumlahAktiviti, jumlahKehadiranUntuk, jumlahKeseluruhan, markahKehadiranTertinggi } from "./tetapan-kehadiran";
 import { kohortDipilih } from "./kohort-pilihan";
 import {
   analitikKehadiran,
@@ -153,7 +153,9 @@ interface BarisBidang {
   unit: string; hadir: number | null; jawatan: string; mJawatan: number | null;
   peringkat: string; mPenglibatan: number | null;
   pcpTahap: string; pcpMarkah: number | null;
-  pjJawatan: string; pjNama: string; pjMJ: number | null; pjTahap: string; pjMP: number | null;
+  pjJawatan: string; pjNamaJ: string; pjMJ: number | null; pjTahap: string; pjNamaP: string; pjMP: number | null;
+  /** Jumlah bidang /100 & gred (null = tidak menyertai bidang ini). */
+  jumlah: number | null; gred: string;
 }
 
 interface BarisPelajar {
@@ -192,13 +194,23 @@ function kolumBidang(jenis: "Uniform" | "Kelab" | "Sukan", kod: string, labelUni
     { h: `Markah Pencapaian ${kod}`, w: 4.5, rot: true, val: (x) => b(x).pcpMarkah },
     { h: `Nama Jawatan Projek ${kod}`, w: 20, fill: WARNA.biru, val: (x) => b(x).pjJawatan },
     { h: "No. Borang", w: 4, rot: true, fill: WARNA.biru, val: kosong },
-    { h: "Nama Projek", w: 24, fill: WARNA.kuning, val: (x) => b(x).pjNama },
+    { h: "Nama Projek", w: 24, fill: WARNA.kuning, val: (x) => b(x).pjNamaJ },
     { h: `Markah Jawatan Projek ${kod}`, w: 4.5, rot: true, fill: WARNA.biru, val: (x) => b(x).pjMJ },
     { h: `Tahap Projek ${kod}`, w: 14, fill: WARNA.biru, val: (x) => b(x).pjTahap },
     { h: "No. Borang", w: 4, rot: true, fill: WARNA.biru, val: kosong },
-    { h: "Nama Projek", w: 24, fill: WARNA.kuning, val: (x) => b(x).pjNama },
+    { h: "Nama Projek", w: 24, fill: WARNA.kuning, val: (x) => b(x).pjNamaP },
     { h: `Markah Peringkat Projek ${kod}`, w: 4.5, rot: true, fill: WARNA.biru, val: (x) => b(x).pjMP },
+    { h: `JUMLAH ${labelJumlah[jenis]}`, w: 6, rot: true, fill: WARNA.peach, val: (x) => b(x).jumlah },
+    { h: `GRED ${kod}`, w: 4.5, rot: true, fill: WARNA.peach, val: (x) => b(x).gred },
   ];
+}
+
+const labelJumlah = { Uniform: "BADAN BERUNIFORM", Kelab: "KELAB / PERSATUAN", Sukan: "SUKAN / PERMAINAN" } as const;
+
+/** Dua markah bidang tertinggi (bidang tidak disertai = 0), seperti MAX/LARGE borang. */
+function duaTerbaik(b: BarisPelajar): [number, number] {
+  const s = (["Uniform", "Kelab", "Sukan"] as const).map((j) => b.bidang[j].jumlah ?? 0).sort((x, y) => y - x);
+  return [s[0], s[1]];
 }
 
 /** Blok-blok lajur borang. `tajuk` null = setiap lajur dicantum baris 3–4. */
@@ -216,6 +228,20 @@ function blokBorang(jumlahSemua: number): { tajuk: string | null; kelasDiSini?: 
     { tajuk: "BADAN BERUNIFORM", kol: bu.slice(2) },
     { tajuk: "KELAB / PERSATUAN", kelasDiSini: true, kol: kolumBidang("Kelab", "KP", "Nama Kelab / Persatuan") },
     { tajuk: "SUKAN / PERMAINAN", kelasDiSini: true, kol: kolumBidang("Sukan", "SP", "Nama S/P") },
+    {
+      tajuk: "PURATA 2 BIDANG TERBAIK",
+      kol: [
+        { h: "BADAN BERUNIFORM", w: 5.5, rot: true, val: (x) => x.bidang.Uniform.jumlah ?? 0 },
+        { h: "KELAB / PERSATUAN", w: 5.5, rot: true, val: (x) => x.bidang.Kelab.jumlah ?? 0 },
+        { h: "SUKAN / PERMAINAN", w: 5.5, rot: true, val: (x) => x.bidang.Sukan.jumlah ?? 0 },
+        { h: "MARKAH TERTINGGI", w: 5.5, rot: true, val: (x) => duaTerbaik(x)[0] },
+        { h: "MARKAH KEDUA TINGGI", w: 5.5, rot: true, val: (x) => duaTerbaik(x)[1] },
+        {
+          h: "MARKAH PURATA 2 BIDANG TERBAIK", w: 6.5, rot: true, fill: WARNA.peach,
+          val: (x) => { const [a, b] = duaTerbaik(x); return bundarTo((a + b) / 2, 2); },
+        },
+      ],
+    },
     {
       tajuk: "EKSTRA KURIKULUM", kelasDiSini: true,
       kol: [
@@ -246,7 +272,7 @@ function blokBorang(jumlahSemua: number): { tajuk: string | null; kelasDiSini?: 
         { h: "GRED KESELURUHAN", w: 6, rot: true, fill: WARNA.peach, val: (x) => x.gred },
         { h: "10% (MARKAH ÷ 10)", w: 6, rot: true, val: (x) => (x.markah == null ? null : Math.round(x.markah * 10) / 100) },
         { h: "TANDA TANGAN PELAJAR", w: 10, rot: true, val: () => null },
-        { h: "CATATAN", w: 14, val: () => null },
+        { h: "CATATAN", w: 60, val: (x) => catatanGred(x.gred) || null },
       ],
     },
   ];
@@ -307,19 +333,37 @@ function isiTabKelas(ws: ExcelJS.Worksheet, kelas: string, baris: BarisPelajar[]
   ta.value = "ANALISIS KELAS";
   ta.font = { ...font, bold: true };
   ta.alignment = { horizontal: "center", vertical: "middle" };
-  const bergred = baris.filter((b) => b.gred);
-  const analisis: [string, number, number | string][] = [["Bil. Pelajar", baris.length, "%"]];
-  for (const g of ["A", "B", "C", "D", "E"]) {
-    const n = bergred.filter((b) => b.gred === g).length;
-    analisis.push([`Bil. ${g}`, n, bergred.length ? Math.round((n / bergred.length) * 1000) / 10 : 0]);
-  }
+  const an = analisisKelas(baris.map((b) => b.markah));
+  const analisis: [string, number | string | null, number | string | null][] = [
+    ["Bil. Pelajar", an.bil, "%"],
+    ...(["A", "B", "C", "D", "E"] as const).map((g): [string, number, number] => [`Bil. ${g}`, an.gred[g].bil, an.gred[g].peratus]),
+    ["JUMLAH", an.bil, an.bil ? 100 : 0],
+    ["Bil. A - C", an.bilAC, an.peratusAC],
+    ["Markah Purata", null, an.purata],
+    ["Gred", null, an.gredPurata],
+    ["GP Kelas", null, an.gp],
+    ["ETR", null, an.etr],
+  ];
   analisis.forEach((r, i) => {
     r.forEach((v, j) => {
       const c = ws.getCell(5 + i, a + j);
       c.value = v;
-      c.font = { ...font, bold: i === 0 };
+      c.font = { ...font, bold: i === 0 || r[0] === "JUMLAH" };
       c.border = SEMPADAN;
     });
+  });
+  // Kiraan pelajar mengikut ambang markah (≥85 … ≥95), sebaris dengan "Bil. A - C".
+  const barisAmbang = 5 + analisis.findIndex((r) => r[0] === "Bil. A - C");
+  an.ambang.forEach((x, i) => {
+    const col = a + 4 + i;
+    ws.getColumn(col).width = 6;
+    for (const [baris_, v] of [[barisAmbang - 1, `>=${x.ambang}`], [barisAmbang, x.bil]] as const) {
+      const c = ws.getCell(baris_, col);
+      c.value = v;
+      c.font = { ...font, bold: baris_ === barisAmbang - 1 };
+      c.alignment = { horizontal: "center" };
+      c.border = SEMPADAN;
+    }
   });
 
   ws.views = [{ state: "frozen", xSplit: 4, ySplit: 4 }];
@@ -348,8 +392,11 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
     },
   });
 
-  const terbaik = <T>(arr: T[], skor: (x: T) => number) =>
-    arr.reduce<T | null>((m, x) => (m === null || skor(x) > skor(m) ? x : m), null);
+  const kosong: BarisBidang = {
+    unit: "", hadir: null, jawatan: "", mJawatan: null, peringkat: "", mPenglibatan: null,
+    pcpTahap: "", pcpMarkah: null, pjJawatan: "", pjNamaJ: "", pjMJ: null, pjTahap: "", pjNamaP: "", pjMP: null,
+    jumlah: null, gred: "",
+  };
 
   const kumpulan = new Map<string, BarisPelajar[]>();
   for (const p of pelajar) {
@@ -357,42 +404,24 @@ export async function eksportRawDataExcel(): Promise<Buffer> {
     if (!kumpulan.has(kelas)) kumpulan.set(kelas, []);
     const senarai = kumpulan.get(kelas)!;
 
+    // Skor bidang: sumber sama dengan markah keseluruhan, slip & Borang Rumusan (skorUnit).
+    const rekod: RekodPelajar = {
+      kehadiran: p.kehadiran,
+      pencapaian: p.pencapaian,
+      aktivitiLuar: p.aktivitiLuar,
+      laporanProjek: gabungProjek(p.laporanProjek, p.projekPeserta, p.kokurikulum),
+      programKolej: [...p.programKolej.map((x) => x.program), ...penglibatanAktivitiUnit(p.aktivitiUnitPeserta)],
+      pencapaianBidang: pencapaianAktivitiUnit(p.aktivitiUnitPeserta),
+    };
     const bidangOf = (jenis: "Uniform" | "Kelab" | "Sukan"): BarisBidang => {
       const k = p.kokurikulum.find((x) => x.jenisKoko === jenis);
-      const unit = k?.namaUnitT6 ?? "";
-      const padan = (u: string | null) => !!unit && u === unit;
-      const prog = [
-        ...p.programKolej.map((x) => x.program),
-        ...penglibatanAktivitiUnit(p.aktivitiUnitPeserta),
-        ...p.aktivitiLuar.filter((x) => padan(x.namaUnit)).map((x) => ({ nama: x.namaAktiviti, peringkat: x.peringkat })),
-      ];
-      // Pencapaian unit: tertinggi antara pencapaian & aktiviti luar yang diluluskan.
-      const calon = [
-        ...p.pencapaian.filter((c) => c.kategori !== "ekstra" && padan(c.namaUnit))
-          .map((c) => ({ tahap: [c.kedudukan, c.peringkat].filter(Boolean).join(" ") || c.namaPencapaian, markah: c.markah })),
-        ...p.aktivitiLuar.filter((x) => padan(x.namaUnit))
-          .map((x) => ({ tahap: x.kedudukan ? `${x.kedudukan} ${x.peringkat} (${x.namaAktiviti})` : x.peringkat, markah: x.markahLuar })),
-      ];
-      if (unit) calon.push(...pencapaianAktivitiUnit(p.aktivitiUnitPeserta).filter((c) => c.jenisKoko === jenis));
-      const pcp = terbaik(calon, (c) => c.markah);
-      const projek = terbaik(
-        gabungProjek(p.laporanProjek, p.projekPeserta, p.kokurikulum).filter((pr) => padan(pr.namaUnit) || (!pr.namaUnit && pr.jenisKoko === jenis)),
-        (pr) => markahProjekJawatan(pr.jawatanProjek) + markahProjekPeringkat(pr.peringkatProjek),
-      );
+      if (!k?.namaUnitT6) return kosong;
+      const s = skorUnit(rekod, k, jumlahKehadiranUntuk(jumlahBahagian, jenis));
       return {
-        unit,
-        hadir: k ? p.kehadiran.filter((h) => h.jenisKoko === jenis).length : null,
-        jawatan: k?.jawatanT6 ?? "",
-        mJawatan: k ? k.markahJawatanT6 ?? 0 : null,
-        peringkat: k ? penglibatanUnit(k, prog).peringkat : "",
-        mPenglibatan: k ? penglibatanUnit(k, prog).markah : null,
-        pcpTahap: pcp?.tahap ?? "",
-        pcpMarkah: pcp ? pcp.markah : k ? 0 : null,
-        pjJawatan: projek?.jawatanProjek ?? "",
-        pjNama: projek?.namaProjek ?? "",
-        pjMJ: projek ? markahProjekJawatan(projek.jawatanProjek) : k ? 0 : null,
-        pjTahap: projek?.peringkatProjek ?? "",
-        pjMP: projek ? markahProjekPeringkat(projek.peringkatProjek) : k ? 0 : null,
+        unit: s.unit, hadir: s.hadir, jawatan: s.jawatan, mJawatan: s.mJawatan,
+        peringkat: s.peringkat, mPenglibatan: s.mPenglibatan, pcpTahap: s.pcpTahap, pcpMarkah: s.pcpMarkah,
+        pjJawatan: s.pjJawatan, pjNamaJ: s.pjNamaJ, pjMJ: s.pjMJ, pjTahap: s.pjTahap, pjNamaP: s.pjNamaP, pjMP: s.pjMP,
+        jumlah: s.jumlah, gred: s.gred ?? "",
       };
     };
 
