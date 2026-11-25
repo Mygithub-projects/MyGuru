@@ -4,7 +4,6 @@ import { getPelajarProfil } from "@/lib/pelajar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getT } from "@/lib/locale";
 import { KadPenyertaan } from "@/components/KadPenyertaan";
-import { bundarTo, markahT6Skala50 } from "@/lib/pajsk";
 
 const JENIS_LABEL_KEY = { Kelab: "kelab", Sukan: "sukan", Uniform: "uniform", Perkhidmatan: "perkhidmatan" } as const;
 
@@ -22,7 +21,7 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
   const { id } = await params;
   const [data, { t, locale }] = await Promise.all([getPelajarProfil(id), getT()]);
   if (!data) notFound();
-  const { pelajar, markah, penyertaan, ekstra } = data;
+  const { pelajar, penyertaan, ekstra } = data;
   const d = t.admin.pelajarDetail;
 
   return (
@@ -41,8 +40,7 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Stat label={t.pelajar.scoreT6} value={`${markahT6Skala50(pelajar.markahPajskT6) ?? "-"}`} sub={t.pelajar.fullMarks50} />
+      <div className="grid grid-cols-2 gap-3">
         <Stat label={t.pelajar.pctT6} value={`${pelajar.peratusPajskT6 ?? "-"}%`} />
         <Stat label={t.pelajar.gred} value={`${pelajar.gredPajskT6 ?? "-"}`} sub="A–E" />
       </div>
@@ -61,36 +59,6 @@ export default async function AdminPelajarDetail({ params }: { params: Promise<{
             t={t.pelajar}
           />
         )}
-      </section>
-
-      {/* Pecahan Markah PAJSK (T6) */}
-      <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{d.breakdownTitle}</h2>
-        <p className="mb-3 mt-1 text-xs text-slate-400">{d.breakdownNote}</p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-left text-xs uppercase text-slate-400">
-                <th className="py-2 pr-3">{d.assessmentComponent}</th>
-                <th className="py-2">{d.marksCol}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {markah.map((m) => (
-                <tr key={m.kunci} className="border-b border-slate-100 last:border-0">
-                  <td className="py-2 pr-3 font-medium text-slate-700">{t.pajsk[m.kunci]}</td>
-                  <td className="py-2 font-semibold text-brand-dark">{m.nilai} / {m.maks}</td>
-                </tr>
-              ))}
-              <tr className="border-t-2 border-slate-200">
-                <td className="py-2 pr-3 font-bold text-slate-800">{d.totalLabel}</td>
-                <td className="py-2 font-bold text-brand-dark">
-                  {bundarTo(Math.min(100, markah.reduce((m, x) => m + x.nilai, 0)), 2)} / 100
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </section>
 
       {/* Pencapaian */}
