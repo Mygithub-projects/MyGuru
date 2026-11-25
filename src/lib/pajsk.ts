@@ -373,6 +373,60 @@ export function gred(markah: number): Gred {
   return "E";
 }
 
+/** Ulasan standard ikut gred keseluruhan (tab CATATAN borang PAJSK kelas). */
+export const CATATAN_GRED: Record<Gred, string> = {
+  A: "Syabas. Anda seorang yang sangat aktif, komited dan menunjukkan potensi diri yang tinggi dalam aktiviti yang disertai. Anda hendaklah mengekalkan kecemerlangan prestasi dan mempertingkatkan usaha untuk berjaya dalam bidang yang diceburi dan diminati. Semoga kecemerlangan ini boleh diteladani oleh yang lain.",
+  B: "Tahniah. Anda merupakan seorang yang aktif, komited dan menunjukkan minat yang memuaskan dalam aktiviti yang disertai. Anda boleh mempertingkatkan potensi diri dan prestasi dalam aktiviti yang diceburi sekiranya memberi lebih penumpuan dalam aktiviti tersebut.",
+  C: "Penglibatan dan penyertaan anda dalam aktiviti yang disertai adalah memuaskan. Anda perlu dan mampu untuk lebih berusaha bagi meningkatkan prestasi ke tahap pencapaian yang lebih baik dalam aktiviti yang disertai.",
+  D: "Penglibatan anda kurang dan tidak menunjukkan kesungguhan dalam aktiviti yang disertai. Tingkatkan usaha anda dalam aktiviti yang disertai supaya anda dapat mencapai tahap prestasi yang lebih baik.",
+  E: "Penglibatan dan tahap pencapaian anda tidak memuaskan dalam aktiviti yang disertai. Anda perlu mempertingkatkan motivasi diri untuk mencapai tahap prestasi yang lebih baik.",
+};
+
+export function catatanGred(g?: string | null): string {
+  return g && g in CATATAN_GRED ? CATATAN_GRED[g as Gred] : "";
+}
+
+/** Ambang kiraan "markah ≥ n" dalam analisis kelas (seperti borang kelas). */
+export const AMBANG_ANALISIS = [85, 88, 90, 92, 93, 94, 95] as const;
+
+export interface AnalisisKelas {
+  /** Pelajar yang ada markah keseluruhan. */
+  bil: number;
+  gred: Record<Gred, { bil: number; peratus: number }>;
+  bilAC: number;
+  peratusAC: number;
+  ambang: { ambang: number; bil: number }[];
+  purata: number | null;
+  gredPurata: Gred | null;
+  /** GP kelas = Σ(bil gred × mata: A1…E5) ÷ bil. */
+  gp: number | null;
+  /** ETR = GP − 3%, tidak kurang daripada 1.00. */
+  etr: number | null;
+}
+
+/** Analisis kelas (ANALISIS KELAS dalam borang): taburan gred, purata, GP & ETR. */
+export function analisisKelas(markah: (number | null | undefined)[]): AnalisisKelas {
+  const m = markah.filter((x): x is number => x != null && Number.isFinite(x));
+  const bil = m.length;
+  const peratus = (n: number) => (bil ? bundarTo((n / bil) * 100, 2) : 0);
+  const senaraiGred: Gred[] = ["A", "B", "C", "D", "E"];
+  const kira = Object.fromEntries(senaraiGred.map((g) => [g, m.filter((x) => gred(x) === g).length])) as Record<Gred, number>;
+  const bilAC = kira.A + kira.B + kira.C;
+  const purata = bil ? bundarTo(m.reduce((s, x) => s + x, 0) / bil, 2) : null;
+  const gp = bil ? bundarTo(senaraiGred.reduce((s, g, i) => s + kira[g] * (i + 1), 0) / bil, 2) : null;
+  return {
+    bil,
+    gred: Object.fromEntries(senaraiGred.map((g) => [g, { bil: kira[g], peratus: peratus(kira[g]) }])) as AnalisisKelas["gred"],
+    bilAC,
+    peratusAC: peratus(bilAC),
+    ambang: AMBANG_ANALISIS.map((a) => ({ ambang: a, bil: m.filter((x) => x >= a).length })),
+    purata,
+    gredPurata: purata == null ? null : gred(purata),
+    gp,
+    etr: gp == null ? null : Math.max(1, bundarTo(gp * 0.97, 2)),
+  };
+}
+
 // ---------------------------------------------------------------------------
 //  Penghurai (parsers) untuk format fail PAJSK (kekal untuk import lama)
 // ---------------------------------------------------------------------------
