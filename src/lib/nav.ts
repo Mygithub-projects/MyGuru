@@ -67,6 +67,7 @@ export function getNavForRole(
     { href: "/admin", label: t.common.dashboard, icon: "dashboard" },
     { href: "/admin/pelajar", label: t.admin.actManageStudents, icon: "members" },
     { href: "/admin/guru", label: t.admin.actManageTeachers, icon: "members" },
+    { href: "/admin/jawatan-belum", label: t.admin.actJawatanBelum, icon: "members" },
     { href: "/admin/kohort", label: t.admin.actKohort, icon: "transfer" },
     { href: "/admin/import", label: t.admin.actImport, icon: "import" },
     { href: "/admin/kehadiran", label: t.admin.actAttendance, icon: "attendance" },
