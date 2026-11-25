@@ -165,6 +165,7 @@ export default async function AdminDashboard() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <Pintasan href="/admin/pelajar" icon="members" label={t.admin.actManageStudents} />
           <Pintasan href="/admin/guru" icon="members" label={t.admin.actManageTeachers} />
+          <Pintasan href="/admin/jawatan-belum" icon="members" label={t.admin.actJawatanBelum} />
           <Pintasan href="/admin/rumusan" icon="analytics" label={t.admin.actRumusan} />
           <Pintasan href="/admin/kehadiran" icon="attendance" label={t.admin.actAttendance} />
           <Pintasan href="/admin/import" icon="import" label={t.admin.actImport} />

@@ -192,7 +192,7 @@ export interface Dict {
     actFormula: string; actDemographics: string; actManageTeachers: string; actAttendance: string;
     actCertTemplate: string; actAnalytics: string; seeAlso: string; teacherView: string; studentView: string;
     pelajarTitle: string; pelajarSub: string; downloadAll: string;
-    actRawData: string; actKohort: string;
+    actRawData: string; actKohort: string; actJawatanBelum: string;
     actRumusan: string;
     rumusan: {
       title: string; subtitle: string; bahagian: string; kelas: string; all: string; filter: string;
@@ -584,7 +584,7 @@ const ms: Dict = {
     actFormula: "Tetapan Formula Markah", actDemographics: "Kemas Kini Demografi", actManageTeachers: "Urus Guru & Penasihat", actAttendance: "Kehadiran (Setiap Perjumpaan)",
     actCertTemplate: "Templat e-Cert", actAnalytics: "📊 Analitik Keseluruhan", seeAlso: "Lihat juga:", teacherView: "Pandangan Guru", studentView: "Pandangan Pelajar",
     pelajarTitle: "Urus Pelajar", pelajarSub: "Senarai pelajar T6 (markah, nama, kelab, sukan, badan beruniform terkini). Klik Butiran untuk paparan penuh & muat turun PDF setiap pelajar.", downloadAll: "⬇ Muat turun semua (Excel)",
-    actRawData: "Muat Turun Raw Data (Excel)", actKohort: "Pengurusan Kohort",
+    actRawData: "Muat Turun Raw Data (Excel)", actKohort: "Pengurusan Kohort", actJawatanBelum: "Jawatan Belum Ditag",
     actRumusan: "Rumusan Markah Kokurikulum",
     rumusan: {
       title: "Rumusan Markah Kokurikulum",
@@ -1120,7 +1120,7 @@ const en: Dict = {
     actFormula: "Mark Formula Settings", actDemographics: "Update Demographics", actManageTeachers: "Manage Teachers & Advisors", actAttendance: "Attendance (Per Meeting)",
     actCertTemplate: "e-Cert Template", actAnalytics: "📊 Overall Analytics", seeAlso: "See also:", teacherView: "Teacher View", studentView: "Student View",
     pelajarTitle: "Manage Students", pelajarSub: "F6 student list (latest marks, name, club, sport, uniformed body). Click Details for the full view & per-student PDF download.", downloadAll: "⬇ Download all (Excel)",
-    actRawData: "Download Raw Data (Excel)", actKohort: "Cohort Management",
+    actRawData: "Download Raw Data (Excel)", actKohort: "Cohort Management", actJawatanBelum: "Untagged Positions",
     actRumusan: "Co-curricular Mark Summary",
     rumusan: {
       title: "Co-curricular Mark Summary",
