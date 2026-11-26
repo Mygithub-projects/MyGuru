@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { JawatanAssign } from "./JawatanAssign";
+import { PecahanMarkah } from "./PecahanMarkah";
 import { labelJawatan, type Locale } from "@/lib/i18n";
 
 interface Ahli {
@@ -122,6 +123,7 @@ export function SenaraiAhliTabs({
   const dalamBahagian = units.filter((u) => u.jenisKoko === bahagian);
   const [namaAktif, setNamaAktif] = useState<string>(dalamBahagian[0]?.namaUnit ?? units[0]?.namaUnit ?? "");
   const unit = units.find((u) => u.namaUnit === namaAktif && u.jenisKoko === bahagian) ?? dalamBahagian[0] ?? units[0];
+  const [pecahan, setPecahan] = useState<string | null>(null);
   if (!unit) return null;
 
   const lengkap = unit.ahli.filter((a) => (a.markahPajskT6 ?? 0) > 0).length;
@@ -206,7 +208,8 @@ export function SenaraiAhliTabs({
           </thead>
           <tbody>
             {unit.ahli.map((a) => (
-              <tr key={a.pelajarId} className="border-b border-slate-100 last:border-0">
+              <Fragment key={a.pelajarId}>
+              <tr className="border-b border-slate-100 last:border-0">
                 <td className="py-2 pr-3 font-medium text-slate-700">
                   {a.nama}
                   {a.subRole !== "Pelajar" && (
@@ -229,6 +232,15 @@ export function SenaraiAhliTabs({
                       · {a.markahPajskT6}/100{a.gred ? ` (${a.gred})` : ""}
                     </span>
                   )}
+                  <button
+                    onClick={() => setPecahan(pecahan === a.pelajarId ? null : a.pelajarId)}
+                    className="ml-2 text-xs font-semibold text-brand-dark hover:underline"
+                    aria-expanded={pecahan === a.pelajarId}
+                  >
+                    {pecahan === a.pelajarId
+                      ? locale === "en" ? "Hide" : "Tutup"
+                      : locale === "en" ? "Breakdown" : "Pecahan"}
+                  </button>
                 </td>
                 <td className="py-2 pr-3">
                   <SahkanButiranCell
@@ -246,6 +258,14 @@ export function SenaraiAhliTabs({
                   )}
                 </td>
               </tr>
+              {pecahan === a.pelajarId && (
+                <tr className="border-b border-slate-100 bg-slate-50/60">
+                  <td colSpan={6} className="px-2 py-2">
+                    <PecahanMarkah pelajarId={a.pelajarId} unitAktif={unit.namaUnit} en={locale === "en"} />
+                  </td>
+                </tr>
+              )}
+              </Fragment>
             ))}
           </tbody>
         </table>
