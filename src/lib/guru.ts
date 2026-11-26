@@ -40,6 +40,15 @@ function whereLuar(guruId: string | null, wherePelajarUnit: object) {
   };
 }
 
+/**
+ * Permohonan pendaftaran/pertukaran unit: pelajar dalam skop guru, ATAU
+ * permohonan KE unit seliaan guru (cth. pemohon baharu Unit Perkhidmatan yang
+ * belum menjadi ahli mana-mana unit guru itu).
+ */
+function wherePertukaran(ids: string[] | null, units: string[]) {
+  return ids === null ? {} : { OR: [{ pelajarId: { in: ids } }, { unitBaru: { in: units } }] };
+}
+
 /** Bilangan item menunggu tindakan dalam skop (guru = unit seliaan; null = seluruh sekolah). */
 export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const db = await dbKohort(); // data kohort dipilih sahaja
@@ -55,7 +64,7 @@ export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const [a, b, c, d, e, f, g] = await Promise.all([
     db.pencapaian.count({ where: { statusSemakan: "Pending", ...wherePelajarUnit } }),
     db.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...whereLuar(guru?.id ?? null, wherePelajarUnit) } }),
-    db.logPertukaran.count({ where: { status: "Pending", ...wherePelajar } }),
+    db.logPertukaran.count({ where: { status: "Pending", ...wherePertukaran(ids, units) } }),
     db.laporanMingguan.count({ where: { statusSemakan: "Pending", ...whereUnit } }),
     db.laporanProjek.count({ where: { statusPengesahan: "Pending", ...whereProjek(whereUnit, ids, units) } }),
     db.sesiKehadiran.count({ where: { disahkan: false, ...whereSesi } }),
@@ -86,7 +95,7 @@ export async function getGuruDashboard(guru: Guru) {
         orderBy: { createdAt: "desc" },
       }),
       db.logPertukaran.findMany({
-        where: { status: "Pending", ...wherePelajar },
+        where: { status: "Pending", ...wherePertukaran(ids, units) },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { tarikhMohon: "desc" },
       }),

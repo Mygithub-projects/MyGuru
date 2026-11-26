@@ -180,12 +180,13 @@ export default async function GuruDashboard() {
         scopeLabel={seluruh ? t.guru.scopeSchool : t.guru.scopeUnit}
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard label={t.guru.cardStudents} value={bilPelajar} />
         <StatCard label={t.guru.cardPending} value={totalPending} tone={totalPending > 0 ? "warn" : "default"} />
         <StatCard label={t.guru.cardClub} value={unitJenis("Kelab")} small />
         <StatCard label={t.guru.cardSport} value={unitJenis("Sukan")} small />
         <StatCard label={t.guru.cardUniform} value={unitJenis("Uniform")} small />
+        <StatCard label={t.guru.cardService} value={unitJenis("Perkhidmatan")} small />
       </div>
 
       <LivePending t={t.guru.livePending} />

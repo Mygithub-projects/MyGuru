@@ -134,7 +134,7 @@ export interface Dict {
   guru: {
     dashboardTitle: string; position: string; scopeSchool: string; scopeUnit: string;
     linkMembers: string; linkAttendance: string; linkAnalytics: string; linkSelection: string;
-    cardStudents: string; cardPending: string; cardClub: string; cardSport: string; cardUniform: string;
+    cardStudents: string; cardPending: string; cardClub: string; cardSport: string; cardUniform: string; cardService: string;
     statusPilihan: string; noMembers: string; expandAll: string; collapseAll: string; colUnit: string;
     verifiedDocs: string; noVerifiedDocs: string; weekly: string; project: string;
     membersTitle: string; membersSub: string; unitCount: string; memberCount: string;
@@ -513,7 +513,7 @@ const ms: Dict = {
   guru: {
     dashboardTitle: "Dashboard Guru", position: "Jawatan", scopeSchool: "Skop: Seluruh Sekolah", scopeUnit: "Skop: Unit Seliaan",
     linkMembers: "👥 Senarai Ahli & Jawatan", linkAttendance: "🗓️ Kehadiran Perjumpaan", linkAnalytics: "📊 Lihat Analitik", linkSelection: "🏆 Pilih Pelajar untuk Pertandingan",
-    cardStudents: "Pelajar Diselia", cardPending: "Menunggu Tindakan", cardClub: "Kelab/Persatuan", cardSport: "Sukan/Permainan", cardUniform: "Badan Beruniform",
+    cardStudents: "Pelajar Diselia", cardPending: "Menunggu Tindakan", cardClub: "Kelab/Persatuan", cardSport: "Sukan/Permainan", cardUniform: "Badan Beruniform", cardService: "Unit Perkhidmatan",
     statusPilihan: "Status Pilihan Unit T6", noMembers: "Tiada ahli dalam unit seliaan.",
     expandAll: "Buka Semua", collapseAll: "Tutup Semua", colUnit: "Unit",
     verifiedDocs: "Dokumen Laporan Disahkan", noVerifiedDocs: "Tiada laporan disahkan lagi.", weekly: "Mingguan", project: "Projek",
@@ -1049,7 +1049,7 @@ const en: Dict = {
   guru: {
     dashboardTitle: "Teacher Dashboard", position: "Position", scopeSchool: "Scope: Whole School", scopeUnit: "Scope: Supervised Units",
     linkMembers: "👥 Member List & Positions", linkAttendance: "🗓️ Meeting Attendance", linkAnalytics: "📊 View Analytics", linkSelection: "🏆 Select Students for Competition",
-    cardStudents: "Students Supervised", cardPending: "Pending Actions", cardClub: "Club/Society", cardSport: "Sports/Games", cardUniform: "Uniformed Body",
+    cardStudents: "Students Supervised", cardPending: "Pending Actions", cardClub: "Club/Society", cardSport: "Sports/Games", cardUniform: "Uniformed Body", cardService: "Service Unit",
     statusPilihan: "F6 Unit Selection Status", noMembers: "No members in supervised units.",
     expandAll: "Expand All", collapseAll: "Collapse All", colUnit: "Unit",
     verifiedDocs: "Verified Report Documents", noVerifiedDocs: "No verified reports yet.", weekly: "Weekly", project: "Project",
