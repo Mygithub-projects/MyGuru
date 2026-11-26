@@ -448,6 +448,7 @@ model LaporanMingguan {
   statusSemakan String    @default("Draft") // Draft | Pending | Approved | Kuiri
   komenGuru     String?
   disahkanOleh  String? // nama pengesah, cth "NAMA (Guru Penasihat)"
+  disahkanOlehId String? // guruId pengesah (untuk Batal pengesahan)
   tarikhSahkan  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -480,6 +481,7 @@ model LaporanProjek {
   statusPengesahan String    @default("Draft") // Draft | Pending | Approved | Kuiri
   komenGuru        String?
   disahkanOleh     String? // nama pengesah, cth "NAMA (Guru Penasihat)"
+  disahkanOlehId   String? // guruId pengesah (untuk Batal pengesahan)
   tarikhSahkan     DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -568,6 +570,7 @@ model Pencapaian {
   statusSemakan  String    @default("Pending") // Pending | Approved | Kuiri
   markah         Float     @default(0)
   komenGuru      String?
+  disahkanOlehId String? // guruId pengesah (untuk Batal pengesahan)
   createdAt      DateTime  @default(now())
 
   @@index([statusSemakan])

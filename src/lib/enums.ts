@@ -110,6 +110,7 @@ export const JAWATAN_PERKHIDMATAN = [
   "Pengawas",
   "Ketua Asrama",
   "Ketua PRS",
+  "Naib Pengerusi Badan Perkhidmatan",
   "Penolong Ketua Asrama",
   "Pengawas Pusat Sumber",
   "Ahli Lembaga Pengarah Koperasi",

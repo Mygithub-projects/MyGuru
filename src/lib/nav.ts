@@ -58,6 +58,8 @@ export function getNavForRole(
         ? [{ href: "/guru/semak-kehadiran-guru", label: t.kehadiranGuru.navAdmin, icon: "attendance" } as NavItem]
         : []),
       ...(sahkanEkstra ? [{ href: "/guru/ekstra", label: t.pelajar.linkEkstraSemak, icon: "cert" } as NavItem] : []),
+      // Semua guru (pengesahan sendiri); Ketua Unit Kokurikulum: semua pengesahan.
+      { href: "/guru/rekod-disahkan", label: t.pelajar.linkRekodDisahkan, icon: "admin" },
       { href: "/guru/analitik", label: stripEmoji(t.guru.linkAnalytics), icon: "analytics" },
       { href: "/guru/pemilihan", label: stripEmoji(t.guru.linkSelection), icon: "trophy" },
       { href: "/guru/laporan", label: t.laporan.semakan.title, icon: "reports" },
@@ -78,6 +80,7 @@ export function getNavForRole(
     { href: "/admin/kehadiran-guru", label: t.kehadiranGuru.navAdmin, icon: "attendance" },
     { href: "/admin/laporan", label: t.laporan.semakan.title, icon: "reports" },
     { href: "/admin/ekstra", label: t.pelajar.linkEkstraSemak, icon: "cert" },
+    { href: "/admin/rekod-disahkan", label: t.pelajar.linkRekodDisahkan, icon: "admin" },
     { href: "/admin/projek", label: t.laporan.projekUrus.title, icon: "trophy" },
     { href: "/admin/demografi", label: t.admin.actDemographics, icon: "demographics" },
     { href: "/admin/analitik", label: stripEmoji(t.admin.actAnalytics), icon: "analytics" },

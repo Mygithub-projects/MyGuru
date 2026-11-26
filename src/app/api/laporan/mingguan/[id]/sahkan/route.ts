@@ -44,6 +44,7 @@ export async function PATCH(
       komenGuru: parsed.data.komen,
       // Rekod siapa mengesahkan (dipapar pada PDF); dikosongkan jika dikuiri.
       disahkanOleh: parsed.data.status === "Approved" ? labelPengesah(guru, session) : null,
+      disahkanOlehId: parsed.data.status === "Approved" ? guru?.id ?? null : null,
       tarikhSahkan: parsed.data.status === "Approved" ? new Date() : null,
     },
   });

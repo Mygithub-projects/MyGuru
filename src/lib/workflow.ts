@@ -522,6 +522,8 @@ export async function sahkanPencapaian(input: {
   status: "Approved" | "Kuiri";
   markah?: number;
   komen?: string;
+  /** guruId pengesah (null = Admin) — membolehkan guru itu membatalkan pengesahan. */
+  pengesahId?: string | null;
 }) {
   if (input.status === "Approved") {
     const rec = await prisma.pencapaian.findUnique({
@@ -538,6 +540,7 @@ export async function sahkanPencapaian(input: {
       statusSemakan: input.status,
       markah: input.markah ?? undefined,
       komenGuru: input.komen,
+      disahkanOlehId: input.status === "Approved" ? input.pengesahId ?? null : null,
     },
   });
   await kiraSemulaT6(p.pelajarId);

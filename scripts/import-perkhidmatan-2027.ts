@@ -20,6 +20,7 @@ const PETA: Record<string, Peta> = {
     unit: "Unit Sidang Redaksi",
     jawatan: (t) =>
       t === "PENGERUSI" ? "Pengerusi Badan Perkhidmatan"
+      : t.startsWith("NAIB PENGERUSI") ? "Naib Pengerusi Badan Perkhidmatan"
       : t.startsWith("NAIB ") ? "AJK Utama"
       : t === "SETIAUSAHA" ? "Setiausaha"
       : t === "BENDAHARI" ? "Bendahari"
@@ -32,6 +33,7 @@ const PETA: Record<string, Peta> = {
     unit: "Unit Pengurusan Sukan / Kuarter Master",
     jawatan: (t) =>
       t === "PENGERUSI" ? "Pengerusi Badan Perkhidmatan"
+      : t.startsWith("NAIB PENGERUSI") ? "Naib Pengerusi Badan Perkhidmatan"
       : t.startsWith("NAIB ") ? "AJK Utama"
       : t === "SETIAUSAHA" ? "Setiausaha"
       : t === "BENDAHARI" ? "Bendahari"
@@ -51,7 +53,8 @@ const PETA: Record<string, Peta> = {
     jawatan: (t) =>
       t === "BERHENTI" ? "LANGKAU"
       : t === "PENGERUSI" ? "Ketua PRS"
-      : ["NAIB PENGERUSI", "SETIAUSAHA", "NAIB SETIAUSAHA", "BENDAHARI", "NAIB BENDAHARI", "AHLI JAWATANKUASA"].includes(t) ? "AJK Utama"
+      : t === "NAIB PENGERUSI" ? "Naib Pengerusi Badan Perkhidmatan"
+      : ["SETIAUSAHA", "NAIB SETIAUSAHA", "BENDAHARI", "NAIB BENDAHARI", "AHLI JAWATANKUASA"].includes(t) ? "AJK Utama"
       : "",
   },
   // Ketua/Penolong kelas; jawatan AJK UKT (jika ada) mengatasi. Naib-naib = 5 (AJK Utama).
@@ -59,6 +62,7 @@ const PETA: Record<string, Peta> = {
     unit: "Unit Ketua Tingkatan",
     jawatan: (t, r) =>
       t === "PENGERUSI" ? "Pengerusi Badan Perkhidmatan"
+      : t.startsWith("NAIB PENGERUSI") ? "Naib Pengerusi Badan Perkhidmatan"
       : t.startsWith("NAIB ") ? "AJK Utama"
       : t === "SETIAUSAHA" ? "Setiausaha"
       : t === "BENDAHARI" ? "Bendahari"
@@ -73,6 +77,7 @@ const PETA: Record<string, Peta> = {
     jawatan: (t, r) =>
       /QUARTER MASTER/i.test((r as Baris & { bahagian?: string }).bahagian ?? "") ? "LANGKAU"
       : t === "PENGERUSI" ? "Pengerusi Badan Perkhidmatan"
+      : t.startsWith("NAIB PENGERUSI") ? "Naib Pengerusi Badan Perkhidmatan"
       : t.startsWith("NAIB ") ? "AJK Utama"
       : t === "SETIAUSAHA" ? "Setiausaha"
       : t === "BENDAHARI" ? "Bendahari"

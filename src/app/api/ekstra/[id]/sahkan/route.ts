@@ -53,7 +53,7 @@ export async function PATCH(
     data: { perkaraEkstra: status === "Approved" ? perkara : null },
   });
   try {
-    const result = await sahkanPencapaian({ pencapaianId: id, status, markah, komen });
+    const result = await sahkanPencapaian({ pencapaianId: id, status, markah, komen, pengesahId: guru?.id ?? null });
     return ok(result, status === "Approved" ? `Disahkan — ${markah} markah ekstra` : "Kuiri dihantar kepada pelajar");
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Ralat memproses", 400);
