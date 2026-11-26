@@ -18,7 +18,7 @@ export default async function AktivitiPage() {
   const en = locale === "en";
 
   const [pencapaian, aktivitiLuar, koko] = await Promise.all([
-    prisma.pencapaian.findMany({ where: { pelajarId: pid }, orderBy: { createdAt: "desc" } }),
+    prisma.pencapaian.findMany({ where: { pelajarId: pid, OR: [{ kategori: null }, { kategori: { not: "ekstra" } }] }, orderBy: { createdAt: "desc" } }),
     prisma.aktivitiLuar.findMany({
       where: { pelajarId: pid },
       orderBy: { createdAt: "desc" },

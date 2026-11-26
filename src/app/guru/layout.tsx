@@ -4,7 +4,7 @@ import { getT } from "@/lib/locale";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/shell/AppShell";
 import { AgentChat } from "@/components/AgentChat";
-import { JAWATAN_SAHKAN_KEHADIRAN_GURU } from "@/lib/enums";
+import { JAWATAN_SAHKAN_EKSTRA, JAWATAN_SAHKAN_KEHADIRAN_GURU } from "@/lib/enums";
 
 export default async function GuruLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -43,6 +43,7 @@ export default async function GuruLayout({ children }: { children: React.ReactNo
         subRole={session.subRole}
         jawatan={jawatan}
         sahkanKehadiranGuru={!!guru && JAWATAN_SAHKAN_KEHADIRAN_GURU.includes(guru.jawatanKoko)}
+        sahkanEkstra={!!guru && JAWATAN_SAHKAN_EKSTRA.includes(guru.jawatanKoko)}
       >
         {children}
       </AppShell>

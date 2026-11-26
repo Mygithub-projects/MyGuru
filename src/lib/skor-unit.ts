@@ -170,11 +170,20 @@ export function skorUnit(
   return s;
 }
 
-/** Item ekstra kurikulum: jawatan Unit Perkhidmatan + nama anugerah khas yang diluluskan. */
+/**
+ * Teks satu item ekstra untuk nilaiEkstra(): jika Ketua Unit Koko memilih perkara
+ * Anugerah Khas, "PERKARA (skor)" — markah dalam kurungan terakhir diguna terus;
+ * jika tidak (rekod lama), nama anugerah dipadankan ikut jadual.
+ */
+export function teksEkstra(c: { namaPencapaian: string; perkaraEkstra?: string | null; markah: number }): string {
+  return c.perkaraEkstra ? `${c.perkaraEkstra} (${c.markah})` : c.namaPencapaian;
+}
+
+/** Item ekstra kurikulum: jawatan Unit Perkhidmatan + anugerah khas yang diluluskan. */
 export function itemEkstra(p: RekodPelajar, kokurikulum: Kokurikulum[]): string[] {
   const up = kokurikulum.find((k) => k.jenisKoko === "Perkhidmatan" && k.namaUnitT6);
   return [
     ...(up?.jawatanT6 ? [up.jawatanT6] : []),
-    ...p.pencapaian.filter((c) => c.kategori === "ekstra").map((c) => c.namaPencapaian),
+    ...p.pencapaian.filter((c) => c.kategori === "ekstra").map(teksEkstra),
   ];
 }

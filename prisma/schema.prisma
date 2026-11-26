@@ -562,6 +562,9 @@ model Pencapaian {
   laporan        String? // laporan ringkas pelajar
   kedudukan      String? // Johan | Naib Johan | Ketiga (§1.5 — untuk markah pencapaian)
   lampiranEviden String?
+  // Ekstra Kurikulum (kategori "ekstra", diisi pelajar; disahkan Ketua Unit Koko).
+  tempat         String?
+  perkaraEkstra  String? // perkara Anugerah Khas yang dipilih pengesah (markah = skornya)
   statusSemakan  String    @default("Pending") // Pending | Approved | Kuiri
   markah         Float     @default(0)
   komenGuru      String?
