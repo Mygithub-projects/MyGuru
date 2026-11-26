@@ -9,6 +9,7 @@ export type SubRole = (typeof SUB_ROLES)[number];
 // Hierarki jawatan kokurikulum guru (skop akses menaik)
 export const JAWATAN_GURU = [
   "GuruPenasihat",
+  "GuruPemantau",
   "PenolongKetuaGP",
   "KetuaGP",
   "PenolongSU",
@@ -19,7 +20,8 @@ export const JAWATAN_GURU = [
 export type JawatanGuru = (typeof JAWATAN_GURU)[number];
 
 // Hanya Ketua Unit Kokurikulum, KUPP/Pemantau & Penyelaras Kokurikulum boleh mengesahkan kehadiran guru.
-export const JAWATAN_SAHKAN_KEHADIRAN_GURU: readonly string[] = ["KetuaUnitKoko", "PemantauKUPP", "Penyelaras"];
+// Guru Pemantau (skop unit) turut dibenarkan atas keputusan pengguna 2026-11-26.
+export const JAWATAN_SAHKAN_KEHADIRAN_GURU: readonly string[] = ["KetuaUnitKoko", "PemantauKUPP", "Penyelaras", "GuruPemantau"];
 
 // Guru dengan skop seluruh sekolah (lihat SEMUA data pelajar).
 // Peraturan RBAC: Ketua Unit Kokurikulum, Penyelaras Kokurikulum & Pemantau KUPP lihat semua; PenolongSU
@@ -37,8 +39,11 @@ export const JENIS_KOKO = ["Sukan", "Kelab", "Uniform", "Perkhidmatan"] as const
 export type JenisKoko = (typeof JENIS_KOKO)[number];
 
 // Peranan guru dalam sesuatu unit (jadual GuruPenasihatKelab §3).
-// Buat masa ini kedua-dua peranan mempunyai kuasa sama (lihat & sahkan).
-export const PERANAN_PENASIHAT = ["Penasihat", "KetuaPenasihat", "PenolongKetuaGP"] as const;
+// Penasihat/KetuaPenasihat/PenolongKetuaGP: lihat & urus. "Pemantau": LIHAT SAHAJA —
+// unit dikira dalam unitSeliaan() (bacaan) tetapi TIDAK dalam unitUrus() (tindakan).
+export const PERANAN_PENASIHAT = ["Penasihat", "KetuaPenasihat", "PenolongKetuaGP", "Pemantau"] as const;
+export const PERANAN_PEMANTAU = "Pemantau";
+export const MESEJ_PEMANTAU = "Anda Guru Pemantau bagi unit ini — paparan sahaja, tiada tindakan dibenarkan.";
 export type PerananPenasihat = (typeof PERANAN_PENASIHAT)[number];
 
 // Pilihan jawatan (label dikenali oleh parser markahJawatan di pajsk.ts)

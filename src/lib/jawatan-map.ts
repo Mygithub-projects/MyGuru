@@ -5,6 +5,7 @@ export function mapJawatanGuru(teks?: string | null): JawatanGuru {
   const t = (teks || "").toUpperCase();
   if (/KETUA\s+UNIT/.test(t)) return "KetuaUnitKoko";
   if (/PENYELARAS/.test(t)) return "Penyelaras";
+  if (/GURU\s+PEMANTAU/.test(t)) return "GuruPemantau";
   if (/PEMANTAU|KUPP/.test(t)) return "PemantauKUPP";
   if (/PENOLONG\s+SETIAUSAHA|PEN\.?\s*SU/.test(t)) return "PenolongSU";
   if (/PENOLONG\s+KETUA/.test(t)) return "PenolongKetuaGP";

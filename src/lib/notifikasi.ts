@@ -56,7 +56,7 @@ export async function notifyGuruUntukUnit(namaUnit: string | null, input: Omit<N
       statusAktif: true,
       OR: [
         // Sumber kebenaran: GuruPenasihatKelab (medan *Diselia lapuk & boleh basi).
-        ...(namaUnit ? [{ penasihatKelab: { some: { namaUnit } } }] : []),
+        ...(namaUnit ? [{ penasihatKelab: { some: { namaUnit, peranan: { not: "Pemantau" } } } }] : []),
         { jawatanKoko: { in: SELURUH } },
       ],
     },

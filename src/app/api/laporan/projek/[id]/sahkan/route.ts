@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
 import { notifyPelajar } from "@/lib/notifikasi";
 import { labelPengesah } from "@/lib/pengesah";
-import { guruSeluruhSekolah, unitSeliaan, bolehGuruAksesPelajar, kiraSemulaT6 } from "@/lib/workflow";
+import { guruSeluruhSekolah, unitUrus, bolehGuruUrusPelajar, kiraSemulaT6 } from "@/lib/workflow";
 
 const schema = z.object({
   status: z.enum(["Approved", "Kuiri"]),
@@ -33,11 +33,11 @@ export async function PATCH(
 
   // Hanya guru penasihat unit berkenaan boleh sahkan (spec guru §1/§6).
   if (guru && !guruSeluruhSekolah(guru)) {
-    const units = await unitSeliaan(guru);
+    const units = await unitUrus(guru);
     // Projek pelbagai unit: guru penasihat mana-mana unit terlibat boleh mengesahkan.
     const okUnit =
       (rec.projek?.units ?? []).some((u) => units.includes(u)) ||
-      (rec.namaUnit ? units.includes(rec.namaUnit) : await bolehGuruAksesPelajar(guru, rec.setiausahaId));
+      (rec.namaUnit ? units.includes(rec.namaUnit) : await bolehGuruUrusPelajar(guru, rec.setiausahaId));
     if (!okUnit) return fail("Laporan projek ini di luar unit seliaan anda", 403);
   }
 

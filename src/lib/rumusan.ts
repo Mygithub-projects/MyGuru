@@ -117,7 +117,7 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
 /** Peta unit -> nama guru penasihat (untuk "NAMA GURU BERTANGGUNGJAWAB"). */
 async function guruIkutUnit(units: string[]): Promise<Map<string, string[]>> {
   const rows = await prisma.guruPenasihatKelab.findMany({
-    where: { namaUnit: { in: units } },
+    where: { namaUnit: { in: units }, peranan: { not: "Pemantau" } },
     select: { namaUnit: true, peranan: true, guru: { select: { nama: true } } },
     orderBy: { peranan: "asc" }, // KetuaPenasihat dahulu
   });

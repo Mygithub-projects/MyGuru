@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
-import { tetapkanJawatanOlehGuru, guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
+import { tetapkanJawatanOlehGuru, guruSeluruhSekolah, unitUrus } from "@/lib/workflow";
 import { JENIS_KOKO, pilihanJawatan } from "@/lib/enums";
 
 // Unit Perkhidmatan guna senarai Jadual 1 (ekstra); Kelab/Sukan & Uniform ikut Jadual B.
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   // Skop: guru unit hanya boleh set jawatan bagi unit yang diselia (per-unit).
   if (guru && !guruSeluruhSekolah(guru)) {
-    const units = await unitSeliaan(guru);
+    const units = await unitUrus(guru);
     if (!units.includes(koko.namaUnitT6)) {
       return fail("Unit ini di luar unit seliaan anda", 403);
     }

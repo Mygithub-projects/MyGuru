@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { dbKohort } from "@/lib/prisma-kohort";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
-import { bolehGuruAksesPelajar, pilihPelajarUntukPertandingan } from "@/lib/workflow";
+import { bolehGuruUrusPelajar, pilihPelajarUntukPertandingan } from "@/lib/workflow";
 import { pelajarIdsDalamSkop } from "@/lib/guru";
 import { PERINGKAT } from "@/lib/enums";
 
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
   let dilangkau = 0;
   // `guru` null bererti Admin (akses penuh, tiada had skop).
   for (const pid of [...new Set(pelajarIds)]) {
-    if (guru && !(await bolehGuruAksesPelajar(guru, pid))) {
+    if (guru && !(await bolehGuruUrusPelajar(guru, pid))) {
       dilangkau++;
       continue;
     }

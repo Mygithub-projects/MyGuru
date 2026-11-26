@@ -16,9 +16,9 @@ interface G {
 }
 type UnitOptions = Record<"Sukan" | "Kelab" | "Uniform" | "Perkhidmatan", string[]>;
 interface GuruDict {
-  jawatanKoko: { guruPenasihat: string; penolongKetuaGP: string; ketuaGP: string; penolongSU: string; pemantauKUPP: string; penyelaras: string; ketuaUnitKoko: string };
+  jawatanKoko: { guruPenasihat: string; guruPemantau: string; penolongKetuaGP: string; ketuaGP: string; penolongSU: string; pemantauKUPP: string; penyelaras: string; ketuaUnitKoko: string };
   kategori: { kelab: string; sukan: string; uniform: string; perkhidmatan: string };
-  peranan: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string };
+  peranan: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string; pemantau: string };
   statusAktif: string; unitDiselia: string; noUnitAssigned: string; unitNamePlaceholder: string; addUnit: string;
   deleteConfirmTpl: string; deleteFailed: string; networkError: string;
   saved: string; save: string; deleteBtn: string; deleting: string;
@@ -142,6 +142,7 @@ function EditAkaunModal({ edit, setEdit, onSaved }: { edit: Edit; setEdit: (e: E
 export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitOptions: UnitOptions; t: GuruDict }) {
   const JAWATAN = [
     { v: "GuruPenasihat", l: t.jawatanKoko.guruPenasihat },
+    { v: "GuruPemantau", l: t.jawatanKoko.guruPemantau },
     { v: "PenolongKetuaGP", l: t.jawatanKoko.penolongKetuaGP },
     { v: "KetuaGP", l: t.jawatanKoko.ketuaGP },
     { v: "PemantauKUPP", l: t.jawatanKoko.pemantauKUPP },
@@ -156,6 +157,7 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
     { v: "Penasihat", l: t.peranan.penasihat },
     { v: "KetuaPenasihat", l: t.peranan.ketuaPenasihat },
     { v: "PenolongKetuaGP", l: t.peranan.penolongKetuaGP },
+    { v: "Pemantau", l: t.peranan.pemantau },
   ];
   const [rows, setRows] = useState<G[]>(initial);
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());

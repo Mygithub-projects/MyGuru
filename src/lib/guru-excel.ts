@@ -17,6 +17,7 @@ const DEFAULT_PW = process.env.DEFAULT_SEED_PASSWORD || "ekoko2026";
 
 export const JAWATAN_LABEL: Record<JawatanGuru, string> = {
   GuruPenasihat: "Guru Penasihat",
+  GuruPemantau: "Guru Pemantau",
   PenolongKetuaGP: "Penolong Guru Penasihat",
   KetuaGP: "Ketua Guru Penasihat",
   PenolongSU: "Penolong SU Kokurikulum",
@@ -30,7 +31,7 @@ type Jenis = (typeof JENIS)[number];
 const LAJUR_JENIS: Record<Jenis, string> = { Sukan: "SUKAN", Uniform: "UNIFORM", Kelab: "KELAB", Perkhidmatan: "PERKHIDMATAN" };
 const LAJUR = ["ID", "NAMA", "EMAIL", "NO IC", "JAWATAN KOKO", "STATUS", "SUKAN", "UNIFORM", "KELAB", "PERKHIDMATAN"];
 
-const TAG: Record<string, string> = { KetuaPenasihat: " (K)", PenolongKetuaGP: " (P)" };
+const TAG: Record<string, string> = { KetuaPenasihat: " (K)", PenolongKetuaGP: " (P)", Pemantau: " (M)" };
 
 type Tugas = { namaUnit: string; jenisKoko: Jenis; peranan: string };
 
@@ -83,7 +84,7 @@ export async function eksportGuruExcel(): Promise<Buffer> {
     ["NO IC", "12 digit, boleh dikosongkan."],
     ["JAWATAN KOKO", (["GuruPenasihat", "PenolongKetuaGP", "KetuaGP", "PemantauKUPP", "Penyelaras", "KetuaUnitKoko"] as JawatanGuru[]).map((j) => JAWATAN_LABEL[j]).join(" | ")],
     ["STATUS", "Aktif | Tidak Aktif"],
-    ["SUKAN / UNIFORM / KELAB / PERKHIDMATAN", "Nama unit dipisah ';'. Tambah (K) untuk Ketua, (P) untuk Penolong. Cth: Badminton (K); Ping Pong"],
+    ["SUKAN / UNIFORM / KELAB / PERKHIDMATAN", "Nama unit dipisah ';'. Tambah (K) untuk Ketua, (P) untuk Penolong, (M) untuk Pemantau (lihat sahaja). Cth: Badminton (K); Ping Pong"],
     ["", "Jika keempat-empat lajur unit kosong, unit guru sedia ada TIDAK diubah."],
     ["Guru tiada dalam fail", "Tidak dipadam atau diubah."],
     ["Guru baru", `Log masuk dengan email; kata laluan awal = No. IC (jika ada) atau "${DEFAULT_PW}".`],
@@ -133,7 +134,7 @@ function cariJawatan(teks: string): JawatanGuru | null {
 function parseUnit(sel: string, jenis: Jenis, unit: SenaraiUnit, ralat: string[]): Tugas[] {
   const out: Tugas[] = [];
   for (const bahagian of sel.split(/[;\n]/).map((s) => s.trim()).filter(Boolean)) {
-    const m = bahagian.match(/^(.*?)\s*\((K|P)\)\s*$/i);
+    const m = bahagian.match(/^(.*?)\s*\((K|P|M)\)\s*$/i);
     const nama = (m ? m[1] : bahagian).trim();
     const rasmi = unit[jenis].find((u) => u.toLowerCase() === nama.toLowerCase());
     if (!rasmi) {
@@ -141,7 +142,7 @@ function parseUnit(sel: string, jenis: Jenis, unit: SenaraiUnit, ralat: string[]
       continue;
     }
     const tag = m?.[2].toUpperCase();
-    out.push({ namaUnit: rasmi, jenisKoko: jenis, peranan: tag === "K" ? "KetuaPenasihat" : tag === "P" ? "PenolongKetuaGP" : "Penasihat" });
+    out.push({ namaUnit: rasmi, jenisKoko: jenis, peranan: tag === "K" ? "KetuaPenasihat" : tag === "P" ? "PenolongKetuaGP" : tag === "M" ? "Pemantau" : "Penasihat" });
   }
   return out;
 }

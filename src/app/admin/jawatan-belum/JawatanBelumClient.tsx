@@ -6,7 +6,7 @@ import type { Locale } from "@/lib/i18n";
 
 type Isu = "semua" | "jawatan" | "sah" | "cadangan";
 
-const LABEL_PERANAN: Record<string, string> = { KetuaPenasihat: "GKP", PenolongKetuaGP: "PGKP", Penasihat: "GP" };
+const LABEL_PERANAN: Record<string, string> = { KetuaPenasihat: "GKP", PenolongKetuaGP: "PGKP", Penasihat: "GP", Pemantau: "GPm" };
 
 export function JawatanBelumClient({ units, locale }: { units: UnitBelum[]; locale: Locale }) {
   const L = (ms: string, en: string) => (locale === "en" ? en : ms);

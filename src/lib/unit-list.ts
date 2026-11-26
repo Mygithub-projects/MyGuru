@@ -53,7 +53,7 @@ export async function senaraiUnitBerpenasihat(): Promise<SenaraiUnit> {
     Sukan: new Set(), Kelab: new Set(), Uniform: new Set(), Perkhidmatan: new Set(),
   };
   const pautan = await prisma.guruPenasihatKelab.findMany({
-    where: { guru: { statusAktif: true } },
+    where: { guru: { statusAktif: true }, peranan: { not: "Pemantau" } },
     select: { namaUnit: true, jenisKoko: true },
   });
   for (const p of pautan) set[p.jenisKoko]?.add(buangKurungan(p.namaUnit) || p.namaUnit);

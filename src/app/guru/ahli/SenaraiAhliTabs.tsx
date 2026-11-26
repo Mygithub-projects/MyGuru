@@ -19,6 +19,7 @@ interface Unit {
   namaUnit: string;
   jenisKoko: string;
   bolehSahkan: boolean;
+  bolehUrus: boolean;
   ahli: Ahli[];
 }
 interface Labels {
@@ -172,6 +173,11 @@ export function SenaraiAhliTabs({
         <span className="rounded-md bg-emerald-100 px-2 py-1 font-semibold text-emerald-700">
           ✓ {lengkap} {t.marksComputed}
         </span>
+        {!unit.bolehUrus && (
+          <span className="rounded-md bg-violet-100 px-2 py-1 font-semibold text-violet-700">
+            👁 {locale === "ms" ? "Pemantau — lihat sahaja" : "Monitor — view only"}
+          </span>
+        )}
         {belum > 0 && (
           <span className="rounded-md bg-amber-100 px-2 py-1 font-semibold text-amber-700">
             ⏳ {belum} {t.marksNotYet}
@@ -233,7 +239,11 @@ export function SenaraiAhliTabs({
                   />
                 </td>
                 <td className="py-2">
-                  <JawatanAssign pelajarId={a.pelajarId} jenisKoko={unit.jenisKoko} current={a.jawatan} t={t.jawatanAssign} locale={locale} />
+                  {unit.bolehUrus ? (
+                    <JawatanAssign pelajarId={a.pelajarId} jenisKoko={unit.jenisKoko} current={a.jawatan} t={t.jawatanAssign} locale={locale} />
+                  ) : (
+                    <span className="text-xs text-slate-400">—</span>
+                  )}
                 </td>
               </tr>
             ))}

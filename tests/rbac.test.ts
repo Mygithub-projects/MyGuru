@@ -54,3 +54,15 @@ describe("RBAC §3 — bolehAksesUnit", () => {
     ).toBe(true);
   });
 });
+
+describe("Guru Pemantau (skop unit, lihat sahaja)", () => {
+  it("tidak termasuk dalam skop seluruh sekolah", async () => {
+    const { JAWATAN_GURU_SELURUH_SEKOLAH } = await import("../src/lib/enums");
+    expect(JAWATAN_GURU_SELURUH_SEKOLAH).not.toContain("GuruPemantau");
+  });
+  it("teks 'Guru Pemantau' dipetakan ke GuruPemantau, bukan PemantauKUPP", async () => {
+    const { mapJawatanGuru } = await import("../src/lib/jawatan-map");
+    expect(mapJawatanGuru("Guru Pemantau")).toBe("GuruPemantau");
+    expect(mapJawatanGuru("KUPP/Pemantau")).toBe("PemantauKUPP");
+  });
+});

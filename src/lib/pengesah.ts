@@ -21,7 +21,7 @@ export async function teksDisahkanOleh(rec: {
   if (rec.disahkanOleh) return `${rec.disahkanOleh}${tarikh}`;
   if (rec.namaUnit) {
     const penasihat = await prisma.guruPenasihatKelab.findMany({
-      where: { namaUnit: rec.namaUnit },
+      where: { namaUnit: rec.namaUnit, peranan: { not: "Pemantau" } },
       select: { guru: { select: { nama: true } } },
       orderBy: { peranan: "asc" }, // KetuaPenasihat dahulu
     });
