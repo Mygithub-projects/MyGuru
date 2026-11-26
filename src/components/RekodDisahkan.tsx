@@ -3,6 +3,8 @@ import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { RekodDisahkan as Rekod } from "@/lib/batal-pengesahan";
 
+const HAD_PAPAR = 50;
+
 export function RekodDisahkan({ rows, en, jenis, pilihan, basePath }: {
   rows: Rekod[];
   en: boolean;
@@ -12,13 +14,25 @@ export function RekodDisahkan({ rows, en, jenis, pilihan, basePath }: {
 }) {
   const router = useRouter();
   const [cari, setCari] = useState("");
+  const [dari, setDari] = useState("");
+  const [hingga, setHingga] = useState("");
+  const [had, setHad] = useState(HAD_PAPAR);
   const [buka, setBuka] = useState<string | null>(null);
   const q = cari.trim().toLowerCase();
-  const paparan = q
-    ? rows.filter((r) => [r.tajuk, r.pelajar, r.unit, r.pengesah].some((x) => x?.toLowerCase().includes(q)))
-    : rows;
+  // Tarikh tempatan YYYY-MM-DD supaya setanding dengan <input type="date">.
+  const hari = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-CA") : "");
+  const ditapis = rows.filter((r) => {
+    if (q && ![r.tajuk, r.pelajar, r.unit, r.pengesah].some((x) => x?.toLowerCase().includes(q))) return false;
+    const h = hari(r.tarikhSahkan);
+    if (dari && (!h || h < dari)) return false;
+    if (hingga && (!h || h > hingga)) return false;
+    return true;
+  });
+  const paparan = ditapis.slice(0, had);
+  const adaTapis = !!(q || dari || hingga);
   const adaPelajar = rows.some((r) => r.pelajar);
   const ctl = "rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm";
+  const ubah = <T,>(set: (v: T) => void) => (v: T) => { set(v); setHad(HAD_PAPAR); };
 
   return (
     <section className="space-y-3">
@@ -27,10 +41,24 @@ export function RekodDisahkan({ rows, en, jenis, pilihan, basePath }: {
           aria-label={en ? "Record type" : "Jenis rekod"} className={`${ctl} font-semibold text-slate-700`}>
           {pilihan.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
         </select>
-        <input value={cari} onChange={(e) => setCari(e.target.value)} type="search"
+        <input value={cari} onChange={(e) => ubah(setCari)(e.target.value)} type="search"
           placeholder={en ? "Find name, unit, verifier…" : "Cari nama, unit, pengesah…"}
           className={`${ctl} min-w-0 flex-1 sm:max-w-xs`} />
-        <span className="text-xs text-slate-500">{paparan.length} {en ? "records" : "rekod"}</span>
+        <label className="flex items-center gap-1 text-xs text-slate-500">
+          {en ? "From" : "Dari"}
+          <input type="date" value={dari} max={hingga || undefined} onChange={(e) => ubah(setDari)(e.target.value)} className={ctl} />
+        </label>
+        <label className="flex items-center gap-1 text-xs text-slate-500">
+          {en ? "To" : "Hingga"}
+          <input type="date" value={hingga} min={dari || undefined} onChange={(e) => ubah(setHingga)(e.target.value)} className={ctl} />
+        </label>
+        {adaTapis && (
+          <button onClick={() => { setCari(""); setDari(""); setHingga(""); setHad(HAD_PAPAR); }}
+            className="text-xs font-semibold text-slate-500 hover:text-slate-700 hover:underline">
+            {en ? "Clear" : "Kosongkan"}
+          </button>
+        )}
+        <span className="text-xs text-slate-500">{ditapis.length} {en ? "records" : "rekod"}</span>
       </div>
 
       {paparan.length === 0 ? (
@@ -79,6 +107,14 @@ export function RekodDisahkan({ rows, en, jenis, pilihan, basePath }: {
               ))}
             </tbody>
           </table>
+          {ditapis.length > paparan.length && (
+            <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2 text-xs text-slate-500">
+              <span>{en ? `Showing ${paparan.length} of ${ditapis.length}` : `Papar ${paparan.length} daripada ${ditapis.length}`}</span>
+              <button onClick={() => setHad(had + HAD_PAPAR)} className="font-semibold text-brand-dark hover:underline">
+                {en ? `Show ${HAD_PAPAR} more` : `Tunjuk ${HAD_PAPAR} lagi`}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>
