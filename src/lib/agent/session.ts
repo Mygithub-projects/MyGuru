@@ -28,9 +28,12 @@ export async function deriveAgentContext(session: SessionPayload): Promise<Agent
     if (session.guruId) {
       const guru = await prisma.guru.findUnique({ where: { id: session.guruId } });
       if (guru) {
-        scope.unitIds = [guru.kelabDiselia, guru.sukanDiselia, guru.badanDiselia].filter(
-          (u): u is string => Boolean(u)
-        );
+        // Sumber kebenaran: GuruPenasihatKelab (medan *Diselia lapuk & boleh basi).
+        const pautan = await prisma.guruPenasihatKelab.findMany({
+          where: { guruId: guru.id },
+          select: { namaUnit: true },
+        });
+        scope.unitIds = pautan.map((p) => p.namaUnit);
         if (JAWATAN_SKOP_SEKOLAH.has(guru.jawatanKoko)) scope.isAdmin = true;
       }
     }
