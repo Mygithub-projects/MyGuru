@@ -58,12 +58,21 @@ export function RekodDisahkan({ rows, en, jenis, pilihan, basePath }: {
             {en ? "Clear" : "Kosongkan"}
           </button>
         )}
-        <span className="text-xs text-slate-500">{ditapis.length} {en ? "records" : "rekod"}</span>
+        <span className="text-xs text-slate-500">
+          {adaTapis ? `${ditapis.length} / ${rows.length}` : rows.length} {en ? "records" : "rekod"}
+        </span>
       </div>
 
-      {paparan.length === 0 ? (
+      {/* Senarai disorok sehingga pengguna mencari atau memilih tarikh. */}
+      {!adaTapis ? (
         <p className="rounded-xl bg-white p-4 text-sm text-slate-400 shadow-sm ring-1 ring-slate-200">
-          {en ? "No verified records you can cancel." : "Tiada rekod disahkan yang boleh anda batalkan."}
+          {rows.length === 0
+            ? en ? "No verified records you can cancel." : "Tiada rekod disahkan yang boleh anda batalkan."
+            : en ? "Type a name / unit or choose a date to show records." : "Taip nama / unit atau pilih tarikh untuk papar rekod."}
+        </p>
+      ) : paparan.length === 0 ? (
+        <p className="rounded-xl bg-white p-4 text-sm text-slate-400 shadow-sm ring-1 ring-slate-200">
+          {en ? "No records match." : "Tiada rekod yang sepadan."}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
