@@ -12,7 +12,9 @@ import { prisma } from "../src/lib/prisma";
 import { nilaiEkstra } from "../src/lib/pajsk";
 import { kiraSemulaT6 } from "../src/lib/workflow";
 
-type Peta = { unit: string; jawatan: (j: string) => string };
+type Baris = { bil: number; nama: string; kelas: string; ic: string; jawatan: string; kp?: "K" | "P" };
+// Pulangkan "" = jawatan tidak dikenali (ralat); "LANGKAU" = jangan masukkan.
+type Peta = { unit: string; jawatan: (j: string, r: Baris) => string };
 const PETA: Record<string, Peta> = {
   "sidang-redaksi": {
     unit: "Unit Sidang Redaksi",
@@ -36,6 +38,47 @@ const PETA: Record<string, Peta> = {
       : t.startsWith("AJK") || t.startsWith("AHLI") ? "AJK Kecil Biro"
       : "",
   },
+  // UPP = Majlis Perwakilan Pelajar (setara Majlis Pengawas).
+  upp: {
+    unit: "Unit Perwakilan Pelajar",
+    jawatan: (t) =>
+      t.includes("KETUA") || t === "PENGERUSI" ? "Ketua Murid"
+      : t === "NAIB PENGERUSI" ? "Penolong Ketua Murid"
+      : "Pengawas",
+  },
+  prs: {
+    unit: "Pembimbing Rakan Sebaya",
+    jawatan: (t) =>
+      t === "BERHENTI" ? "LANGKAU"
+      : t === "PENGERUSI" ? "Ketua PRS"
+      : ["NAIB PENGERUSI", "SETIAUSAHA", "NAIB SETIAUSAHA", "BENDAHARI", "NAIB BENDAHARI", "AHLI JAWATANKUASA"].includes(t) ? "AJK Utama"
+      : "",
+  },
+  // Ketua/Penolong kelas; jawatan AJK UKT (jika ada) mengatasi. Naib-naib = 5 (AJK Utama).
+  "ketua-tingkatan": {
+    unit: "Unit Ketua Tingkatan",
+    jawatan: (t, r) =>
+      t === "PENGERUSI" ? "Pengerusi Badan Perkhidmatan"
+      : t.startsWith("NAIB ") ? "AJK Utama"
+      : t === "SETIAUSAHA" ? "Setiausaha"
+      : t === "BENDAHARI" ? "Bendahari"
+      : r.kp === "K" ? "Ketua Tingkatan"
+      : t === "AJK" ? "AJK Utama"
+      : "Penolong Ketua Kelas",
+  },
+  // Unit Kokurikulum: bahagian "Unit Quarter Master" dalam fail UKK dilangkau
+  // (Kuarter Master ditangguhkan atas arahan pengguna 2026-11-26).
+  ukk: {
+    unit: "Unit Kokurikulum",
+    jawatan: (t, r) =>
+      /QUARTER MASTER/i.test((r as Baris & { bahagian?: string }).bahagian ?? "") ? "LANGKAU"
+      : t === "PENGERUSI" ? "Pengerusi Badan Perkhidmatan"
+      : t.startsWith("NAIB ") ? "AJK Utama"
+      : t === "SETIAUSAHA" ? "Setiausaha"
+      : t === "BENDAHARI" ? "Bendahari"
+      : t.startsWith("AHLI") ? "AJK Kecil Biro"
+      : "",
+  },
   koperator: {
     unit: "Koperator Koperasi",
     jawatan: (t) =>
@@ -55,7 +98,7 @@ async function main() {
   const peta = PETA[kunci];
   if (!peta || !fail) throw new Error(`Guna: <${Object.keys(PETA).join("|")}> <fail.json> [--tulis]`);
   const TULIS = process.argv.includes("--tulis");
-  const rows: { bil: number; nama: string; kelas: string; ic: string; jawatan: string }[] = JSON.parse(readFileSync(fail, "utf8"));
+  const rows: Baris[] = JSON.parse(readFileSync(fail, "utf8"));
 
   const penasihat =
     (await prisma.guruPenasihatKelab.findFirst({ where: { namaUnit: peta.unit, peranan: "KetuaPenasihat" }, select: { guruId: true, guru: { select: { nama: true } } } })) ??
@@ -66,6 +109,9 @@ async function main() {
   const rancang: { pelajarId: string; nama: string; asal: string; jawatan: string; markah: number }[] = [];
   const langkau: string[] = [];
   for (const r of rows) {
+    const jawatan = peta.jawatan((r.jawatan ?? "").toUpperCase().trim(), r);
+    if (jawatan === "LANGKAU") { langkau.push(`${r.bil}. ${r.nama} — ${r.jawatan}`); continue; }
+    if (!jawatan) throw new Error(`Jawatan tidak dikenali: ${r.jawatan} (${r.nama})`);
     const p = await prisma.pelajar.findUnique({
       where: { noIc: r.ic },
       select: { id: true, nama: true, kokurikulum: { where: { jenisKoko: "Perkhidmatan" } } },
@@ -73,9 +119,7 @@ async function main() {
     if (!p) { langkau.push(`${r.bil}. ${r.nama} (${r.kelas}, ${r.ic}) — tiada dalam sistem`); continue; }
     const ada = p.kokurikulum[0];
     if (ada) { langkau.push(`${r.bil}. ${p.nama} — sudah dalam ${ada.namaUnitT6} (${ada.jawatanT6})`); continue; }
-    const jawatan = peta.jawatan(r.jawatan.toUpperCase().trim());
-    if (!jawatan) throw new Error(`Jawatan tidak dikenali: ${r.jawatan} (${r.nama})`);
-    rancang.push({ pelajarId: p.id, nama: p.nama, asal: r.jawatan, jawatan, markah: nilaiEkstra(jawatan) });
+    rancang.push({ pelajarId: p.id, nama: p.nama, asal: [r.kp, r.jawatan].filter(Boolean).join(" ") || "-", jawatan, markah: nilaiEkstra(jawatan) });
   }
   for (const x of rancang) console.log(`${x.nama.padEnd(46)} ${x.asal.padEnd(32)} → ${x.jawatan} (${x.markah})`);
   if (langkau.length) console.log(`\nDilangkau:\n  ${langkau.join("\n  ")}`);
