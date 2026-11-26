@@ -123,6 +123,12 @@ export function SlipPajsk({
               <td className={`${td} text-center font-bold`}>{disahkan ? markahEkstra : "—"}</td>
             </tr>
             <tr>
+              <td colSpan={2} className={`${td} text-right font-bold`}>{t.gpa}</td>
+              <td colSpan={4} className={`${td} font-bold`}>
+                {t.gpaTeks} : {disahkan && markah != null ? markah : "—"}
+              </td>
+            </tr>
+            <tr>
               <td colSpan={2} className={`${td} text-right font-bold`}>{t.gred10}</td>
               <td colSpan={4} className={`${td} text-center text-sm font-bold text-brand-dark`}>
                 {!disahkan ? (

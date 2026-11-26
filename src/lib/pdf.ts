@@ -299,9 +299,12 @@ export async function janaButiranPDF(d: ButiranData): Promise<Uint8Array> {
     { r: 10, c: 0, cs: 2, teks: t.jumlahSkor, bold: true, kanan: true },
     ...tiga(10, (r) => (d.disahkan && r.jumlah != null ? `${r.jumlah} (${r.jumlah}%)` : "—"), { bold: true, tengah: true }),
     { r: 10, c: 5, teks: d.disahkan ? String(d.markahEkstra) : "—", bold: true, tengah: true },
-    { r: 11, c: 0, cs: 2, teks: t.gred10, bold: true, kanan: true },
+    // GPA/CGPA — markah keseluruhan (purata 2 bidang terbaik + ekstra), ikut slip KPM.
+    { r: 11, c: 0, cs: 2, teks: t.gpa, bold: true, kanan: true },
+    { r: 11, c: 2, cs: 4, teks: `${t.gpaTeks} : ${d.disahkan && d.markahT6 != null ? d.markahT6 : "—"}`, bold: true },
+    { r: 12, c: 0, cs: 2, teks: t.gred10, bold: true, kanan: true },
     {
-      r: 11, c: 2, cs: 4, teks: markahAkhir, bold: true, tengah: true,
+      r: 12, c: 2, cs: 4, teks: markahAkhir, bold: true, tengah: true,
       size: d.disahkan ? 12 : 9, warna: d.disahkan ? BRAND : rgb(0.7, 0.45, 0.05),
     },
   ];
@@ -331,7 +334,7 @@ export async function janaButiranPDF(d: ButiranData): Promise<Uint8Array> {
     const nNota = s.nota ? balut(s.nota, font, NOTA, lebarSel(s)).length : 0;
     return n * Math.max(LH, size + 2) + nNota * (NOTA + 2) + PAD * 2;
   };
-  const bilBaris = 12;
+  const bilBaris = 13;
   const tinggi = Array.from({ length: bilBaris }, (_, r) =>
     Math.max(18, ...sel_.filter((s) => s.r === r && (s.rs ?? 1) === 1).map(tinggiPerlu)));
   const yBaris = tinggi.reduce<number[]>((a, h) => [...a, a[a.length - 1] - h], [y]);

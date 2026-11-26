@@ -77,7 +77,7 @@ export interface Dict {
       pelibatan: string; aktiviti: string; jawatan: string; peringkat: string; tahapPencapaian: string;
       namaProjek: string; pengurusan: string; peringkatPelaksanaan: string;
       penyertaan: string; kehadiran: string; kehadiranNote: string;
-      perkhidmatan: string; anugerah: string; pelaporan: string; jumlahSkor: string; gred10: string;
+      perkhidmatan: string; anugerah: string; pelaporan: string; jumlahSkor: string; gpa: string; gpaTeks: string; gred10: string;
       belumDaftar: string; note: string;
     };
     attendanceTitle: string; present: string; sessionsRecorded: string; attendancePct: string;
@@ -462,7 +462,7 @@ const ms: Dict = {
       pelibatan: "Pelibatan", aktiviti: "Aktiviti", jawatan: "Jawatan", peringkat: "Peringkat", tahapPencapaian: "Tahap Pencapaian",
       namaProjek: "Nama Projek", pengurusan: "Pengurusan", peringkatPelaksanaan: "Peringkat Pelaksanaan",
       penyertaan: "Penyertaan", kehadiran: "Kehadiran", kehadiranNote: "perjumpaan PAJSK ikut unit, maks 15 (markah /50)",
-      perkhidmatan: "Perkhidmatan", anugerah: "Anugerah Khas", pelaporan: "Pelaporan Markah", jumlahSkor: "Jumlah Skor (%)", gred10: "10% / Gred",
+      perkhidmatan: "Perkhidmatan", anugerah: "Anugerah Khas", pelaporan: "Pelaporan Markah", jumlahSkor: "Jumlah Skor (%)", gpa: "GPA/CGPA", gpaTeks: "TINGKATAN ENAM SEM 3", gred10: "10% / Gred",
       belumDaftar: "Belum berdaftar",
       note: "Nombor dalam kurungan ialah markah. Kehadiran: 1 perjumpaan PAJSK = 2 sesi (160 minit), maks 15. Markah keseluruhan = purata 2 bidang terbaik + ekstra (had 100); 10% = markah ÷ 10.",
     },
@@ -991,7 +991,7 @@ const en: Dict = {
       pelibatan: "Involvement", aktiviti: "Activity", jawatan: "Position", peringkat: "Level", tahapPencapaian: "Achievement",
       namaProjek: "Project Name", pengurusan: "Management", peringkatPelaksanaan: "Implementation Level",
       penyertaan: "Participation", kehadiran: "Attendance", kehadiranNote: "PAJSK meetings per unit, max 15 (marks /50)",
-      perkhidmatan: "Service", anugerah: "Special Award", pelaporan: "Mark Reporting", jumlahSkor: "Total Score (%)", gred10: "10% / Grade",
+      perkhidmatan: "Service", anugerah: "Special Award", pelaporan: "Mark Reporting", jumlahSkor: "Total Score (%)", gpa: "GPA/CGPA", gpaTeks: "FORM SIX SEM 3", gred10: "10% / Grade",
       belumDaftar: "Not registered",
       note: "Numbers in brackets are marks. Attendance: 1 PAJSK meeting = 2 sessions (160 min), max 15. Overall = average of the best 2 divisions + extra (capped at 100); 10% = score ÷ 10.",
     },
