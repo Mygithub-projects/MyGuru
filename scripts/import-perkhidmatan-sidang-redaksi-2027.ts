@@ -16,6 +16,7 @@ const TULIS = process.argv.includes("--tulis");
 function padanJawatan(j: string): string {
   const t = j.toUpperCase().trim();
   if (t === "PENGERUSI") return "Pengerusi Badan Perkhidmatan";
+  if (t.startsWith("NAIB PENGERUSI")) return "Naib Pengerusi Badan Perkhidmatan";
   if (t.startsWith("NAIB ")) return "AJK Utama";
   if (t === "SETIAUSAHA") return "Setiausaha";
   if (t === "BENDAHARI") return "Bendahari";

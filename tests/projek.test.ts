@@ -6,7 +6,7 @@ import { gabungProjek, unitKredit } from "../src/lib/projek";
 const laporan = (o: Partial<LaporanProjek> = {}): LaporanProjek => ({
   id: "L1", namaProjek: "Merentas Desa", jenisKoko: "Sukan", namaUnit: "Futsal", jawatanProjek: "Pengurus Projek",
   peringkatProjek: "Sekolah", tarikh: null, laporan: null, setiausahaId: "SU", failKertasKerja: null, failLaporanImpak: null,
-  kewangan: null, kekuatan: null, kelemahan: null, statusPengesahan: "Approved", komenGuru: null, disahkanOleh: null,
+  kewangan: null, kekuatan: null, kelemahan: null, statusPengesahan: "Approved", komenGuru: null, disahkanOleh: null, disahkanOlehId: null,
   tarikhSahkan: null, createdAt: new Date(), updatedAt: new Date(), sesiId: null, projekId: "P1", ...o,
 });
 

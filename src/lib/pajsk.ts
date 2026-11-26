@@ -316,6 +316,8 @@ export function markahProjekPeringkat(peringkat?: string | null): number {
  */
 export const MARKAH_EKSTRA_PERKHIDMATAN: { pattern: RegExp; markah: number }[] = [
   { pattern: /AJK KECIL|PENOLONG KETUA KELAS|PENOLONG KETUA BILIK|KETUA BILIK|KETUA DORM/, markah: 3 },
+  // Naib Pengerusi Unit Perkhidmatan = 6 (bukan 8 — itu Naib Pengerusi UPP / Penolong Ketua Murid).
+  { pattern: /(NAIB|TIMBALAN) PENGERUSI (BADAN|UNIT)/, markah: 6 },
   { pattern: /PENOLONG KETUA MURID|TIMBALAN PENGERUSI|NAIB PENGERUSI/, markah: 8 },
   { pattern: /PENOLONG KETUA ASRAMA|PENOLONG BADAR|PENGAWAS PUSAT SUMBER|LEMBAGA PENGARAH KOPERASI/, markah: 6 },
   { pattern: /PENGAWAS KOPERASI|AJK UTAMA|AHLI JAWATANKUASA|\bAJK\b|BENDAHARI|SETIAUSAHA|KETUA BIRO|KETUA KELAS|KETUA TINGKATAN/, markah: 5 },

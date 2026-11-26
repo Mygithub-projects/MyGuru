@@ -56,6 +56,7 @@ export async function PATCH(
       status: parsed.data.status,
       markah,
       komen: parsed.data.komen,
+      pengesahId: guru?.id ?? null,
     });
     return ok(
       result,
