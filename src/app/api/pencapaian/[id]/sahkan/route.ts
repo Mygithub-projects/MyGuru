@@ -31,6 +31,8 @@ export async function PATCH(
 
   const rec = await prisma.pencapaian.findUnique({ where: { id } });
   if (!rec) return fail("Pencapaian tidak dijumpai", 404);
+  // Ekstra Kurikulum mempunyai aliran sendiri (Ketua Unit Kokurikulum sahaja).
+  if (rec.kategori === "ekstra") return fail("Ekstra Kurikulum hanya boleh disahkan oleh Ketua Unit Kokurikulum", 403);
 
   // Hanya guru penasihat UNIT berkenaan boleh sahkan (rekod lama tanpa
   // namaUnit kekal guna skop pelajar sebagai jatuhan — lihat §3).

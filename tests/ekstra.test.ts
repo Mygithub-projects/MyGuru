@@ -44,3 +44,23 @@ describe("pilihan jawatan Unit Perkhidmatan (dropdown guru)", () => {
     expect(nilaiEkstra("Ahli Lembaga Pengarah Koperasi")).toBe(6);
   });
 });
+
+describe("Ekstra Kurikulum — markah pilihan Ketua Unit Koko", () => {
+  it("perkara dipilih: markah kurungan diguna terus", async () => {
+    const { teksEkstra } = await import("../src/lib/skor-unit");
+    const { nilaiEkstra } = await import("../src/lib/pajsk");
+    expect(nilaiEkstra(teksEkstra({ namaPencapaian: "Kejohanan X (2026)", perkaraEkstra: "ANUGERAH KHAS SUKAN (NEGERI)", markah: 4 }))).toBe(4);
+    expect(nilaiEkstra(teksEkstra({ namaPencapaian: "x", perkaraEkstra: "PENGAKAP RAJA / PANDU PUTERI RAJA", markah: 10 }))).toBe(10);
+  });
+  it("rekod lama tanpa perkara: dipadan ikut nama", async () => {
+    const { teksEkstra } = await import("../src/lib/skor-unit");
+    const { nilaiEkstra } = await import("../src/lib/pajsk");
+    expect(nilaiEkstra(teksEkstra({ namaPencapaian: "ARP EMAS", perkaraEkstra: null, markah: 0 }))).toBe(10);
+  });
+  it("senarai Anugerah Khas ikut dokumen (16 perkara, skor 2–10)", async () => {
+    const { ANUGERAH_KHAS } = await import("../src/lib/enums");
+    expect(ANUGERAH_KHAS).toHaveLength(16);
+    expect(Math.max(...ANUGERAH_KHAS.map((a) => a.skor))).toBe(10);
+    expect(Math.min(...ANUGERAH_KHAS.map((a) => a.skor))).toBe(2);
+  });
+});

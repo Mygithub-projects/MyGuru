@@ -11,7 +11,7 @@ import { gabungProjek, INCLUDE_PESERTA_LULUS } from "./projek";
 import ExcelJS from "exceljs";
 import { prisma } from "./prisma";
 import { nilaiEkstra, type Gred } from "./pajsk";
-import { skorUnit, type SkorUnit } from "./skor-unit";
+import { skorUnit, teksEkstra, type SkorUnit } from "./skor-unit";
 import { jumlahAktivitiIkutKohort, jumlahKehadiranUntuk } from "./tetapan-kehadiran";
 
 export const BAHAGIAN = ["Kelab", "Sukan", "Uniform", "Perkhidmatan"] as const;
@@ -89,12 +89,12 @@ export async function dataRumusan(f: FilterRumusan = {}): Promise<BarisRumusan[]
     // Anugerah khas (ekstra) — dipaparkan dalam borang Unit Perkhidmatan.
     const ekstra = terbaik(
       p.pencapaian.filter((c) => c.kategori === "ekstra"),
-      (c) => nilaiEkstra(c.namaPencapaian),
+      (c) => nilaiEkstra(teksEkstra(c)),
     );
     for (const k of p.kokurikulum) {
       if (!isBahagian(k.jenisKoko) || !k.namaUnitT6) continue;
       const s = skorUnit(p, k, jumlahKehadiranUntuk(jumlahKohort.get(p.kohort ?? "")!, k.jenisKoko));
-      const mAnugerah = ekstra ? nilaiEkstra(ekstra.namaPencapaian) : 0;
+      const mAnugerah = ekstra ? nilaiEkstra(teksEkstra(ekstra)) : 0;
       baris.push({
         ...s,
         nama: p.nama,

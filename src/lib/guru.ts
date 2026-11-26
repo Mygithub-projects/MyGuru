@@ -23,6 +23,9 @@ export async function pelajarIdsDalamSkop(guru: Guru, opts: { urus?: boolean } =
   return [...new Set(koko.map((k) => k.pelajarId))];
 }
 
+/** Pencapaian bukan Ekstra Kurikulum (ekstra disahkan Ketua Unit Koko di halaman sendiri). */
+const BUKAN_EKSTRA = { AND: [{ OR: [{ kategori: null }, { kategori: { not: "ekstra" } }] }] };
+
 /** Skop laporan projek: ikut unit rekod, ATAU mana-mana unit projek pelbagai unit. */
 function whereProjek(whereUnit: object, ids: string[] | null, units: string[]) {
   return ids === null ? {} : { OR: [whereUnit, { projek: { units: { hasSome: units } } }] };
@@ -64,7 +67,7 @@ export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const whereUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, setiausahaId: { in: ids } }] };
   const whereSesi = ids === null ? {} : { namaUnit: { in: units } };
   const [a, b, c, d, e, f, g] = await Promise.all([
-    db.pencapaian.count({ where: { statusSemakan: "Pending", ...wherePelajarUnit } }),
+    db.pencapaian.count({ where: { statusSemakan: "Pending", ...BUKAN_EKSTRA, ...wherePelajarUnit } }),
     db.aktivitiLuar.count({ where: { statusPengesahan: "Pending", ...whereLuar(guru?.id ?? null, wherePelajarUnit) } }),
     db.logPertukaran.count({ where: { status: "Pending", ...wherePertukaran(ids, units) } }),
     db.laporanMingguan.count({ where: { statusSemakan: "Pending", ...whereUnit } }),
@@ -88,7 +91,7 @@ export async function getGuruDashboard(guru: Guru) {
   const [pencapaian, aktivitiLuar, pertukaran, laporanMingguan, laporanProjek, sesiKehadiran, cadanganJawatan] =
     await Promise.all([
       db.pencapaian.findMany({
-        where: { statusSemakan: "Pending", ...wherePelajarUnit },
+        where: { statusSemakan: "Pending", ...BUKAN_EKSTRA, ...wherePelajarUnit },
         include: { pelajar: { select: { nama: true, kelasT6: true } } },
         orderBy: { createdAt: "desc" },
       }),

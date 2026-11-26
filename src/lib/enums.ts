@@ -175,3 +175,32 @@ export const PERINGKAT_LUAR = ["Zon/Daerah", "Daerah", "Negeri", "Kebangsaan", "
 export const JANTINA = ["L", "P"] as const;
 export const KAUM = ["Melayu", "Cina", "India", "Lain-lain"] as const;
 export const AGAMA = ["Islam", "Buddha", "Hindu", "Kristian", "Lain-lain"] as const;
+
+// ---------------------------------------------------------------------------
+//  Ekstra Kurikulum — Anugerah Khas (dokumen "MARKAH EKSTRA KURI", tab ANUGERAH
+//  KHAS KURI). Pelajar hantar program; Ketua Unit Kokurikulum memilih perkara di
+//  bawah semasa mengesahkan, dan markah = skor perkara itu. Markah Ekstra
+//  keseluruhan = MAX(jawatan Unit Perkhidmatan, anugerah diluluskan), had 10.
+// ---------------------------------------------------------------------------
+export const ANUGERAH_KHAS: readonly { perkara: string; skor: number }[] = [
+  { perkara: "ANUGERAH REMAJA PERDANA (ANJURAN KBS) (EMAS)", skor: 10 },
+  { perkara: "ANUGERAH REMAJA PERDANA (ANJURAN KBS) (PERAK)", skor: 7 },
+  { perkara: "ANUGERAH REMAJA PERDANA (ANJURAN KBS) (GANGSA)", skor: 5 },
+  { perkara: "PENGAKAP RAJA / PANDU PUTERI RAJA", skor: 10 },
+  { perkara: "ANUGERAH KHAS SUKAN (KEBANGSAAN)", skor: 5 },
+  { perkara: "ANUGERAH KHAS SUKAN (NEGERI)", skor: 4 },
+  { perkara: "ANUGERAH KHAS SUKAN (ZON/DAERAH/BAHAGIAN)", skor: 3 },
+  { perkara: "ANUGERAH KHAS SUKAN (SEKOLAH)", skor: 2 },
+  { perkara: "PENYERTAAN PERINGKAT ANTARABANGSA (EMAS)", skor: 5 },
+  { perkara: "PENYERTAAN PERINGKAT ANTARABANGSA (PERAK)", skor: 4 },
+  { perkara: "PENYERTAAN PERINGKAT ANTARABANGSA (GANGSA)", skor: 3 },
+  { perkara: "PENYERTAAN PERINGKAT ANTARABANGSA (PENYERTAAN)", skor: 2 },
+  { perkara: "ANUGERAH-ANUGERAH LAIN (KEBANGSAAN)", skor: 5 },
+  { perkara: "ANUGERAH-ANUGERAH LAIN (NEGERI)", skor: 4 },
+  { perkara: "ANUGERAH-ANUGERAH LAIN (ZON/DAERAH/BAHAGIAN)", skor: 3 },
+  { perkara: "ANUGERAH-ANUGERAH LAIN (PENYERTAAN)", skor: 2 },
+];
+/** Peringkat yang pelajar pilih semasa menghantar program Ekstra Kurikulum. */
+export const PERINGKAT_EKSTRA = ["Sekolah", "Zon/Daerah/Bahagian", "Negeri", "Kebangsaan", "Antarabangsa"] as const;
+/** Hanya jawatan ini (dan Admin) boleh mengesahkan Ekstra Kurikulum. */
+export const JAWATAN_SAHKAN_EKSTRA: readonly string[] = ["KetuaUnitKoko"];

@@ -21,6 +21,8 @@ export function getNavForRole(
   adaProjek = false,
   /** Guru KUPP/Pemantau atau Penyelaras — boleh mengesahkan kehadiran guru. */
   sahkanKehadiranGuru = false,
+  /** Ketua Unit Kokurikulum — sahkan Ekstra Kurikulum pelajar. */
+  sahkanEkstra = false,
 ): NavItem[] {
   const notifChat: NavItem[] = [
     { label: t.header.notifications, icon: "bell", action: "notif" },
@@ -31,6 +33,7 @@ export function getNavForRole(
     const items: NavItem[] = [
       { href: "/pelajar", label: t.common.dashboard, icon: "dashboard" },
       { href: "/pelajar/aktiviti", label: stripEmoji(t.pelajar.linkAktiviti), icon: "achievements" },
+      { href: "/pelajar/ekstra", label: t.pelajar.linkEkstra, icon: "cert" },
     ];
     if (subRole === "SU" || subRole === "NSU") {
       items.push(
@@ -54,6 +57,7 @@ export function getNavForRole(
       ...(sahkanKehadiranGuru
         ? [{ href: "/guru/semak-kehadiran-guru", label: t.kehadiranGuru.navAdmin, icon: "attendance" } as NavItem]
         : []),
+      ...(sahkanEkstra ? [{ href: "/guru/ekstra", label: t.pelajar.linkEkstraSemak, icon: "cert" } as NavItem] : []),
       { href: "/guru/analitik", label: stripEmoji(t.guru.linkAnalytics), icon: "analytics" },
       { href: "/guru/pemilihan", label: stripEmoji(t.guru.linkSelection), icon: "trophy" },
       { href: "/guru/laporan", label: t.laporan.semakan.title, icon: "reports" },
@@ -73,6 +77,7 @@ export function getNavForRole(
     { href: "/admin/kehadiran", label: t.admin.actAttendance, icon: "attendance" },
     { href: "/admin/kehadiran-guru", label: t.kehadiranGuru.navAdmin, icon: "attendance" },
     { href: "/admin/laporan", label: t.laporan.semakan.title, icon: "reports" },
+    { href: "/admin/ekstra", label: t.pelajar.linkEkstraSemak, icon: "cert" },
     { href: "/admin/projek", label: t.laporan.projekUrus.title, icon: "trophy" },
     { href: "/admin/demografi", label: t.admin.actDemographics, icon: "demographics" },
     { href: "/admin/analitik", label: stripEmoji(t.admin.actAnalytics), icon: "analytics" },

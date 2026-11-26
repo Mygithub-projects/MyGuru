@@ -13,6 +13,7 @@ export async function AppShell({
   footer,
   adaProjek = false,
   sahkanKehadiranGuru = false,
+  sahkanEkstra = false,
   subRoleLabel,
 }: {
   nama: string;
@@ -23,10 +24,12 @@ export async function AppShell({
   footer?: React.ReactNode;
   adaProjek?: boolean;
   sahkanKehadiranGuru?: boolean;
+  /** Ketua Unit Kokurikulum — boleh mengesahkan Ekstra Kurikulum. */
+  sahkanEkstra?: boolean;
   subRoleLabel?: string | null;
 }) {
   const { t } = await getT();
-  const items = getNavForRole(role, subRole, t, adaProjek, sahkanKehadiranGuru);
+  const items = getNavForRole(role, subRole, t, adaProjek, sahkanKehadiranGuru, sahkanEkstra);
   const institusi = process.env.NEXT_PUBLIC_INSTITUSI || "KTE (Prauniversiti) Desa Mahkota";
 
   return (
