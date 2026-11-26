@@ -102,7 +102,7 @@ export async function senaraiBolehBatal(p: Pelaku, jenis: JenisBatal): Promise<R
         orderBy: { createdAt: "desc" }, take: HAD,
       });
       rows = r.map((x) => ({ jenis, id: x.id, tajuk: `${x.namaPencapaian} (${x.markah} markah)`, pelajar: x.pelajar.nama,
-        unit: x.namaUnit, tarikhSahkan: null, pengesah: null, pengesahGuruId: x.disahkanOlehId }));
+        unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikh ?? x.createdAt), pengesah: null, pengesahGuruId: x.disahkanOlehId }));
       break;
     }
     case "aktivitiLuar": {
@@ -112,7 +112,7 @@ export async function senaraiBolehBatal(p: Pelaku, jenis: JenisBatal): Promise<R
         orderBy: { createdAt: "desc" }, take: HAD,
       });
       rows = r.map((x) => ({ jenis, id: x.id, tajuk: `${x.namaAktiviti} · ${x.peringkat}`, pelajar: x.pelajar.nama,
-        unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikhJanaECert), pengesah: null, pengesahGuruId: x.guruPengiringId }));
+        unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikhJanaECert ?? x.tarikh ?? x.createdAt), pengesah: null, pengesahGuruId: x.guruPengiringId }));
       break;
     }
     case "aktivitiUnit": {
@@ -123,7 +123,7 @@ export async function senaraiBolehBatal(p: Pelaku, jenis: JenisBatal): Promise<R
         orderBy: { tarikhSahkan: "desc" }, take: HAD,
       });
       rows = r.map((x) => ({ jenis, id: x.id, tajuk: `${x.namaAktiviti} · ${x.peringkat} (${x._count.peserta} peserta)`,
-        pelajar: null, unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikhSahkan), pengesah: null, pengesahGuruId: x.disahkanOlehId }));
+        pelajar: null, unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikhSahkan ?? x.tarikh ?? x.createdAt), pengesah: null, pengesahGuruId: x.disahkanOlehId }));
       break;
     }
     case "laporanMingguan": {
@@ -133,7 +133,7 @@ export async function senaraiBolehBatal(p: Pelaku, jenis: JenisBatal): Promise<R
         orderBy: { tarikhSahkan: "desc" }, take: HAD,
       });
       rows = r.map((x) => ({ jenis, id: x.id, tajuk: x.namaProgram ?? x.aktiviti.slice(0, 80), pelajar: x.setiausaha.nama,
-        unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikhSahkan), pengesah: x.disahkanOleh, pengesahGuruId: x.disahkanOlehId }));
+        unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikhSahkan ?? x.tarikh), pengesah: x.disahkanOleh, pengesahGuruId: x.disahkanOlehId }));
       break;
     }
     case "laporanProjek": {
@@ -143,7 +143,7 @@ export async function senaraiBolehBatal(p: Pelaku, jenis: JenisBatal): Promise<R
         orderBy: { tarikhSahkan: "desc" }, take: HAD,
       });
       rows = r.map((x) => ({ jenis, id: x.id, tajuk: x.namaProjek, pelajar: x.setiausaha.nama,
-        unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikhSahkan), pengesah: x.disahkanOleh, pengesahGuruId: x.disahkanOlehId }));
+        unit: x.namaUnit, tarikhSahkan: tarikh(x.tarikhSahkan ?? x.tarikh ?? x.createdAt), pengesah: x.disahkanOleh, pengesahGuruId: x.disahkanOlehId }));
       break;
     }
     case "kehadiranGuru": {
