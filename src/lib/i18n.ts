@@ -605,7 +605,7 @@ const ms: Dict = {
       formatNote: "Setiap tab: Badan Beruniform, Kelab / Persatuan, Sukan / Permainan dan Ekstra Kurikulum (unit, kehadiran, jawatan, penglibatan, pencapaian, projek), diikuti markah PAJSK sistem, markah keseluruhan, gred dan analisis kelas.",
       students: "pelajar", sheets: "tab kelas",
     },
-    colUnits: "Kelab / Sukan / BB", colPajsk: "PAJSK T6", colStatus: "Status", colActions: "Tindakan", detail: "Butiran", edit: "Edit",
+    colUnits: "Kelab / Sukan / BB / Perkhidmatan", colPajsk: "PAJSK T6", colStatus: "Status", colActions: "Tindakan", detail: "Butiran", edit: "Edit",
     pelajarDetail: {
       backToList: "← Senarai Pelajar", downloadPdf: "⬇ Muat turun PDF", viewPdf: "👁 Papar PDF", attendanceLabel: "Kehadiran",
       participationTitle: "Penyertaan & Markah (T6)", notRegistered: "Belum berdaftar dalam mana-mana unit.", totalLabel: "Jumlah",
@@ -1141,7 +1141,7 @@ const en: Dict = {
       formatNote: "Each tab: Uniformed Body, Club / Society, Sport / Game and Extra-curricular (unit, attendance, position, participation, achievement, project), followed by the system PAJSK marks, overall mark, grade and class analysis.",
       students: "students", sheets: "class tabs",
     },
-    colUnits: "Club / Sport / UB", colPajsk: "PAJSK F6", colStatus: "Status", colActions: "Actions", detail: "Details", edit: "Edit",
+    colUnits: "Club / Sport / UB / Service", colPajsk: "PAJSK F6", colStatus: "Status", colActions: "Actions", detail: "Details", edit: "Edit",
     pelajarDetail: {
       backToList: "← Student List", downloadPdf: "⬇ Download PDF", viewPdf: "👁 View PDF", attendanceLabel: "Attendance",
       participationTitle: "Participation & Marks (F6)", notRegistered: "Not registered in any unit yet.", totalLabel: "Total",
