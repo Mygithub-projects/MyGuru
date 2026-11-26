@@ -171,11 +171,26 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
   // Carian: tapis ikut nama, emel atau unit diselia (tidak sensitif huruf besar/kecil).
   const [cari, setCari] = useState("");
   const kunci = cari.trim().toLowerCase();
-  const paparan = kunci
-    ? rows.filter((g) =>
-        [g.nama, g.email ?? "", ...g.penasihatKelab.map((p) => p.namaUnit)].join(" ").toLowerCase().includes(kunci),
-      )
-    : rows;
+  const [hanyaPemantau, setHanyaPemantau] = useState(false);
+  const [tunjukRingkasan, setTunjukRingkasan] = useState(false);
+  const adaPantauan = (g: G) => g.jawatanKoko === "GuruPemantau" || g.penasihatKelab.some((u) => u.peranan === "Pemantau");
+  const paparan = rows
+    .filter((g) => !hanyaPemantau || adaPantauan(g))
+    .filter((g) => !kunci ||
+      [g.nama, g.email ?? "", ...g.penasihatKelab.map((p) => p.namaUnit)].join(" ").toLowerCase().includes(kunci));
+
+  // Ringkasan pemantauan: unit Sukan/Kelab/Uniform -> guru pemantau aktif, ikut
+  // keadaan semasa borang (termasuk perubahan belum disimpan) — untuk urusan ganti.
+  const ringkasan = (["Sukan", "Kelab", "Uniform"] as const).map((jenis) => ({
+    jenis,
+    units: (unitOptions[jenis] ?? []).map((namaUnit) => ({
+      namaUnit,
+      pemantau: rows
+        .filter((g) => g.statusAktif && g.penasihatKelab.some((u) => u.peranan === "Pemantau" && u.namaUnit === namaUnit))
+        .map((g) => g.nama),
+    })),
+  }));
+  const bilTiadaPemantau = ringkasan.flatMap((b) => b.units).filter((u) => u.pemantau.length === 0).length;
 
   function pilihanUnit(jenis: string, semasa: string): string[] {
     const asas = unitOptions[jenis as keyof UnitOptions] ?? [];
@@ -203,11 +218,11 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
       )
     );
   }
-  function tambahUnit(id: string) {
+  function tambahUnit(id: string, peranan = "Penasihat") {
     setRows((r) =>
       r.map((g) =>
         g.id === id
-          ? { ...g, penasihatKelab: [...g.penasihatKelab, { namaUnit: "", jenisKoko: "Kelab", peranan: "Penasihat" }] }
+          ? { ...g, penasihatKelab: [...g.penasihatKelab, { namaUnit: "", jenisKoko: peranan === "Pemantau" ? "Sukan" : "Kelab", peranan }] }
           : g
       )
     );
@@ -323,6 +338,53 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
           {savingAll ? "Menyimpan…" : "Simpan Semua"}
         </button>
       </div>
+      <div className="border-b border-slate-200 px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <button type="button" onClick={() => setTunjukRingkasan((v) => !v)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-violet-50 px-3 py-1.5 font-semibold text-violet-700 ring-1 ring-violet-200 transition hover:bg-violet-100">
+            👁 Ringkasan Pemantauan {tunjukRingkasan ? "▲" : "▼"}
+          </button>
+          {bilTiadaPemantau > 0 && (
+            <span className="rounded-md bg-amber-50 px-2 py-1 font-semibold text-amber-700 ring-1 ring-amber-200">
+              ⚠ {bilTiadaPemantau} unit tiada pemantau
+            </span>
+          )}
+          <label className="ml-auto inline-flex cursor-pointer select-none items-center gap-1.5 text-slate-600">
+            <input type="checkbox" checked={hanyaPemantau} onChange={(e) => setHanyaPemantau(e.target.checked)} className="h-3.5 w-3.5 accent-violet-600" />
+            Guru Pemantau sahaja
+          </label>
+        </div>
+        {tunjukRingkasan && (
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            {ringkasan.map((b) => (
+              <div key={b.jenis} className="rounded-xl ring-1 ring-slate-200">
+                <p className="border-b border-slate-100 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  {JENIS.find((j) => j.v === b.jenis)?.l ?? b.jenis}
+                </p>
+                <ul className="divide-y divide-slate-100 text-xs">
+                  {b.units.map((u) => (
+                    <li key={u.namaUnit} className="px-3 py-1.5">
+                      <p className="font-medium text-slate-700">{u.namaUnit}</p>
+                      {u.pemantau.length ? (
+                        <div className="mt-0.5 flex flex-wrap gap-1">
+                          {u.pemantau.map((n) => (
+                            <button key={n} type="button" onClick={() => setCari(n.toLowerCase())} title="Tapis senarai kepada guru ini"
+                              className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] text-violet-700 ring-1 ring-violet-200 hover:bg-violet-100">
+                              {n}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-0.5 text-[11px] font-semibold text-amber-600">⚠ Tiada pemantau</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="hidden border-b border-slate-200 bg-slate-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500 lg:grid lg:grid-cols-[minmax(15rem,18rem)_minmax(0,1fr)_auto] lg:gap-4">
         <span>Guru · Jawatan Koko · {t.statusAktif}</span>
         <span>{t.unitDiselia}</span>
@@ -344,6 +406,17 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
                     <p className="truncate text-xs text-slate-400">{g.email}</p>
                   </div>
                 </div>
+                {g.penasihatKelab.some((u) => u.peranan === "Pemantau" && u.namaUnit) && (
+                  <p className="rounded-lg bg-violet-50 px-2.5 py-1.5 text-xs text-violet-800 ring-1 ring-violet-200">
+                    <span className="font-semibold">👁 Memantau:</span>{" "}
+                    {g.penasihatKelab.filter((u) => u.peranan === "Pemantau" && u.namaUnit).map((u) => u.namaUnit).join(", ")}
+                  </p>
+                )}
+                {g.jawatanKoko === "GuruPemantau" && !g.penasihatKelab.some((u) => u.peranan === "Pemantau" && u.namaUnit) && (
+                  <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+                    ⚠ Guru Pemantau tanpa unit pantauan — tambah di bahagian &ldquo;Unit dipantau&rdquo;.
+                  </p>
+                )}
                 <div className="flex items-center gap-3">
                   <select value={g.jawatanKoko} onChange={(e) => upd(g.id, "jawatanKoko", e.target.value)} className={`${sel} min-w-0 flex-1`}>
                     {JAWATAN.map((j) => <option key={j.v} value={j.v}>{j.l}</option>)}
@@ -359,33 +432,65 @@ export function GuruClient({ guru: initial, unitOptions, t }: { guru: G[]; unitO
               </div>
               <div className="min-w-0">
                 <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500 lg:hidden">{t.unitDiselia}</p>
-                {g.penasihatKelab.length === 0 && (
-                  <p className="mb-2 rounded-lg bg-slate-50 px-2.5 py-2 text-xs text-slate-400">{t.noUnitAssigned}</p>
-                )}
-                <div className="space-y-1.5">
-                  {g.penasihatKelab.map((u, i) => (
-                    <div key={i} className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50/60 p-1.5">
+                {(() => {
+                  const baris = (u: Penugasan, i: number, pantau: boolean) => (
+                    <div key={i} className={`flex flex-wrap items-center gap-1.5 rounded-lg border p-1.5 ${pantau ? "border-violet-200 bg-violet-50/60" : "border-slate-200 bg-slate-50/60"}`}>
                       <select value={u.jenisKoko} onChange={(e) => updUnitJenis(g.id, i, e.target.value)} className={`${sel} w-28 shrink-0 text-xs`}>
-                        {JENIS.map((j) => <option key={j.v} value={j.v}>{j.l}</option>)}
+                        {JENIS.filter((j) => !pantau || j.v !== "Perkhidmatan").map((j) => <option key={j.v} value={j.v}>{j.l}</option>)}
                       </select>
                       <select value={u.namaUnit} onChange={(e) => updUnit(g.id, i, "namaUnit", e.target.value)} className={`${sel} min-w-[10rem] flex-1 text-xs`}>
                         {!u.namaUnit && <option value="">{t.unitNamePlaceholder}</option>}
                         {pilihanUnit(u.jenisKoko, u.namaUnit).map((n) => <option key={n} value={n}>{n}</option>)}
                       </select>
-                      <select value={u.peranan} onChange={(e) => updUnit(g.id, i, "peranan", e.target.value)} className={`${sel} w-28 shrink-0 text-xs`}>
-                        {PERANAN.map((p) => <option key={p.v} value={p.v}>{p.l}</option>)}
-                      </select>
+                      {pantau ? (
+                        <span className="w-28 shrink-0 rounded-lg bg-violet-100 px-2 py-1.5 text-center text-xs font-semibold text-violet-700">👁 Pemantau</span>
+                      ) : (
+                        <select value={u.peranan} onChange={(e) => updUnit(g.id, i, "peranan", e.target.value)} className={`${sel} w-28 shrink-0 text-xs`}>
+                          {PERANAN.filter((p) => p.v !== "Pemantau").map((p) => <option key={p.v} value={p.v}>{p.l}</option>)}
+                        </select>
+                      )}
                       <button onClick={() => buangUnit(g.id, i)} title="Buang unit ini"
                         className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-slate-400 ring-1 ring-slate-200 transition hover:bg-red-500 hover:text-white hover:ring-red-500">
                         <IconClose />
                       </button>
                     </div>
-                  ))}
-                </div>
-                <button onClick={() => tambahUnit(g.id)}
-                  className="mt-2 inline-flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-brand hover:bg-brand-light hover:text-brand-dark">
-                  <IconPlus />{t.addUnit}
-                </button>
+                  );
+                  const indeks = g.penasihatKelab.map((u, i) => ({ u, i }));
+                  const diselia = indeks.filter((x) => x.u.peranan !== "Pemantau");
+                  const dipantau = indeks.filter((x) => x.u.peranan === "Pemantau");
+                  const tunjukPantau = dipantau.length > 0 || g.jawatanKoko === "GuruPemantau";
+                  return (
+                    <>
+                      {diselia.length === 0 && !tunjukPantau && (
+                        <p className="mb-2 rounded-lg bg-slate-50 px-2.5 py-2 text-xs text-slate-400">{t.noUnitAssigned}</p>
+                      )}
+                      {diselia.length > 0 && <div className="space-y-1.5">{diselia.map((x) => baris(x.u, x.i, false))}</div>}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <button onClick={() => tambahUnit(g.id)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-brand hover:bg-brand-light hover:text-brand-dark">
+                          <IconPlus />{t.addUnit}
+                        </button>
+                        {!tunjukPantau && (
+                          <button onClick={() => tambahUnit(g.id, "Pemantau")}
+                            className="inline-flex items-center gap-1 rounded-lg border border-dashed border-violet-300 px-3 py-1.5 text-xs font-semibold text-violet-600 transition hover:bg-violet-50">
+                            <IconPlus />Tambah pantauan
+                          </button>
+                        )}
+                      </div>
+                      {tunjukPantau && (
+                        <div className="mt-3 rounded-xl border border-violet-200 p-2">
+                          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-violet-700">👁 Unit dipantau (lihat sahaja)</p>
+                          {dipantau.length === 0 && <p className="mb-1.5 text-xs text-slate-400">Belum ada unit pantauan.</p>}
+                          <div className="space-y-1.5">{dipantau.map((x) => baris(x.u, x.i, true))}</div>
+                          <button onClick={() => tambahUnit(g.id, "Pemantau")}
+                            className="mt-2 inline-flex items-center gap-1 rounded-lg border border-dashed border-violet-300 px-3 py-1.5 text-xs font-semibold text-violet-600 transition hover:bg-violet-50">
+                            <IconPlus />Tambah pantauan
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
               <div>
                 <div className="flex items-center gap-1.5 lg:justify-end">
