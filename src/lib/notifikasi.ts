@@ -55,7 +55,8 @@ export async function notifyGuruUntukUnit(namaUnit: string | null, input: Omit<N
     where: {
       statusAktif: true,
       OR: [
-        ...(namaUnit ? [{ kelabDiselia: namaUnit }, { sukanDiselia: namaUnit }, { badanDiselia: namaUnit }] : []),
+        // Sumber kebenaran: GuruPenasihatKelab (medan *Diselia lapuk & boleh basi).
+        ...(namaUnit ? [{ penasihatKelab: { some: { namaUnit } } }] : []),
         { jawatanKoko: { in: SELURUH } },
       ],
     },

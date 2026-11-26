@@ -43,31 +43,20 @@ export async function senaraiUnit(): Promise<SenaraiUnit> {
 
 /**
  * Hanya unit yang MEMPUNYAI guru penasihat boleh dipohon — supaya setiap
- * pendaftaran/pertukaran ada penyelia. Sukan/Kelab/Uniform baca medan lapuk
- * `Guru.sukanDiselia/kelabDiselia/badanDiselia` (tiada perubahan tingkah laku).
- * Perkhidmatan (kategori baharu, tiada medan lapuk) baca terus dari
- * `GuruPenasihatKelab` — jadual sumber-kebenaran RBAC yang UI "Urus Guru"
- * (admin) sudah tulis melaluinya.
+ * pendaftaran/pertukaran ada penyelia. Semua kategori baca dari
+ * `GuruPenasihatKelab` — jadual sumber-kebenaran RBAC. Medan lapuk
+ * `Guru.sukanDiselia/kelabDiselia/badanDiselia` TIDAK dibaca lagi kerana basi
+ * (cth masih "Kelab Muzik" selepas penggabungan) dan hanya muat satu kelab.
  */
 export async function senaraiUnitBerpenasihat(): Promise<SenaraiUnit> {
-  const guru = await prisma.guru.findMany({
-    where: { statusAktif: true },
-    select: { sukanDiselia: true, kelabDiselia: true, badanDiselia: true },
-  });
   const set: Record<string, Set<string>> = {
     Sukan: new Set(), Kelab: new Set(), Uniform: new Set(), Perkhidmatan: new Set(),
   };
-  for (const g of guru) {
-    if (g.sukanDiselia) set.Sukan.add(buangKurungan(g.sukanDiselia) || g.sukanDiselia);
-    if (g.kelabDiselia) set.Kelab.add(buangKurungan(g.kelabDiselia) || g.kelabDiselia);
-    if (g.badanDiselia) set.Uniform.add(buangKurungan(g.badanDiselia) || g.badanDiselia);
-  }
-
-  const perkhidmatan = await prisma.guruPenasihatKelab.findMany({
-    where: { jenisKoko: "Perkhidmatan", guru: { statusAktif: true } },
-    select: { namaUnit: true },
+  const pautan = await prisma.guruPenasihatKelab.findMany({
+    where: { guru: { statusAktif: true } },
+    select: { namaUnit: true, jenisKoko: true },
   });
-  for (const p of perkhidmatan) set.Perkhidmatan.add(buangKurungan(p.namaUnit) || p.namaUnit);
+  for (const p of pautan) set[p.jenisKoko]?.add(buangKurungan(p.namaUnit) || p.namaUnit);
 
   const susun = (s: Set<string>) => [...s].sort((a, b) => a.localeCompare(b, "ms"));
   return {
