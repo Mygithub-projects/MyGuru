@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { dbKohort } from "@/lib/prisma-kohort";
 import { getT } from "@/lib/locale";
+import { buangKurungan } from "@/lib/pajsk";
 import { PelajarClient } from "./PelajarClient";
 
 export default async function PelajarAdminPage() {
@@ -10,12 +11,26 @@ export default async function PelajarAdminPage() {
     select: {
       id: true, nama: true, noIc: true, kelasT6: true,
       markahPajskT6: true, peratusPajskT6: true, statusAktif: true,
-      kokurikulum: { select: { jenisKoko: true, namaUnitT6: true } },
+      kokurikulum: { select: { jenisKoko: true, namaUnitT6: true, jawatanT6: true } },
     },
   });
 
   const unitOf = (koko: { jenisKoko: string; namaUnitT6: string | null }[], jenis: string) =>
     koko.find((k) => k.jenisKoko === jenis)?.namaUnitT6 ?? null;
+
+  // Tag jawatan di bawah nama: hanya jawatan sebenar (bukan "Ahli ..."), markah
+  // dalam kurungan dari import lama dibuang. Susunan ikut bidang.
+  const SUSUNAN = ["Uniform", "Kelab", "Sukan", "Perkhidmatan"];
+  // Seragamkan huruf: import lama simpan "NAIB SETIAUSAHA", sistem "Naib Setiausaha".
+  const AKRONIM = new Set(["AJK", "PRS", "UKT", "UPP", "ICT"]);
+  const kemas = (s: string) =>
+    s.split(/\s+/).map((w) => (AKRONIM.has(w.toUpperCase()) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())).join(" ");
+  const jawatanOf = (koko: { jenisKoko: string; namaUnitT6: string | null; jawatanT6: string | null }[]) =>
+    koko
+      .map((k) => ({ jenis: k.jenisKoko, unit: k.namaUnitT6, jawatan: kemas(buangKurungan(k.jawatanT6)) }))
+      .filter((k): k is { jenis: string; unit: string; jawatan: string } =>
+        !!k.unit && !!k.jawatan && !/^AHLI(\s|$)/i.test(k.jawatan))
+      .sort((a, b) => SUSUNAN.indexOf(a.jenis) - SUSUNAN.indexOf(b.jenis));
 
   const pelajar = raw.map((p) => ({
     id: p.id,
@@ -28,6 +43,8 @@ export default async function PelajarAdminPage() {
     kelab: unitOf(p.kokurikulum, "Kelab"),
     sukan: unitOf(p.kokurikulum, "Sukan"),
     badan: unitOf(p.kokurikulum, "Uniform"),
+    perkhidmatan: unitOf(p.kokurikulum, "Perkhidmatan"),
+    jawatan: jawatanOf(p.kokurikulum),
   }));
 
   const { locale, t } = await getT();

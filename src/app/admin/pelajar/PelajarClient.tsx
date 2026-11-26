@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { getDict, type Locale } from "@/lib/i18n";
+import { getDict, labelJawatan, type Locale } from "@/lib/i18n";
 
 interface P {
   id: string;
@@ -14,7 +14,17 @@ interface P {
   kelab: string | null;
   sukan: string | null;
   badan: string | null;
+  perkhidmatan: string | null;
+  jawatan: { jenis: string; unit: string; jawatan: string }[];
 }
+
+/** Warna tag jawatan ikut bidang (selaras ikon lajur unit). */
+const WARNA_JENIS: Record<string, string> = {
+  Uniform: "bg-amber-50 text-amber-800 ring-amber-200",
+  Kelab: "bg-sky-50 text-sky-800 ring-sky-200",
+  Sukan: "bg-emerald-50 text-emerald-800 ring-emerald-200",
+  Perkhidmatan: "bg-violet-50 text-violet-800 ring-violet-200",
+};
 
 type SortKey = "nama" | "noIc" | "kelasT6" | "markahPajskT6" | "statusAktif";
 type SortDir = "asc" | "desc";
@@ -67,7 +77,9 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
         (p) =>
           p.nama.toLowerCase().includes(q) ||
           p.noIc.includes(q) ||
-          (p.kelasT6 ?? "").toLowerCase().includes(q)
+          (p.kelasT6 ?? "").toLowerCase().includes(q) ||
+          [p.kelab, p.sukan, p.badan, p.perkhidmatan].some((u) => (u ?? "").toLowerCase().includes(q)) ||
+          p.jawatan.some((j) => j.jawatan.toLowerCase().includes(q))
       );
     }
     if (kelasFilter) hasil = hasil.filter((p) => p.kelasT6 === kelasFilter);
@@ -182,7 +194,22 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
           <tbody>
             {ditapis.map((p) => (
               <tr key={p.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                <td className="px-4 py-3 font-medium text-slate-800">{p.nama}</td>
+                <td className="px-4 py-3">
+                  <div className="font-medium text-slate-800">{p.nama}</div>
+                  {p.jawatan.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {p.jawatan.map((j) => (
+                        <span
+                          key={j.jenis}
+                          title={`${labelJawatan(j.jawatan, locale)} — ${j.unit}`}
+                          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${WARNA_JENIS[j.jenis] ?? "bg-slate-50 text-slate-700 ring-slate-200"}`}
+                        >
+                          {labelJawatan(j.jawatan, locale)} · {j.unit}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </td>
                 <td className="px-4 py-3 font-mono text-xs text-slate-500">{p.noIc}</td>
                 <td className="px-4 py-3 text-slate-600">{p.kelasT6 ?? "—"}</td>
                 <td className="px-4 py-3 text-xs text-slate-600">
@@ -190,6 +217,7 @@ export function PelajarClient({ pelajar: initial, locale = "ms" }: { pelajar: P[
                     <div>🎭 {p.kelab ?? "—"}</div>
                     <div>⚽ {p.sukan ?? "—"}</div>
                     <div>🎖️ {p.badan ?? "—"}</div>
+                    {p.perkhidmatan && <div>🤝 {p.perkhidmatan}</div>}
                   </div>
                 </td>
                 <td className="px-4 py-3 text-slate-600">
