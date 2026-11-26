@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
-import { prosesCadanganJawatan, bolehGuruAksesPelajar } from "@/lib/workflow";
+import { prosesCadanganJawatan, bolehGuruUrusPelajar } from "@/lib/workflow";
 
 const schema = z.object({
   status: z.enum(["Approved", "Reject"]),
@@ -25,7 +25,7 @@ export async function PATCH(
 
   const c = await prisma.cadanganJawatan.findUnique({ where: { id } });
   if (!c) return fail("Cadangan tidak dijumpai", 404);
-  if (guru && !(await bolehGuruAksesPelajar(guru, c.pelajarId))) {
+  if (guru && !(await bolehGuruUrusPelajar(guru, c.pelajarId))) {
     return fail("Pelajar ini di luar unit seliaan anda", 403);
   }
 

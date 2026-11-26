@@ -10,9 +10,9 @@ interface Penugasan {
 const KOSONG = { nama: "", email: "", noIc: "", jawatanKoko: "GuruPenasihat" };
 
 interface TambahGuruDict {
-  jawatanKoko: { guruPenasihat: string; penolongKetuaGP: string; ketuaGP: string; penolongSU: string; pemantauKUPP: string; penyelaras: string; ketuaUnitKoko: string };
+  jawatanKoko: { guruPenasihat: string; guruPemantau: string; penolongKetuaGP: string; ketuaGP: string; penolongSU: string; pemantauKUPP: string; penyelaras: string; ketuaUnitKoko: string };
   kategori: { kelab: string; sukan: string; uniform: string; perkhidmatan: string };
-  peranan: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string };
+  peranan: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string; pemantau: string };
   fullName: string; fullNamePlaceholder: string; email: string; emailPlaceholder: string;
   icOptional: string; icPlaceholder: string; position: string; unitHint: string;
   credentialNote: string; credentialReveal: string; usernameLabel: string; passwordLabel: string;
@@ -25,6 +25,7 @@ export function TambahGuruForm({ t }: { t: TambahGuruDict }) {
   const router = useRouter();
   const JAWATAN = [
     { v: "GuruPenasihat", l: t.jawatanKoko.guruPenasihat },
+    { v: "GuruPemantau", l: t.jawatanKoko.guruPemantau },
     { v: "PenolongKetuaGP", l: t.jawatanKoko.penolongKetuaGP },
     { v: "KetuaGP", l: t.jawatanKoko.ketuaGP },
     { v: "PemantauKUPP", l: t.jawatanKoko.pemantauKUPP },
@@ -39,6 +40,7 @@ export function TambahGuruForm({ t }: { t: TambahGuruDict }) {
     { v: "Penasihat", l: t.peranan.penasihat },
     { v: "KetuaPenasihat", l: t.peranan.ketuaPenasihat },
     { v: "PenolongKetuaGP", l: t.peranan.penolongKetuaGP },
+    { v: "Pemantau", l: t.peranan.pemantau },
   ];
   const [f, setF] = useState({ ...KOSONG });
   const [units, setUnits] = useState<Penugasan[]>([]);

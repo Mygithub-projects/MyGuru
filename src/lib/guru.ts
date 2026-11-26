@@ -1,6 +1,6 @@
 // Lapisan data Guru — kumpul item menunggu tindakan ikut skop seliaan.
 import { dbKohort } from "./prisma-kohort";
-import { guruSeluruhSekolah, unitSeliaan, unitBolehSahkan } from "./workflow";
+import { guruSeluruhSekolah, unitSeliaan, unitUrus, unitBolehSahkan } from "./workflow";
 import { statusPilihanT6 } from "./pajsk";
 import type { Guru } from "@prisma/client";
 
@@ -10,10 +10,11 @@ import type { Guru } from "@prisma/client";
  * Selainnya (KetuaGP/PenolongKetuaGP/GuruPenasihat) → hanya pelajar dalam
  * UNIT yang ditugaskan secara langsung kepada guru.
  */
-export async function pelajarIdsDalamSkop(guru: Guru): Promise<string[] | null> {
+export async function pelajarIdsDalamSkop(guru: Guru, opts: { urus?: boolean } = {}): Promise<string[] | null> {
   const db = await dbKohort(); // data kohort dipilih sahaja
   if (guruSeluruhSekolah(guru)) return null;
-  const units = await unitSeliaan(guru);
+  // urus: hanya unit yang guru boleh bertindak (tanpa unit Pemantau — lihat sahaja).
+  const units = opts.urus ? await unitUrus(guru) : await unitSeliaan(guru);
   if (units.length === 0) return [];
   const koko = await db.kokurikulum.findMany({
     where: { namaUnitT6: { in: units } },
@@ -52,9 +53,10 @@ function wherePertukaran(ids: string[] | null, units: string[]) {
 /** Bilangan item menunggu tindakan dalam skop (guru = unit seliaan; null = seluruh sekolah). */
 export async function countPendingGuru(guru: Guru | null): Promise<number> {
   const db = await dbKohort(); // data kohort dipilih sahaja
-  const ids = guru ? await pelajarIdsDalamSkop(guru) : null;
+  // Bilangan menunggu TINDAKAN — unit Pemantau (lihat sahaja) tidak dikira.
+  const ids = guru ? await pelajarIdsDalamSkop(guru, { urus: true }) : null;
   const wherePelajar = ids === null ? {} : { pelajarId: { in: ids } };
-  const units = guru ? await unitSeliaan(guru) : [];
+  const units = guru ? await unitUrus(guru) : [];
   // Skop TEPAT ikut unit rekod (namaUnit) — bukan "mana-mana pelajar dalam
   // skop guru", supaya guru unit lain tidak nampak rekod unit lain. Rekod
   // lama tanpa namaUnit (pra-fasa ini) kekal guna skop pelajar sebagai jatuhan.
@@ -75,9 +77,10 @@ export async function countPendingGuru(guru: Guru | null): Promise<number> {
 
 export async function getGuruDashboard(guru: Guru) {
   const db = await dbKohort(); // data kohort dipilih sahaja
-  const ids = await pelajarIdsDalamSkop(guru);
+  // Senarai menunggu tindakan: hanya unit yang boleh diurus (bukan Pemantau).
+  const ids = await pelajarIdsDalamSkop(guru, { urus: true });
   const wherePelajar = ids === null ? {} : { pelajarId: { in: ids } };
-  const units = await unitSeliaan(guru);
+  const units = await unitUrus(guru);
   const wherePelajarUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, pelajarId: { in: ids } }] };
   const whereUnit = ids === null ? {} : { OR: [{ namaUnit: { in: units } }, { namaUnit: null, setiausahaId: { in: ids } }] };
   const whereSesi = ids === null ? {} : { namaUnit: { in: units } };
@@ -225,6 +228,8 @@ export interface UnitAhli {
   jenisKoko: string;
   /** Guru ini Ketua GP/Penolong Ketua GP unit ini → boleh sahkan butiran ahli. */
   bolehSahkan: boolean;
+  /** false = guru ini Pemantau unit ini (lihat sahaja; tidak boleh tetapkan jawatan). */
+  bolehUrus: boolean;
   ahli: AhliUnit[];
 }
 
@@ -238,6 +243,7 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
   const units = await unitSeliaan(guru);
   if (!seluruh && units.length === 0) return [];
   const unitSah = new Set(await unitBolehSahkan(guru));
+  const unitBolehUrus = new Set(await unitUrus(guru));
 
   const koko = await db.kokurikulum.findMany({
     where: seluruh
@@ -272,7 +278,7 @@ export async function getSenaraiAhli(guru: Guru): Promise<UnitAhli[]> {
   const map = new Map<string, UnitAhli>();
   for (const k of koko) {
     const namaUnit = k.namaUnitT6 as string;
-    if (!map.has(namaUnit)) map.set(namaUnit, { namaUnit, jenisKoko: k.jenisKoko, bolehSahkan: unitSah.has(namaUnit), ahli: [] });
+    if (!map.has(namaUnit)) map.set(namaUnit, { namaUnit, jenisKoko: k.jenisKoko, bolehSahkan: unitSah.has(namaUnit), bolehUrus: seluruh || unitBolehUrus.has(namaUnit), ahli: [] });
     map.get(namaUnit)!.ahli.push({
       pelajarId: k.pelajarId,
       nama: k.pelajar.nama,

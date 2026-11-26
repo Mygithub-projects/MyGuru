@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
 import { sahkanSesi } from "@/lib/kehadiran";
-import { bolehGuruAksesPelajar, unitSeliaan } from "@/lib/workflow";
+import { bolehGuruUrusPelajar, unitUrus } from "@/lib/workflow";
 
 export async function PATCH(
   _request: NextRequest,
@@ -18,8 +18,8 @@ export async function PATCH(
 
   // Guru: sesi mesti untuk unit seliaan
   if (guru) {
-    const units = await unitSeliaan(guru);
-    const seluruh = await bolehGuruAksesPelajar(guru, sesi.dibuatOlehId ?? "");
+    const units = await unitUrus(guru);
+    const seluruh = await bolehGuruUrusPelajar(guru, sesi.dibuatOlehId ?? "");
     if (!units.includes(sesi.namaUnit) && !seluruh) {
       return fail("Sesi ini di luar unit seliaan anda", 403);
     }

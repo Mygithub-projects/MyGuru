@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
-import { prosesPertukaran, bolehGuruAksesPelajar, unitSeliaan } from "@/lib/workflow";
+import { prosesPertukaran, bolehGuruUrusPelajar, unitUrus } from "@/lib/workflow";
 
 const schema = z.object({
   status: z.enum(["Approved", "Reject"]),
@@ -32,8 +32,8 @@ export async function PATCH(
 
   // Semakan skop seliaan untuk guru: pelajar dalam unit seliaan, ATAU
   // permohonan KE unit seliaan guru (pemohon baharu, cth. Unit Perkhidmatan).
-  const keUnitSeliaan = guru ? (await unitSeliaan(guru)).includes(log.unitBaru) : false;
-  if (guru && !keUnitSeliaan && !(await bolehGuruAksesPelajar(guru, log.pelajarId))) {
+  const keUnitSeliaan = guru ? (await unitUrus(guru)).includes(log.unitBaru) : false;
+  if (guru && !keUnitSeliaan && !(await bolehGuruUrusPelajar(guru, log.pelajarId))) {
     return fail("Pelajar ini di luar unit seliaan anda", 403);
   }
 

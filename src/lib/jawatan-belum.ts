@@ -62,7 +62,7 @@ export async function dataJawatanBelum(
       select: { pelajarId: true, jenisKoko: true, jawatanBaru: true },
     }),
     prisma.guruPenasihatKelab.findMany({
-      where: { guru: { statusAktif: true } },
+      where: { guru: { statusAktif: true }, peranan: { not: "Pemantau" } },
       select: { namaUnit: true, peranan: true, guru: { select: { id: true, nama: true, email: true } } },
     }),
   ]);

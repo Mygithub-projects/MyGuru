@@ -25,11 +25,11 @@ export interface Dict {
     kaum: { melayu: string; cina: string; india: string; lainLain: string };
     agama: { islam: string; buddha: string; hindu: string; kristian: string; lainLain: string };
     jawatanKoko: {
-      guruPenasihat: string; penolongKetuaGP: string; ketuaGP: string;
+      guruPenasihat: string; guruPemantau: string; penolongKetuaGP: string; ketuaGP: string;
       penolongSU: string; pemantauKUPP: string; penyelaras: string; ketuaUnitKoko: string;
     };
     subRolePelajar: { pelajar: string; su: string; nsu: string };
-    perananUnit: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string };
+    perananUnit: { penasihat: string; ketuaPenasihat: string; penolongKetuaGP: string; pemantau: string };
     sortToggle: { newest: string; oldest: string; ariaLabel: string };
     modalClose: string;
   };
@@ -391,12 +391,12 @@ const ms: Dict = {
     kaum: { melayu: "Melayu", cina: "Cina", india: "India", lainLain: "Lain-lain" },
     agama: { islam: "Islam", buddha: "Buddha", hindu: "Hindu", kristian: "Kristian", lainLain: "Lain-lain" },
     jawatanKoko: {
-      guruPenasihat: "Guru Penasihat", penolongKetuaGP: "Penolong Guru Penasihat", ketuaGP: "Ketua Guru Penasihat",
+      guruPenasihat: "Guru Penasihat", guruPemantau: "Guru Pemantau", penolongKetuaGP: "Penolong Guru Penasihat", ketuaGP: "Ketua Guru Penasihat",
       penolongSU: "Penolong SU Kokurikulum", pemantauKUPP: "KUPP/Pemantau", penyelaras: "Penyelaras Kokurikulum",
       ketuaUnitKoko: "Ketua Unit Kokurikulum",
     },
     subRolePelajar: { pelajar: "Pelajar biasa", su: "Setiausaha (SU)", nsu: "Naib Setiausaha (NSU)" },
-    perananUnit: { penasihat: "Penasihat", ketuaPenasihat: "Ketua Penasihat", penolongKetuaGP: "Penolong Ketua GP" },
+    perananUnit: { penasihat: "Penasihat", ketuaPenasihat: "Ketua Penasihat", penolongKetuaGP: "Penolong Ketua GP", pemantau: "Pemantau (lihat sahaja)" },
     sortToggle: { newest: "Terkini dahulu", oldest: "Terlama dahulu", ariaLabel: "Susun ikut tarikh" },
     modalClose: "Tutup",
   },
@@ -920,12 +920,12 @@ const en: Dict = {
     kaum: { melayu: "Malay", cina: "Chinese", india: "Indian", lainLain: "Other" },
     agama: { islam: "Islam", buddha: "Buddhist", hindu: "Hindu", kristian: "Christian", lainLain: "Other" },
     jawatanKoko: {
-      guruPenasihat: "Adviser Teacher", penolongKetuaGP: "Assistant Adviser Teacher", ketuaGP: "Head Adviser Teacher",
+      guruPenasihat: "Adviser Teacher", guruPemantau: "Monitoring Teacher", penolongKetuaGP: "Assistant Adviser Teacher", ketuaGP: "Head Adviser Teacher",
       penolongSU: "Deputy Co-curriculum Secretary", pemantauKUPP: "KUPP/Monitor", penyelaras: "Co-curriculum Coordinator",
       ketuaUnitKoko: "Head of Co-curriculum Unit",
     },
     subRolePelajar: { pelajar: "Regular student", su: "Secretary (SU)", nsu: "Deputy Secretary (NSU)" },
-    perananUnit: { penasihat: "Adviser", ketuaPenasihat: "Head Adviser", penolongKetuaGP: "Deputy Head Adviser" },
+    perananUnit: { penasihat: "Adviser", ketuaPenasihat: "Head Adviser", penolongKetuaGP: "Deputy Head Adviser", pemantau: "Monitor (view only)" },
     sortToggle: { newest: "Newest first", oldest: "Oldest first", ariaLabel: "Sort by date" },
     modalClose: "Close",
   },

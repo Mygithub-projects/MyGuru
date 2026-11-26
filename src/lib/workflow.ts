@@ -22,7 +22,7 @@ import {
   nilaiEkstra,
   bidangDariJenisKoko,
 } from "./pajsk";
-import { JAWATAN_GURU_SELURUH_SEKOLAH, PERANAN_BOLEH_SAHKAN_BUTIRAN, type JenisKoko } from "./enums";
+import { JAWATAN_GURU_SELURUH_SEKOLAH, PERANAN_BOLEH_SAHKAN_BUTIRAN, PERANAN_PEMANTAU, type JenisKoko } from "./enums";
 import { notifyPelajar, notifyGuruUntukUnit } from "./notifikasi";
 import type { Guru } from "@prisma/client";
 
@@ -47,6 +47,19 @@ export function guruSeluruhSekolah(guru: Pick<Guru, "jawatanKoko">): boolean {
 export async function unitSeliaan(guru: Pick<Guru, "id">): Promise<string[]> {
   const rows = await prisma.guruPenasihatKelab.findMany({
     where: { guruId: guru.id },
+    select: { namaUnit: true },
+  });
+  return rows.map((r) => r.namaUnit);
+}
+
+/**
+ * Unit yang guru ini boleh URUS (buat tindakan: sahkan, tetapkan jawatan, pilih,
+ * proses pertukaran dll.) — sama seperti unitSeliaan() TETAPI tanpa unit yang
+ * peranannya "Pemantau" (Guru Pemantau: lihat sahaja).
+ */
+export async function unitUrus(guru: Pick<Guru, "id">): Promise<string[]> {
+  const rows = await prisma.guruPenasihatKelab.findMany({
+    where: { guruId: guru.id, peranan: { not: PERANAN_PEMANTAU } },
     select: { namaUnit: true },
   });
   return rows.map((r) => r.namaUnit);
@@ -139,6 +152,22 @@ export async function bolehGuruAksesPelajar(
 }
 
 /** Unit di mana guru ini Ketua GP / Penolong Ketua GP (boleh sahkan butiran ahli). */
+/** Seperti bolehGuruAksesPelajar() tetapi untuk TINDAKAN (abaikan unit Pemantau). */
+export async function bolehGuruUrusPelajar(
+  guru: Pick<Guru, "id" | "jawatanKoko">,
+  pelajarId: string
+): Promise<boolean> {
+  if (guruSeluruhSekolah(guru)) return true;
+  const units = await unitUrus(guru);
+  if (units.length === 0) return false;
+  const koko = await prisma.kokurikulum.findMany({
+    where: { pelajarId },
+    select: { namaUnitT6: true },
+  });
+  const unitPelajar = koko.map((k) => k.namaUnitT6).filter((u): u is string => !!u);
+  return bolehAksesUnit({ seluruhSekolah: false, unitSeliaan: units, unitPelajar });
+}
+
 export async function unitBolehSahkan(guru: Pick<Guru, "id">): Promise<string[]> {
   const rows = await prisma.guruPenasihatKelab.findMany({
     where: { guruId: guru.id, peranan: { in: [...PERANAN_BOLEH_SAHKAN_BUTIRAN] } },

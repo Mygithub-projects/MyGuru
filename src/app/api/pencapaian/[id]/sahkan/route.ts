@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
-import { sahkanPencapaian, bolehGuruAksesPelajar, guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
+import { sahkanPencapaian, bolehGuruUrusPelajar, guruSeluruhSekolah, unitUrus } from "@/lib/workflow";
 import { cadangMarkahPencapaian } from "@/lib/pajsk";
 
 const schema = z.object({
@@ -35,10 +35,10 @@ export async function PATCH(
   // Hanya guru penasihat UNIT berkenaan boleh sahkan (rekod lama tanpa
   // namaUnit kekal guna skop pelajar sebagai jatuhan — lihat §3).
   if (guru && !guruSeluruhSekolah(guru)) {
-    const units = await unitSeliaan(guru);
+    const units = await unitUrus(guru);
     const okUnit = rec.namaUnit
       ? units.includes(rec.namaUnit)
-      : await bolehGuruAksesPelajar(guru, rec.pelajarId);
+      : await bolehGuruUrusPelajar(guru, rec.pelajarId);
     if (!okUnit) return fail("Pencapaian ini di luar unit seliaan anda", 403);
   }
 

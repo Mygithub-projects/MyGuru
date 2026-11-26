@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
-import { guruSeluruhSekolah, unitSeliaan } from "@/lib/workflow";
+import { guruSeluruhSekolah, unitUrus } from "@/lib/workflow";
 import { kohortDipilih } from "@/lib/kohort-pilihan";
 
 const schema = z.object({
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const units = [...new Set(parsed.data.units)];
 
   if (guru && !guruSeluruhSekolah(guru)) {
-    const seliaan = await unitSeliaan(guru);
+    const seliaan = await unitUrus(guru);
     if (!units.some((u) => seliaan.includes(u)))
       return fail("Projek mesti melibatkan sekurang-kurangnya satu unit seliaan anda", 403);
   }

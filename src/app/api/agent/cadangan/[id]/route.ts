@@ -5,7 +5,7 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireGuruOrAdmin, ok, fail } from "@/lib/api";
-import { bolehGuruAksesPelajar } from "@/lib/workflow";
+import { bolehGuruUrusPelajar } from "@/lib/workflow";
 import { prisma } from "@/lib/prisma";
 import { prosesCadanganAgent, pelajarIdRujukan } from "@/lib/agent/approval";
 
@@ -40,7 +40,7 @@ export async function PATCH(
   // Skop: guru hanya boleh proses cadangan bagi pelajar dalam unit seliaannya.
   if (guru) {
     const pelajarId = await pelajarIdRujukan(cadangan);
-    if (pelajarId && !(await bolehGuruAksesPelajar(guru, pelajarId))) {
+    if (pelajarId && !(await bolehGuruUrusPelajar(guru, pelajarId))) {
       return fail("Cadangan ini di luar unit seliaan anda", 403);
     }
   }

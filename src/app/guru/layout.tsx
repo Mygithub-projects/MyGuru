@@ -25,12 +25,12 @@ export default async function GuruLayout({ children }: { children: React.ReactNo
 
   // Peranan ikut unit, cth. "Ketua Guru Penasihat (Kelab Komputer) · Guru Penasihat (Badminton)".
   // Jawatan peringkat sekolah (Penyelaras dll.) dikekalkan di hadapan.
-  const PERANAN: [string, string][] = [["KetuaPenasihat", "ketuaGP"], ["PenolongKetuaGP", "penolongKetuaGP"], ["Penasihat", "guruPenasihat"]];
+  const PERANAN: [string, string][] = [["KetuaPenasihat", "ketuaGP"], ["PenolongKetuaGP", "penolongKetuaGP"], ["Penasihat", "guruPenasihat"], ["Pemantau", "guruPemantau"]];
   const ikutUnit = PERANAN.map(([peranan, k]) => {
     const units = guru?.penasihatKelab.filter((u) => u.peranan === peranan).map((u) => u.namaUnit) ?? [];
     return units.length ? `${label[k] ?? peranan} (${units.join(", ")})` : null;
   }).filter(Boolean) as string[];
-  const peringkatSekolah = guru && !["KetuaGP", "PenolongKetuaGP", "GuruPenasihat"].includes(guru.jawatanKoko);
+  const peringkatSekolah = guru && !["KetuaGP", "PenolongKetuaGP", "GuruPenasihat", "GuruPemantau"].includes(guru.jawatanKoko);
   const jawatan = ikutUnit.length
     ? [...(peringkatSekolah && jawatanUmum ? [jawatanUmum] : []), ...ikutUnit].join(" · ")
     : jawatanUmum;
