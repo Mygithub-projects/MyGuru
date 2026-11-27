@@ -2,6 +2,7 @@ import Link from "next/link";
 import { dbKohort } from "@/lib/prisma-kohort";
 import { getT } from "@/lib/locale";
 import { KehadiranTable } from "./KehadiranTable";
+import { SalinTeks } from "./SalinTeks";
 
 const MYT_MS = 8 * 3_600_000;
 // Empat bahagian PAJSK, setiap satu dengan warna tetap untuk carta harian.
@@ -55,8 +56,23 @@ export default async function AdminKehadiranPage({
       });
     const hadir = unit.reduce((a, u) => a + u.hadir, 0);
     const total = unit.reduce((a, u) => a + u.total, 0);
-    return { ...b, label: t.guru.pemilihan.bahagian[b.jenis], unit, hadir, total, peratus: total ? Math.round((hadir / total) * 100) : 0 };
-  });
+    const label = t.guru.pemilihan.bahagian[b.jenis];
+    const kod = label.split(" ")[0].split("").join("/"); // "KP" → "K/P"
+    return { ...b, label, kod, unit, hadir, total, peratus: total ? Math.round((hadir / total) * 10000) / 100 : 0 };
+  }).filter((b) => b.unit.length > 0);
+
+  // Format mesej WhatsApp kumpulan kokurikulum, cth:
+  //   K/P 12/11/2026 / 1. STEM : 10/11 / ... / JUMLAH: 194/212 (91.51%)
+  const tarikhPendek = fTarikh.split("-").reverse().join("/");
+  const teksBahagian = (b: (typeof harian)[number]) =>
+    [
+      `${b.kod} ${tarikhPendek}`,
+      "",
+      ...b.unit.map((u, i) => `${i + 1}. ${u.nama} : ${u.hadir}/${u.total}`),
+      "",
+      `JUMLAH: ${b.hadir}/${b.total} (${b.peratus.toFixed(2)}%)`,
+    ].join("\n");
+  const teksSemua = harian.map(teksBahagian).join("\n\n");
 
   const semuaUnit = await db.sesiKehadiran.findMany({ select: { namaUnit: true }, distinct: ["namaUnit"], orderBy: { namaUnit: "asc" } });
 
@@ -121,36 +137,38 @@ export default async function AdminKehadiranPage({
         {sesiHari.length === 0 ? (
           <p className="text-sm text-slate-400">{d.dailyNone}</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {harian.map((b) => (
-              <div key={b.jenis} className="rounded-lg border border-slate-100 p-3">
-                <p className="text-xs font-semibold text-slate-500">{b.label}</p>
-                {b.unit.length === 0 ? (
-                  <p className="mt-2 text-sm text-slate-400">{d.dailyNoMeeting}</p>
-                ) : (
-                  <>
-                    <p className="mt-1 text-2xl font-bold" style={{ color: b.warna }}>{b.peratus}%</p>
-                    <p className="text-xs text-slate-500">
-                      {b.hadir} / {b.total} {d.dailyPresent} · {b.unit.length} {d.dailySessions}
-                    </p>
-                    <div className="mt-3 space-y-2">
-                      {b.unit.map((u) => (
-                        <div key={u.nama} title={`${u.nama} #${u.bil}: ${u.hadir}/${u.total}`}>
-                          <div className="mb-0.5 flex justify-between gap-2 text-xs">
-                            <span className="truncate text-slate-600">{u.nama}</span>
-                            <span className="shrink-0 font-semibold text-slate-700">{u.hadir}/{u.total}</span>
-                          </div>
-                          <div className="h-2 w-full rounded-full bg-slate-100">
-                            <div className="h-2 rounded-full" style={{ width: `${u.peratus}%`, backgroundColor: b.warna }} />
-                          </div>
-                        </div>
-                      ))}
+          <>
+            <div className="mb-3 flex justify-end">
+              <SalinTeks teks={teksSemua} label={d.dailyCopyAll} labelDisalin={d.dailyCopied} utama />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {harian.map((b) => (
+                <div key={b.jenis} className="flex flex-col rounded-lg border border-slate-200 p-4" style={{ borderTopColor: b.warna, borderTopWidth: 4 }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-base font-bold text-slate-800">{b.kod} <span className="font-semibold text-slate-500">{tarikhPendek}</span></p>
+                      <p className="text-xs text-slate-500">{b.label}</p>
                     </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
+                    <SalinTeks teks={teksBahagian(b)} label={d.dailyCopy} labelDisalin={d.dailyCopied} />
+                  </div>
+                  <ol className="mt-3 flex-1 space-y-1 text-sm">
+                    {b.unit.map((u, i) => (
+                      <li key={`${u.nama}-${u.bil}`} className="flex items-baseline gap-2" title={`${u.nama} · ${d.dailyMeeting} ${u.bil} · ${u.peratus}%`}>
+                        <span className="w-6 shrink-0 text-right text-slate-400">{i + 1}.</span>
+                        <span className="min-w-0 flex-1 text-slate-700">{u.nama}</span>
+                        <span className={`shrink-0 font-semibold tabular-nums ${u.total && u.hadir === u.total ? "text-emerald-700" : u.peratus < 80 ? "text-rose-600" : "text-slate-800"}`}>
+                          {u.hadir}/{u.total}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  <p className="mt-3 border-t border-slate-200 pt-2 text-sm font-bold text-slate-800">
+                    {d.dailyTotal}: {b.hadir}/{b.total} <span style={{ color: b.warna }}>({b.peratus.toFixed(2)}%)</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </section>
 

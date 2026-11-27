@@ -253,6 +253,7 @@ export interface Dict {
       unitLabel: string; allUnits: string; typeLabel: string; allTypes: string; filterBtn: string;
       resetBtn: string; listTitle: string; noSessions: string; clickToFilter: string; showAllBtn: string;
       dailyTitle: string; dailyDate: string; dailyShow: string; dailyToday: string; dailyNone: string;
+      dailyCopy: string; dailyCopyAll: string; dailyCopied: string; dailyTotal: string; dailyMeeting: string;
       dailySessions: string; dailyPresent: string; dailyNoMeeting: string;
     };
     kehadiranTable: {
@@ -665,6 +666,7 @@ const ms: Dict = {
       resetBtn: "Reset", listTitle: "Senarai Perjumpaan", noSessions: "Tiada sesi kehadiran untuk tapisan ini.",
       clickToFilter: "Klik untuk papar sesi belum disahkan sahaja", showAllBtn: "← Papar Semua",
       dailyTitle: "Ringkasan Kehadiran Harian", dailyDate: "Tarikh", dailyShow: "Papar", dailyToday: "Hari ini",
+      dailyCopy: "Salin", dailyCopyAll: "Salin semua (WhatsApp)", dailyCopied: "Disalin", dailyTotal: "JUMLAH", dailyMeeting: "Perjumpaan",
       dailyNone: "Tiada perjumpaan direkod pada tarikh ini.", dailySessions: "sesi", dailyPresent: "hadir",
       dailyNoMeeting: "Tiada perjumpaan",
     },
@@ -1209,6 +1211,7 @@ const en: Dict = {
       resetBtn: "Reset", listTitle: "Meeting List", noSessions: "No attendance sessions for this filter.",
       clickToFilter: "Click to show only unverified sessions", showAllBtn: "← Show All",
       dailyTitle: "Daily Attendance Summary", dailyDate: "Date", dailyShow: "Show", dailyToday: "Today",
+      dailyCopy: "Copy", dailyCopyAll: "Copy all (WhatsApp)", dailyCopied: "Copied", dailyTotal: "TOTAL", dailyMeeting: "Meeting",
       dailyNone: "No meetings recorded on this date.", dailySessions: "sessions", dailyPresent: "present",
       dailyNoMeeting: "No meetings",
     },
