@@ -202,19 +202,28 @@ export default async function AdminKehadiranPage({
               · {fBelumSah ? d.listUnverified : fSemua ? d.listAllDates : tarikhPanjang}
             </span>
           </h2>
-          {fBelumSah ? (
-            <Link href={`/admin/kehadiran?${qTanpaBelumSah.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
-              {d.showAllBtn}
-            </Link>
-          ) : fSemua ? (
-            <Link href={`/admin/kehadiran?${qTarikh.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
-              📅 {d.listThisDate}
-            </Link>
-          ) : (
-            <Link href={`/admin/kehadiran?${qSemua.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
-              {d.listShowAllDates}
-            </Link>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Pilih tarikh terus di sini — senarai (dan ringkasan harian) ikut tarikh ini. */}
+            <form method="get" className="flex items-center gap-2">
+              {fUnit && <input type="hidden" name="unit" value={fUnit} />}
+              {fJenis && <input type="hidden" name="jenis" value={fJenis} />}
+              <input type="date" name="tarikh" defaultValue={fTarikh} aria-label={d.dailyDate} className={inp} />
+              <button type="submit" className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-hover">{d.dailyShow}</button>
+            </form>
+            {fBelumSah ? (
+              <Link href={`/admin/kehadiran?${qTanpaBelumSah.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
+                {d.showAllBtn}
+              </Link>
+            ) : fSemua ? (
+              <Link href={`/admin/kehadiran?${qTarikh.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
+                📅 {d.listThisDate}
+              </Link>
+            ) : (
+              <Link href={`/admin/kehadiran?${qSemua.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
+                {d.listShowAllDates}
+              </Link>
+            )}
+          </div>
         </div>
         {rowsDipaparkan.length === 0 ? (
           <p className="text-sm text-slate-400">{ikutTarikh ? d.dailyNone : d.noSessions}</p>
