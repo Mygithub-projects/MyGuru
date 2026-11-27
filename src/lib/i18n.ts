@@ -252,6 +252,7 @@ export interface Dict {
       title: string; subtitle: string; totalMeetings: string; avgAttendance: string; notVerified: string;
       unitLabel: string; allUnits: string; typeLabel: string; allTypes: string; filterBtn: string;
       resetBtn: string; listTitle: string; noSessions: string; clickToFilter: string; showAllBtn: string;
+      listUnverified: string; listAllDates: string; listThisDate: string; listShowAllDates: string;
       dailyTitle: string; dailyDate: string; dailyShow: string; dailyToday: string; dailyNone: string;
       dailyCopy: string; dailyCopyAll: string; dailyCopied: string; dailyTotal: string; dailyMeeting: string; dailyUnits: string; dailyOverall: string;
       dailySessions: string; dailyPresent: string; dailyNoMeeting: string;
@@ -665,6 +666,7 @@ const ms: Dict = {
       unitLabel: "Unit", allUnits: "Semua unit", typeLabel: "Jenis", allTypes: "Semua", filterBtn: "Tapis",
       resetBtn: "Reset", listTitle: "Senarai Perjumpaan", noSessions: "Tiada sesi kehadiran untuk tapisan ini.",
       clickToFilter: "Klik untuk papar sesi belum disahkan sahaja", showAllBtn: "← Papar Semua",
+      listUnverified: "belum disahkan (semua tarikh)", listAllDates: "semua tarikh", listThisDate: "Papar tarikh dipilih sahaja", listShowAllDates: "Papar semua tarikh →",
       dailyTitle: "Ringkasan Kehadiran Harian", dailyDate: "Tarikh", dailyShow: "Papar", dailyToday: "Hari ini",
       dailyCopy: "Salin", dailyCopyAll: "Salin semua (WhatsApp)", dailyCopied: "Disalin", dailyTotal: "JUMLAH", dailyMeeting: "Perjumpaan", dailyUnits: "unit", dailyOverall: "Kehadiran keseluruhan",
       dailyNone: "Tiada perjumpaan direkod pada tarikh ini.", dailySessions: "sesi", dailyPresent: "hadir",
@@ -1210,6 +1212,7 @@ const en: Dict = {
       unitLabel: "Unit", allUnits: "All units", typeLabel: "Type", allTypes: "All", filterBtn: "Filter",
       resetBtn: "Reset", listTitle: "Meeting List", noSessions: "No attendance sessions for this filter.",
       clickToFilter: "Click to show only unverified sessions", showAllBtn: "← Show All",
+      listUnverified: "unverified (all dates)", listAllDates: "all dates", listThisDate: "Show selected date only", listShowAllDates: "Show all dates →",
       dailyTitle: "Daily Attendance Summary", dailyDate: "Date", dailyShow: "Show", dailyToday: "Today",
       dailyCopy: "Copy", dailyCopyAll: "Copy all (WhatsApp)", dailyCopied: "Copied", dailyTotal: "TOTAL", dailyMeeting: "Meeting", dailyUnits: "units", dailyOverall: "Overall attendance",
       dailyNone: "No meetings recorded on this date.", dailySessions: "sessions", dailyPresent: "present",
