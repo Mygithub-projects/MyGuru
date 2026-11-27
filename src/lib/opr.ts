@@ -54,6 +54,23 @@ export function teksLaporanOpr(d: Pick<OprData, "objektif" | "aktiviti" | "refle
   ].filter(Boolean).join("\n\n");
 }
 
+/** Songsang teksLaporanOpr() — untuk isi semula borang bila laporan dikuiri dihantar semula. */
+export function huraiTeksLaporanOpr(teks: string): { tempat: string; objektif: string; aktiviti: string; refleksi: string } {
+  const LABEL = ["Tempat", "Objektif", "Aktiviti", "Refleksi"];
+  const ambil = (label: string) => {
+    // Bahagian bermula pada "Label: " (awal teks atau selepas baris kosong) hingga label seterusnya.
+    const mula = teks.startsWith(`${label}: `) ? 0 : teks.indexOf(`\n\n${label}: `);
+    if (mula < 0) return "";
+    const isi = teks.slice(mula + (mula === 0 ? 0 : 2) + label.length + 2);
+    const tamat = Math.min(...LABEL.map((l) => isi.indexOf(`\n\n${l}: `)).filter((i) => i >= 0), isi.length);
+    return isi.slice(0, tamat).trim();
+  };
+  const aktiviti = ambil("Aktiviti");
+  // Rekod lama/bukan OPR: seluruh teks dianggap laporan aktiviti.
+  if (!aktiviti && !/^(Tempat|Objektif|Refleksi): /m.test(teks)) return { tempat: "", objektif: "", aktiviti: teks.trim(), refleksi: "" };
+  return { tempat: ambil("Tempat"), objektif: ambil("Objektif"), aktiviti, refleksi: ambil("Refleksi") };
+}
+
 const str = (form: FormData, k: string, max: number) => String(form.get(k) ?? "").trim().slice(0, max);
 
 function jenisImej(buf: Uint8Array): "jpg" | "png" | null {

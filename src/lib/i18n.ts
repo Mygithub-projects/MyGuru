@@ -163,6 +163,7 @@ export interface Dict {
       viewEvidence: string; viewLetter: string; viewCert: string; noEvidence: string;
       viewAttendance: string; hideAttendance: string; present: string; absent: string; meeting: string;
       reviewFirst: string;
+      reviewEvidenceLink: string;
     };
     cadanganAiPanel: {
       title: string; pendingCountTpl: string; sortNewest: string; sortOldest: string; sortAriaLabel: string;
@@ -308,6 +309,7 @@ export interface Dict {
   };
   laporan: {
     title: string; sub: string; weekly: string; project: string; noRecords: string; downloadVerified: string; comment: string;
+    queriedTitle: string; fixResubmit: string; resubmitBanner: string; resubmitPhotosNote: string; cancelFix: string;
     tabWeekly: string; tabProject: string; selectSessionOptional: string; newProjectOption: string; projectNamePlaceholder: string;
     projectPositionPlaceholder: string; projectLevelPlaceholder: string; projectUnitPlaceholder: string;
     workPlanLabel: string; impactReportLabel: string; financialSummaryPlaceholder: string; strengthPlaceholder: string; weaknessPlaceholder: string;
@@ -340,6 +342,7 @@ export interface Dict {
       title: string; sub: string; all: string; pending: string; approved: string; query: string;
       by: string; evidence: string; workPlan: string; approve: string; queryBtn: string; queryPrompt: string;
       commentBtn: string; editCommentBtn: string; commentPlaceholder: string; save: string; cancel: string;
+      openEvidenceFirst: string; evidenceChecked: string; queryReasonLabel: string; queryReasonPlaceholder: string; queryReasonRequired: string; sendQuery: string;
       empty: string; notAllowed: string; networkError: string; position: string; filterBtn: string; statusLabel: string; typeLabel: string; approvedBy: string;
     };
   };
@@ -548,6 +551,7 @@ const ms: Dict = {
       viewEvidence: "📎 Lihat eviden", viewLetter: "📎 Surat", viewCert: "📎 Sijil", noEvidence: "Tiada eviden — sila kuiri pelajar",
       viewAttendance: "Semak kehadiran", hideAttendance: "Tutup senarai", present: "hadir", absent: "Tidak hadir", meeting: "Perjumpaan",
       reviewFirst: "Semak eviden dahulu sebelum mengesahkan",
+      reviewEvidenceLink: "Semak eviden & sahkan →",
     },
     cadanganAiPanel: {
       title: "🤖 Cadangan AI", pendingCountTpl: "{n} menunggu", sortNewest: "Terkini dahulu", sortOldest: "Terlama dahulu",
@@ -796,6 +800,9 @@ const ms: Dict = {
   },
   laporan: {
     title: "Laporan SU/NSU", sub: "Laporan mingguan & laporan projek, dipaut terus ke sesi kehadiran berkaitan.", weekly: "Laporan Mingguan", project: "Laporan Projek", noRecords: "Tiada rekod lagi.", downloadVerified: "⬇ Muat turun dokumen disahkan", comment: "Komen",
+    queriedTitle: "Dikuiri oleh guru — perlu dibetulkan", fixResubmit: "✏️ Betulkan & hantar semula",
+    resubmitBanner: "Anda sedang membetulkan laporan yang dikuiri. Butiran asal telah diisi — betulkan mengikut komen guru, kemudian jana OPR dan hantar semula.",
+    resubmitPhotosNote: "Gambar eviden perlu dimuat naik semula.", cancelFix: "Batal pembetulan",
     tabWeekly: "Laporan Mingguan", tabProject: "Laporan Projek", selectSessionOptional: "— Paut sesi kehadiran (pilihan) —", newProjectOption: "— Projek baharu (pra-program) —", projectNamePlaceholder: "Nama projek (untuk projek baharu)",
     projectPositionPlaceholder: "— Jawatan anda dalam projek —", projectLevelPlaceholder: "— Peringkat pelaksanaan projek —", projectUnitPlaceholder: "— Unit berkaitan projek —",
     workPlanLabel: "Kertas Kerja (pra)", impactReportLabel: "Laporan Impak (pasca)", financialSummaryPlaceholder: "Ringkasan kewangan (RM)", strengthPlaceholder: "Kekuatan", weaknessPlaceholder: "Kelemahan / penambahbaikan",
@@ -842,6 +849,9 @@ const ms: Dict = {
       all: "Semua", pending: "Menunggu", approved: "Disahkan", query: "Kuiri",
       by: "oleh", evidence: "Lihat eviden", workPlan: "Kertas kerja", approve: "Sahkan", queryBtn: "Kuiri", queryPrompt: "Komen kuiri:",
       commentBtn: "Tulis komen", editCommentBtn: "Ubah komen", commentPlaceholder: "Komen guru untuk laporan ini…", save: "Simpan", cancel: "Batal",
+      openEvidenceFirst: "Buka & semak eviden dahulu sebelum sahkan ({n} belum dibuka)", evidenceChecked: "✓ Eviden telah dibuka — sahkan jika betul, kuiri jika salah",
+      queryReasonLabel: "Sebab kuiri (akan dihantar kepada SU/NSU untuk dibetulkan)", queryReasonPlaceholder: "Cth: Gambar eviden tidak jelas / tarikh tidak sepadan / laporan tidak lengkap…",
+      queryReasonRequired: "Sila nyatakan sebab kuiri", sendQuery: "Hantar kuiri kepada SU/NSU",
       empty: "Tiada laporan untuk tapisan ini.", notAllowed: "Tidak dibenarkan.", networkError: "Ralat rangkaian",
       position: "Jawatan", filterBtn: "Tapis", statusLabel: "Status", typeLabel: "Jenis laporan", approvedBy: "Disahkan oleh",
     },
@@ -1085,6 +1095,7 @@ const en: Dict = {
       viewEvidence: "📎 View evidence", viewLetter: "📎 Letter", viewCert: "📎 Certificate", noEvidence: "No evidence — please query the student",
       viewAttendance: "Review attendance", hideAttendance: "Hide list", present: "present", absent: "Absent", meeting: "Meeting",
       reviewFirst: "Review the evidence before confirming",
+      reviewEvidenceLink: "Check evidence & approve →",
     },
     cadanganAiPanel: {
       title: "🤖 AI Suggestions", pendingCountTpl: "{n} pending", sortNewest: "Newest first", sortOldest: "Oldest first",
@@ -1333,6 +1344,9 @@ const en: Dict = {
   },
   laporan: {
     title: "SU/NSU Reports", sub: "Weekly & project reports, linked directly to related attendance sessions.", weekly: "Weekly Reports", project: "Project Reports", noRecords: "No records yet.", downloadVerified: "⬇ Download verified document", comment: "Comment",
+    queriedTitle: "Queried by teacher — needs correction", fixResubmit: "✏️ Correct & resubmit",
+    resubmitBanner: "You are correcting a queried report. The original details are filled in — fix them according to the teacher's comment, then generate the OPR and resubmit.",
+    resubmitPhotosNote: "Evidence photos must be uploaded again.", cancelFix: "Cancel correction",
     tabWeekly: "Weekly Reports", tabProject: "Project Reports", selectSessionOptional: "— Link attendance session (optional) —", newProjectOption: "— New project (pre-program) —", projectNamePlaceholder: "Project name (for a new project)",
     projectPositionPlaceholder: "— Your position in the project —", projectLevelPlaceholder: "— Project implementation level —", projectUnitPlaceholder: "— Related unit —",
     workPlanLabel: "Work Plan (pre)", impactReportLabel: "Impact Report (post)", financialSummaryPlaceholder: "Financial summary (RM)", strengthPlaceholder: "Strengths", weaknessPlaceholder: "Weaknesses / improvements",
@@ -1379,6 +1393,9 @@ const en: Dict = {
       all: "All", pending: "Pending", approved: "Approved", query: "Query",
       by: "by", evidence: "View evidence", workPlan: "Work plan", approve: "Approve", queryBtn: "Query", queryPrompt: "Query comment:",
       commentBtn: "Write comment", editCommentBtn: "Edit comment", commentPlaceholder: "Teacher's comment on this report…", save: "Save", cancel: "Cancel",
+      openEvidenceFirst: "Open & check the evidence before approving ({n} not opened yet)", evidenceChecked: "✓ Evidence opened — approve if correct, query if not",
+      queryReasonLabel: "Reason for query (sent to the SU/NSU to correct)", queryReasonPlaceholder: "E.g. Evidence photos unclear / date does not match / report incomplete…",
+      queryReasonRequired: "Please state the reason for the query", sendQuery: "Send query to SU/NSU",
       empty: "No reports for this filter.", notAllowed: "Not allowed.", networkError: "Network error",
       position: "Position", filterBtn: "Filter", statusLabel: "Status", typeLabel: "Report type", approvedBy: "Approved by",
     },

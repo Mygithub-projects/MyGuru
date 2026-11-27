@@ -89,12 +89,12 @@ export function LaporanSemakan({
                 </details>
               )}
               <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                {r.eviden.map((u, i) => (
+                {r.status !== "Pending" && r.eviden.map((u, i) => (
                   <a key={u} href={u} target="_blank" rel="noopener" className={pautan}>
                     📎 {d.evidence}{r.eviden.length > 1 ? ` ${i + 1}` : ""}
                   </a>
                 ))}
-                {r.kertasKerja && (
+                {r.status !== "Pending" && r.kertasKerja && (
                   <a href={r.kertasKerja} target="_blank" rel="noopener" className={pautan}>📋 {d.workPlan}</a>
                 )}
                 {r.status === "Approved" && (
@@ -102,8 +102,18 @@ export function LaporanSemakan({
                     {t.laporan.downloadVerified}
                   </a>
                 )}
-                {r.status === "Pending" && <LaporanSemakanAksi jenis={r.jenis} id={r.id} t={d} />}
                 <LaporanKomenGuru key={r.komen ?? ""} jenis={r.jenis} id={r.id} komen={r.komen} t={d} />
+                {r.status === "Pending" && (
+                  <LaporanSemakanAksi
+                    jenis={r.jenis}
+                    id={r.id}
+                    eviden={[
+                      ...r.eviden.map((url, i) => ({ url, label: `${d.evidence}${r.eviden.length > 1 ? ` ${i + 1}` : ""}` })),
+                      ...(r.kertasKerja ? [{ url: r.kertasKerja, label: d.workPlan }] : []),
+                    ]}
+                    t={d}
+                  />
+                )}
               </div>
               {r.status === "Approved" && r.disahkanOleh && (
                 <p className="mt-2 text-xs text-emerald-700">{d.approvedBy}: {r.disahkanOleh}</p>

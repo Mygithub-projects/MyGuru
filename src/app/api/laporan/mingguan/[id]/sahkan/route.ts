@@ -8,8 +8,8 @@ import { guruSeluruhSekolah, unitUrus, bolehGuruUrusPelajar } from "@/lib/workfl
 
 const schema = z.object({
   status: z.enum(["Approved", "Kuiri"]),
-  komen: z.string().max(500).optional(),
-});
+  komen: z.string().trim().max(500).optional(),
+}).refine((d) => d.status !== "Kuiri" || !!d.komen, { message: "Sila nyatakan sebab kuiri supaya SU/NSU tahu apa yang perlu dibetulkan" });
 
 export async function PATCH(
   request: NextRequest,
@@ -41,7 +41,7 @@ export async function PATCH(
     where: { id },
     data: {
       statusSemakan: parsed.data.status,
-      komenGuru: parsed.data.komen,
+      ...(parsed.data.komen !== undefined ? { komenGuru: parsed.data.komen || null } : {}),
       // Rekod siapa mengesahkan (dipapar pada PDF); dikosongkan jika dikuiri.
       disahkanOleh: parsed.data.status === "Approved" ? labelPengesah(guru, session) : null,
       disahkanOlehId: parsed.data.status === "Approved" ? guru?.id ?? null : null,
