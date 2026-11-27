@@ -23,7 +23,7 @@ const back = "group inline-flex items-center gap-1.5 rounded-lg bg-brand-light p
 export default async function AdminKehadiranPage({
   searchParams,
 }: {
-  searchParams: Promise<{ unit?: string; jenis?: string; belumSah?: string; tarikh?: string }>;
+  searchParams: Promise<{ unit?: string; jenis?: string; belumSah?: string; tarikh?: string; semua?: string }>;
 }) {
   const db = await dbKohort(); // data kohort dipilih sahaja
   const { t } = await getT();
@@ -36,6 +36,8 @@ export default async function AdminKehadiranPage({
   const fUnit = sp.unit?.trim() || "";
   const fJenis = sp.jenis?.trim() || "";
   const fBelumSah = sp.belumSah === "1";
+  // Senarai Perjumpaan: lalai hanya perjumpaan pada tarikh dipilih; ?semua=1 → semua tarikh.
+  const fSemua = sp.semua === "1";
 
   // Ringkasan harian — hari ikut waktu Malaysia (UTC+8); lalai hari ini.
   const hariIni = tarikhHariIniMYT();
@@ -82,27 +84,35 @@ export default async function AdminKehadiranPage({
     include: { kehadiran: { select: { statusHadir: true } } },
   });
 
+  const tarikhMYT = (d: Date) => new Date(d.getTime() + MYT_MS).toISOString().slice(0, 10);
   const rows = sesi.map((s) => {
     const total = s.kehadiran.length;
     const hadir = s.kehadiran.filter((k) => k.statusHadir).length;
     return {
       id: s.id, jenisKoko: s.jenisKoko, namaUnit: s.namaUnit, bil: s.bilPerjumpaan,
-      tarikh: s.tarikh.toISOString(), hadir, total,
+      tarikh: s.tarikh.toISOString(), hari: tarikhMYT(s.tarikh), hadir, total,
       peratus: total ? Math.round((hadir / total) * 1000) / 10 : 0, disahkan: s.disahkan,
     };
   });
   const purata = rows.length ? Math.round((rows.reduce((a, r) => a + r.peratus, 0) / rows.length) * 10) / 10 : 0;
   const belumSahCount = rows.filter((r) => !r.disahkan).length;
-  const rowsDipaparkan = fBelumSah ? rows.filter((r) => !r.disahkan) : rows;
+  // Belum disahkan = senarai tugasan → semua tarikh. Selain itu ikut tarikh dipilih.
+  const ikutTarikh = !fBelumSah && !fSemua;
+  const rowsDipaparkan = fBelumSah ? rows.filter((r) => !r.disahkan) : fSemua ? rows : rows.filter((r) => r.hari === fTarikh);
+  const tarikhPanjang = new Date(`${fTarikh}T00:00:00Z`).toLocaleDateString("ms-MY", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const q = new URLSearchParams();
   if (fUnit) q.set("unit", fUnit);
   if (fJenis) q.set("jenis", fJenis);
+  const qTarikh = new URLSearchParams(q);
+  if (sp.tarikh) qTarikh.set("tarikh", fTarikh);
+  const qSemua = new URLSearchParams(qTarikh);
+  qSemua.set("semua", "1");
   const qs = q.toString() ? `&${q.toString()}` : "";
 
-  const qBelumSah = new URLSearchParams(q);
+  const qBelumSah = new URLSearchParams(qTarikh);
   qBelumSah.set("belumSah", "1");
-  const qTanpaBelumSah = new URLSearchParams(q);
+  const qTanpaBelumSah = new URLSearchParams(qTarikh);
 
   const inp = "rounded-lg border border-slate-300 px-2 py-1.5 text-sm";
 
@@ -118,7 +128,7 @@ export default async function AdminKehadiranPage({
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">
-            {d.dailyTitle} · {new Date(`${fTarikh}T00:00:00Z`).toLocaleDateString("ms-MY", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+            {d.dailyTitle} · {tarikhPanjang}
           </h2>
           <form method="get" className="flex flex-wrap items-end gap-2">
             {fUnit && <input type="hidden" name="unit" value={fUnit} />}
@@ -173,6 +183,8 @@ export default async function AdminKehadiranPage({
             </select>
           </label>
           {fBelumSah && <input type="hidden" name="belumSah" value="1" />}
+          {sp.tarikh && <input type="hidden" name="tarikh" value={fTarikh} />}
+          {fSemua && <input type="hidden" name="semua" value="1" />}
           <button type="submit" className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover">{d.filterBtn}</button>
           {(fUnit || fJenis) && <Link href={`/admin/kehadiran${fBelumSah ? "?belumSah=1" : ""}`} className="px-2 py-2 text-sm text-slate-500 hover:underline">{d.resetBtn}</Link>}
         </form>
@@ -183,22 +195,35 @@ export default async function AdminKehadiranPage({
       </div>
 
       <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">{d.listTitle}</h2>
-          {fBelumSah && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-600">
+            {d.listTitle}
+            <span className="ml-1 font-semibold normal-case text-slate-500">
+              · {fBelumSah ? d.listUnverified : fSemua ? d.listAllDates : tarikhPanjang}
+            </span>
+          </h2>
+          {fBelumSah ? (
             <Link href={`/admin/kehadiran?${qTanpaBelumSah.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
               {d.showAllBtn}
+            </Link>
+          ) : fSemua ? (
+            <Link href={`/admin/kehadiran?${qTarikh.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
+              📅 {d.listThisDate}
+            </Link>
+          ) : (
+            <Link href={`/admin/kehadiran?${qSemua.toString()}`} className="text-xs font-semibold text-brand-dark hover:underline">
+              {d.listShowAllDates}
             </Link>
           )}
         </div>
         {rowsDipaparkan.length === 0 ? (
-          <p className="text-sm text-slate-400">{d.noSessions}</p>
+          <p className="text-sm text-slate-400">{ikutTarikh ? d.dailyNone : d.noSessions}</p>
         ) : (
           <KehadiranTable
-            key={fBelumSah ? "belum-sah" : "semua"}
+            key={fBelumSah ? "belum-sah" : fSemua ? "semua" : `hari-${fTarikh}`}
             rows={rowsDipaparkan}
             t={{ ...t.admin.kehadiranTable, closeLabel: t.common.modalClose }}
-            expandAll={fBelumSah}
+            expandAll={fBelumSah || ikutTarikh}
           />
         )}
       </section>
