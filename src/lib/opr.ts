@@ -73,7 +73,7 @@ export function huraiTeksLaporanOpr(teks: string): { tempat: string; objektif: s
 
 const str = (form: FormData, k: string, max: number) => String(form.get(k) ?? "").trim().slice(0, max);
 
-function jenisImej(buf: Uint8Array): "jpg" | "png" | null {
+export function jenisImej(buf: Uint8Array): "jpg" | "png" | null {
   if (buf[0] === 0xff && buf[1] === 0xd8) return "jpg";
   if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return "png";
   return null;
@@ -224,7 +224,86 @@ function formatTarikh(iso: string): string {
   return `${d.toLocaleDateString("ms-MY", { day: "numeric", month: "long", year: "numeric" })} (${hari})`;
 }
 
-export async function janaOprPDF(d: OprData): Promise<Uint8Array> {
+/** Pengesahan guru untuk dicop pada kaki OPR (dokumen disahkan). */
+export interface PengesahanOpr {
+  oleh: string; // cth "NAMA (Guru Penasihat) · 27/11/2026"
+  komen: string | null;
+}
+
+// Kaki OPR: lajur kanan (Pengesahan Guru Penasihat). Mesti sepadan dengan janaOprPDF.
+const A4 = { w: 595, h: 842 };
+const KAKI_M = 34;
+const KAKI_TINGGI = 52;
+const KAKI_Y = KAKI_M + KAKI_TINGGI - 12; // garis asas teks kaki
+const KAKI_X = KAKI_M + (A4.w - 2 * KAKI_M) / 2;
+const KAKI_W = A4.w - KAKI_M - KAKI_X;
+
+const KAKI_ATAS = KAKI_M + KAKI_TINGGI; // sempadan bawah kandungan (atas kaki)
+const KOMEN_SZ = 9;
+const KOMEN_LS = 11.5;
+const KOMEN_W = A4.w - 2 * KAKI_M;
+
+/** Tinggi seksyen "KOMEN GURU PENASIHAT" (bar tajuk + kotak teks). */
+function tinggiKomen(font: PDFFont, komen: string): number {
+  return 15 + balut(komen, font, KOMEN_SZ, KOMEN_W - 12).length * KOMEN_LS + 8;
+}
+
+/** Lukis seksyen komen guru (lebar penuh) bermula di yAtas — diletak selepas gambar. */
+function lukisKomen(page: PDFPage, font: PDFFont, bold: PDFFont, komen: string, yAtas: number) {
+  page.drawRectangle({ x: KAKI_M, y: yAtas - 15, width: KOMEN_W, height: 15, color: BRAND });
+  page.drawText("KOMEN GURU PENASIHAT", { x: KAKI_M + 6, y: yAtas - 11, size: 9, font: bold, color: rgb(1, 1, 1) });
+  const baris = balut(komen, font, KOMEN_SZ, KOMEN_W - 12);
+  const h = baris.length * KOMEN_LS + 8;
+  const y0 = yAtas - 15;
+  page.drawRectangle({ x: KAKI_M, y: y0 - h, width: KOMEN_W, height: h, color: rgb(0.99, 0.98, 0.93), borderColor: LINE, borderWidth: 0.5 });
+  baris.forEach((b, k) => page.drawText(b, { x: KAKI_M + 6, y: y0 - 11 - k * KOMEN_LS, size: KOMEN_SZ, font, color: DARK }));
+}
+
+/** Lukis blok pengesahan di lajur kanan kaki muka surat 1 (nama pengesah & tarikh). */
+function lukisPengesahan(page: PDFPage, bold: PDFFont, p: PengesahanOpr) {
+  page.drawText("Pengesahan Guru Penasihat:", { x: KAKI_X, y: KAKI_Y - 6, size: 8, font: bold, color: BRAND });
+  const oleh = hadBaris(balut(`DISAHKAN oleh ${p.oleh}`, bold, 8, KAKI_W), 2, bold, 8, KAKI_W);
+  oleh.forEach((b, k) => page.drawText(b, { x: KAKI_X, y: KAKI_Y - 17 - k * 9.5, size: 8, font: bold, color: rgb(0.02, 0.47, 0.34) }));
+}
+
+/**
+ * Cop pengesahan guru pada OPR sedia ada (PDF yang dihantar pelajar): ganti
+ * "Menunggu pengesahan" di kaki muka surat 1. Jika ada komen, kandungan muka
+ * surat 1 dikecilkan sedikit (seragam, tanpa herot) supaya seksyen komen guru
+ * muat SELEPAS gambar, sebelum kaki. Gambar & isi asal dikekalkan.
+ */
+export async function copPengesahanOpr(pdf: Uint8Array, p: PengesahanOpr): Promise<Uint8Array> {
+  const src = await PDFDocument.load(pdf);
+  const out = await PDFDocument.create();
+  out.setTitle(src.getTitle() ?? "OPR");
+  const font = await out.embedFont(StandardFonts.Helvetica);
+  const bold = await out.embedFont(StandardFonts.HelveticaBold);
+  const asal = src.getPage(0);
+  const page = out.addPage([A4.w, A4.h]);
+
+  // Kaki asal (disediakan oleh / tarikh jana) — saiz sebenar.
+  const [kaki] = await out.embedPages([asal], [{ left: 0, bottom: 0, right: A4.w, top: KAKI_ATAS }]);
+  page.drawPage(kaki, { x: 0, y: 0, width: A4.w, height: KAKI_ATAS });
+
+  // Kandungan (kepala → gambar), dikecilkan jika perlu ruang untuk komen.
+  const [isi] = await out.embedPages([asal], [{ left: 0, bottom: KAKI_ATAS, right: A4.w, top: A4.h }]);
+  const ruangKomen = p.komen ? tinggiKomen(font, p.komen) + 8 : 0;
+  const tinggiAsal = A4.h - KAKI_ATAS;
+  const sk = (tinggiAsal - ruangKomen) / tinggiAsal;
+  page.drawPage(isi, { x: (A4.w - A4.w * sk) / 2, y: KAKI_ATAS + ruangKomen, width: A4.w * sk, height: tinggiAsal * sk });
+  if (p.komen) lukisKomen(page, font, bold, p.komen, KAKI_ATAS + ruangKomen - 4);
+
+  // Tutup "Menunggu pengesahan" asal & cop pengesahan.
+  page.drawRectangle({ x: KAKI_X - 2, y: 14, width: KAKI_W + 2, height: KAKI_Y + 3 - 14, color: rgb(1, 1, 1) });
+  lukisPengesahan(page, bold, p);
+
+  // Muka surat lain (cth lampiran senarai peserta) disalin seadanya.
+  const lain = await out.copyPages(src, src.getPageIndices().slice(1));
+  lain.forEach((pg) => out.addPage(pg));
+  return out.save();
+}
+
+export async function janaOprPDF(d: OprData, opts: { pengesahan?: PengesahanOpr } = {}): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(`OPR - ${bersih(d.namaProgram)}`);
   const page = doc.addPage([595, 842]);
@@ -376,8 +455,17 @@ export async function janaOprPDF(d: OprData): Promise<Uint8Array> {
   // --- Gambar (grid mengisi ruang baki) ---
   seksyen(`${noSeksyen}. GAMBAR AKTIVITI`);
   const ruangAtas = y - 6;
-  const ruangBawah = M + KAKI;
+  // Komen guru (dokumen disahkan) diletak SELEPAS gambar, sebelum kaki.
+  const komen = opts.pengesahan?.komen || null;
+  const ruangKomen = komen ? tinggiKomen(font, komen) + 8 : 0;
+  const ruangBawah = M + KAKI + ruangKomen;
   const n = d.gambar.length;
+  if (n === 0) {
+    const h = Math.max(40, ruangAtas - ruangBawah);
+    page.drawRectangle({ x: M, y: ruangAtas - h, width: W, height: h, color: rgb(0.97, 0.98, 0.98), borderColor: LINE, borderWidth: 0.5 });
+    const nota = "Tiada gambar aktiviti dilampirkan.";
+    teks(page, nota, M + (W - font.widthOfTextAtSize(nota, 9)) / 2, ruangAtas - h / 2 - 3, 9, font, GREY);
+  }
   const lajur = n === 1 ? 1 : 2;
   const barisG = Math.ceil(n / lajur);
   const GAP = 6;
@@ -408,8 +496,13 @@ export async function janaOprPDF(d: OprData): Promise<Uint8Array> {
   teks(page, "Disediakan oleh:", M, ky - 6, 8, bold, BRAND);
   teks(page, d.disediakanOleh, M, ky - 18, 9, bold);
   teks(page, d.jawatanPenyedia, M, ky - 29, 8, font, GREY);
-  teks(page, "Pengesahan Guru Penasihat:", M + W / 2, ky - 6, 8, bold, BRAND);
-  teks(page, "Menunggu pengesahan (selepas dihantar)", M + W / 2, ky - 18, 8.5, font, GREY);
+  if (komen) lukisKomen(page, font, bold, komen, M + KAKI + ruangKomen - 4);
+  if (opts.pengesahan) {
+    lukisPengesahan(page, bold, opts.pengesahan);
+  } else {
+    teks(page, "Pengesahan Guru Penasihat:", M + W / 2, ky - 6, 8, bold, BRAND);
+    teks(page, "Menunggu pengesahan (selepas dihantar)", M + W / 2, ky - 18, 8.5, font, GREY);
+  }
   teks(page, `Dokumen dijana oleh sistem pada ${new Date().toLocaleDateString("ms-MY")}`, M, M - 8, 7, font, GREY);
 
   // --- Lampiran: senarai penuh peserta (jika tidak muat di muka surat 1) ---
