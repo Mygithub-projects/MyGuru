@@ -66,7 +66,7 @@ interface ReviewPanelDict {
   aiSuggestTitle: string;
   viewEvidence: string; viewLetter: string; viewCert: string; noEvidence: string;
   viewAttendance: string; hideAttendance: string; present: string; absent: string; meeting: string;
-  reviewFirst: string;
+  reviewFirst: string; reviewEvidenceLink: string;
 }
 
 export function ReviewPanel({
@@ -97,8 +97,8 @@ export function ReviewPanel({
   const [pencapaianList, setPencapaianList] = useState(pencapaian);
   const [aktivitiLuarList, setAktivitiLuarList] = useState(aktivitiLuar);
   const [pertukaranList, setPertukaranList] = useState(pertukaran);
-  const [laporanMingguanList, setLaporanMingguanList] = useState(laporanMingguan);
-  const [laporanProjekList, setLaporanProjekList] = useState(laporanProjek);
+  const [laporanMingguanList] = useState(laporanMingguan);
+  const [laporanProjekList] = useState(laporanProjek);
   const [sesiKehadiranList, setSesiKehadiranList] = useState(sesiKehadiran);
   const [cadanganJawatanList, setCadanganJawatanList] = useState(cadanganJawatan);
 
@@ -250,17 +250,11 @@ export function ReviewPanel({
         <Section id="review-laporanMingguan" title={`${t.weeklyReportTitle} (${laporanMingguanList.length})`}>
           {laporanMingguanList.map((l) => (
             <Row key={l.id} nama={l.setiausaha.nama} kelas={l.setiausaha.kelasT6} tajuk={l.tajuk}>
-              <Btn label={t.confirm} tone="ok" loading={busy === `lm-${l.id}-a`}
-                onClick={async () => {
-                  const success = await act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Approved" }, `lm-${l.id}-a`);
-                  if (success) setLaporanMingguanList((prev) => prev.filter((x) => x.id !== l.id));
-                }} />
-              <Btn label={t.query} tone="warn" loading={busy === `lm-${l.id}-k`}
-                onClick={async () => {
-                  const komen = prompt(t.queryCommentPrompt) ?? undefined;
-                  const success = await act(`/api/laporan/mingguan/${l.id}/sahkan`, { status: "Kuiri", komen }, `lm-${l.id}-k`);
-                  if (success) setLaporanMingguanList((prev) => prev.filter((x) => x.id !== l.id));
-                }} />
+              {/* Laporan SU/NSU: guru mesti buka & semak eviden dahulu — di halaman semakan penuh. */}
+              <a href={`/guru/laporan?jenis=mingguan&status=Pending`}
+                className="rounded-md bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-hover">
+                {t.reviewEvidenceLink}
+              </a>
             </Row>
           ))}
         </Section>
@@ -271,17 +265,11 @@ export function ReviewPanel({
         <Section id="review-laporanProjek" title={`${t.projectReportTitle} (${laporanProjekList.length})`}>
           {laporanProjekList.map((l) => (
             <Row key={l.id} nama={l.setiausaha.nama} kelas={l.setiausaha.kelasT6} tajuk={l.tajuk}>
-              <Btn label={t.confirm} tone="ok" loading={busy === `lp-${l.id}-a`}
-                onClick={async () => {
-                  const success = await act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Approved" }, `lp-${l.id}-a`);
-                  if (success) setLaporanProjekList((prev) => prev.filter((x) => x.id !== l.id));
-                }} />
-              <Btn label={t.query} tone="warn" loading={busy === `lp-${l.id}-k`}
-                onClick={async () => {
-                  const komen = prompt(t.queryCommentPrompt) ?? undefined;
-                  const success = await act(`/api/laporan/projek/${l.id}/sahkan`, { status: "Kuiri", komen }, `lp-${l.id}-k`);
-                  if (success) setLaporanProjekList((prev) => prev.filter((x) => x.id !== l.id));
-                }} />
+              {/* Laporan SU/NSU: guru mesti buka & semak eviden dahulu — di halaman semakan penuh. */}
+              <a href={`/guru/laporan?jenis=projek&status=Pending`}
+                className="rounded-md bg-brand px-3 py-1 text-xs font-semibold text-white hover:bg-brand-hover">
+                {t.reviewEvidenceLink}
+              </a>
             </Row>
           ))}
         </Section>

@@ -6,18 +6,21 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { ringkasanSesi, sesiUntukUnit } from "@/lib/kehadiran";
 import { getT } from "@/lib/locale";
 import { SortToggle } from "@/components/SortToggle";
-import { LaporanForm } from "./LaporanForm";
+import { LaporanForm, type Semula } from "./LaporanForm";
+import { huraiTeksLaporanOpr } from "@/lib/opr";
+import { JAWATAN_PESERTA } from "@/lib/projek-jawatan";
 import { calonPeserta, projekDiTag } from "@/lib/projek";
 
 export default async function LaporanPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string }>;
+  searchParams: Promise<{ sort?: string; semula?: string }>;
 }) {
   const session = await getSession();
   if (!session?.pelajarId) redirect("/login");
   const { t } = await getT();
-  const arah: "asc" | "desc" = (await searchParams).sort === "lama" ? "asc" : "desc";
+  const sp = await searchParams;
+  const arah: "asc" | "desc" = sp.sort === "lama" ? "asc" : "desc";
 
   const isSU = session.subRole === "SU" || session.subRole === "NSU";
   // Laporan Projek: pelajar yang di-tag SU/NSU projek oleh guru (walaupun bukan SU/NSU unit).
@@ -42,7 +45,10 @@ export default async function LaporanPage({
     prisma.laporanProjek.findMany({
       where: { setiausahaId: session.pelajarId },
       orderBy: { createdAt: arah },
-      include: { _count: { select: { peserta: true } } },
+      include: {
+        _count: { select: { peserta: true } },
+        peserta: { select: { pelajarId: true, jawatan: true, pelajar: { select: { nama: true, kelasT6: true } } } },
+      },
     }),
     isSU ? sesiUntukUnit(units, kohort) : Promise.resolve([]),
     tags.length ? calonPeserta(kohort) : Promise.resolve([]),
@@ -54,6 +60,35 @@ export default async function LaporanPage({
   ];
   const ringkasan: Record<string, { hadir: number; total: number; peratus: number }> = {};
   await Promise.all(sesiIds.map(async (id) => { ringkasan[id] = await ringkasanSesi(id); }));
+
+  // ?semula=<jenis>:<id> — betulkan laporan yang dikuiri; borang diisi dengan butiran asal.
+  let semula: Semula | null = null;
+  const [jenisSemula, idSemula] = (sp.semula ?? "").split(":");
+  if (jenisSemula === "mingguan" && isSU) {
+    const m = mingguan.find((x) => x.id === idSemula && x.statusSemakan === "Kuiri");
+    if (m) {
+      semula = {
+        jenis: "mingguan", id: m.id, komen: m.komenGuru, namaProgram: m.namaProgram ?? "", projekId: "",
+        peringkat: m.peringkat ?? "", tarikh: m.tarikh.toISOString().slice(0, 10), masa: m.masa ?? "",
+        namaUnit: m.namaUnit ?? "", sesiId: m.sesiId ?? "", ...huraiTeksLaporanOpr(m.aktiviti), peserta: [],
+      };
+    }
+  } else if (jenisSemula === "projek") {
+    const p = projek.find((x) => x.id === idSemula && x.statusPengesahan === "Kuiri");
+    const tag = p && tags.find((x) => x.projek.id === p.projekId);
+    if (p && tag) {
+      const ajk = new Set([session.pelajarId, ...tag.projek.tag.map((g) => g.pelajar.id)]);
+      semula = {
+        jenis: "projek", id: p.id, komen: p.komenGuru, namaProgram: "", projekId: tag.projek.id,
+        peringkat: p.peringkatProjek ?? "", tarikh: p.tarikh ? p.tarikh.toISOString().slice(0, 10) : "", masa: "",
+        namaUnit: p.namaUnit ?? "", sesiId: "", ...huraiTeksLaporanOpr(p.laporan ?? ""),
+        // AJK (jawatan ditetapkan guru) ditambah semula oleh pelayan — hanya peserta biasa diisi.
+        peserta: p.peserta
+          .filter((x) => !ajk.has(x.pelajarId) && (JAWATAN_PESERTA as readonly string[]).includes(x.jawatan))
+          .map((x) => ({ id: x.pelajarId, nama: x.pelajar.nama, kelas: x.pelajar.kelasT6, jawatan: x.jawatan })),
+      };
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -76,6 +111,7 @@ export default async function LaporanPage({
           ajk: x.projek.tag.map((g) => ({ id: g.pelajar.id, nama: g.pelajar.nama, kelas: g.pelajar.kelasT6, peranan: g.peranan })),
         }))}
         calon={calon.map((c) => ({ id: c.id, nama: c.nama, kelas: c.kelasT6 }))}
+        semula={semula}
       />
 
       <div className="flex items-center justify-between gap-3">
@@ -100,7 +136,9 @@ export default async function LaporanPage({
                   </p>
                   {m.namaProgram && <p className="mt-1 line-clamp-3 text-xs text-slate-500">{m.aktiviti}</p>}
                   <Kehadiran sesiId={m.sesiId} r={ringkasan} labelHadir={t.laporan.reportAttendanceLabel} labelLihat={t.laporan.reportViewSession} />
-                  {m.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.laporan.comment}: {m.komenGuru}</p>}
+                  {m.statusSemakan === "Kuiri" ? (
+                    <Dikuiri komen={m.komenGuru} href={isSU ? `/pelajar/laporan?semula=mingguan:${m.id}#borang-laporan` : null} t={t.laporan} />
+                  ) : m.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.laporan.comment}: {m.komenGuru}</p>}
                   {m.statusSemakan === "Approved" && (
                     <a href={`/api/laporan/mingguan/${m.id}/pdf`} className="mt-1 inline-block text-xs font-semibold text-brand-dark hover:underline">{t.laporan.downloadVerified}</a>
                   )}
@@ -126,7 +164,13 @@ export default async function LaporanPage({
                   </p>
                   {p.laporan && <p className="mt-1 line-clamp-3 text-xs text-slate-500">{p.laporan}</p>}
                   <Kehadiran sesiId={p.sesiId} r={ringkasan} labelHadir={t.laporan.reportAttendanceLabel} labelLihat={t.laporan.reportViewSession} />
-                  {p.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.laporan.comment}: {p.komenGuru}</p>}
+                  {p.statusPengesahan === "Kuiri" ? (
+                    <Dikuiri
+                      komen={p.komenGuru}
+                      href={tags.some((x) => x.projek.id === p.projekId) ? `/pelajar/laporan?semula=projek:${p.id}#borang-laporan` : null}
+                      t={t.laporan}
+                    />
+                  ) : p.komenGuru && <p className="mt-1 text-xs text-amber-600">{t.laporan.comment}: {p.komenGuru}</p>}
                   {p.statusPengesahan === "Approved" && (
                     <a href={`/api/laporan/projek/${p.id}/pdf`} className="mt-1 inline-block text-xs font-semibold text-brand-dark hover:underline">{t.laporan.downloadVerified}</a>
                   )}
@@ -165,4 +209,23 @@ function Kehadiran({
 
 function Empty({ message }: { message: string }) {
   return <p className="text-sm text-slate-400">{message}</p>;
+}
+
+/** Kotak laporan dikuiri: komen guru + butang betulkan & hantar semula. */
+function Dikuiri({ komen, href, t }: {
+  komen: string | null;
+  href: string | null;
+  t: { queriedTitle: string; comment: string; fixResubmit: string };
+}) {
+  return (
+    <div className="mt-2 rounded-md bg-orange-50 px-2.5 py-2 text-xs text-orange-800 ring-1 ring-orange-200">
+      <p className="font-semibold">⚠ {t.queriedTitle}</p>
+      {komen && <p className="mt-0.5">{t.comment}: {komen}</p>}
+      {href && (
+        <Link href={href} className="mt-1.5 inline-block rounded-md bg-orange-600 px-2.5 py-1 font-semibold text-white hover:bg-orange-700">
+          {t.fixResubmit}
+        </Link>
+      )}
+    </div>
+  );
 }

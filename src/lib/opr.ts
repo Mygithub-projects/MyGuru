@@ -54,6 +54,23 @@ export function teksLaporanOpr(d: Pick<OprData, "objektif" | "aktiviti" | "refle
   ].filter(Boolean).join("\n\n");
 }
 
+/** Songsang teksLaporanOpr() — untuk isi semula borang bila laporan dikuiri dihantar semula. */
+export function huraiTeksLaporanOpr(teks: string): { tempat: string; objektif: string; aktiviti: string; refleksi: string } {
+  const LABEL = ["Tempat", "Objektif", "Aktiviti", "Refleksi"];
+  const ambil = (label: string) => {
+    // Bahagian bermula pada "Label: " (awal teks atau selepas baris kosong) hingga label seterusnya.
+    const mula = teks.startsWith(`${label}: `) ? 0 : teks.indexOf(`\n\n${label}: `);
+    if (mula < 0) return "";
+    const isi = teks.slice(mula + (mula === 0 ? 0 : 2) + label.length + 2);
+    const tamat = Math.min(...LABEL.map((l) => isi.indexOf(`\n\n${l}: `)).filter((i) => i >= 0), isi.length);
+    return isi.slice(0, tamat).trim();
+  };
+  const aktiviti = ambil("Aktiviti");
+  // Rekod lama/bukan OPR: seluruh teks dianggap laporan aktiviti.
+  if (!aktiviti && !/^(Tempat|Objektif|Refleksi): /m.test(teks)) return { tempat: "", objektif: "", aktiviti: teks.trim(), refleksi: "" };
+  return { tempat: ambil("Tempat"), objektif: ambil("Objektif"), aktiviti, refleksi: ambil("Refleksi") };
+}
+
 const str = (form: FormData, k: string, max: number) => String(form.get(k) ?? "").trim().slice(0, max);
 
 function jenisImej(buf: Uint8Array): "jpg" | "png" | null {
@@ -263,12 +280,17 @@ export async function janaOprPDF(d: OprData): Promise<Uint8Array> {
   const SZ = 8.5;
   for (let i = 0; i < sel.length; i += 2) {
     const pasangan = sel.slice(i, i + 2);
-    const tinggiBaris = Math.max(...pasangan.map(([, v]) => hadBaris(balut(v, font, SZ, lajurW - labelW - 8), 2, font, SZ, lajurW - labelW - 8).length)) * 10.5 + 5;
+    // Label panjang (cth "Jawatan dalam Projek") dibalut supaya tidak melimpah ke sel nilai.
+    const barisLabel = (l: string) => balut(l, bold, SZ - 0.5, labelW - 8);
+    const tinggiBaris = Math.max(...pasangan.flatMap(([l, v]) => [
+      barisLabel(l).length,
+      hadBaris(balut(v, font, SZ, lajurW - labelW - 8), 2, font, SZ, lajurW - labelW - 8).length,
+    ])) * 10.5 + 5;
     pasangan.forEach(([label, nilai], j) => {
       const x = M + j * lajurW;
       page.drawRectangle({ x, y: y - tinggiBaris, width: labelW, height: tinggiBaris, color: BRAND_LIGHT, borderColor: LINE, borderWidth: 0.5 });
       page.drawRectangle({ x: x + labelW, y: y - tinggiBaris, width: lajurW - labelW, height: tinggiBaris, borderColor: LINE, borderWidth: 0.5 });
-      teks(page, label, x + 4, y - 10, SZ - 0.5, bold, BRAND);
+      barisLabel(label).forEach((b, k) => teks(page, b, x + 4, y - 10 - k * 10.5, SZ - 0.5, bold, BRAND));
       hadBaris(balut(nilai, font, SZ, lajurW - labelW - 8), 2, font, SZ, lajurW - labelW - 8)
         .forEach((b, k) => teks(page, b, x + labelW + 4, y - 10 - k * 10.5, SZ));
     });
@@ -292,21 +314,66 @@ export async function janaOprPDF(d: OprData): Promise<Uint8Array> {
   blokTeks("3. AKTIVITI / PENGISIAN PROGRAM", d.aktiviti, 12);
   blokTeks("4. REFLEKSI / RUMUSAN", d.refleksi, 5);
 
+  // --- 5. Jadual peserta: Bil. | Nama | Kelas | Jawatan — SEMUA peserta dipapar penuh. ---
+  const KAKI = 52;
+  const tajukPeserta = d.jenis === "Aktiviti" ? "PESERTA & KEDUDUKAN" : "PESERTA & JAWATAN";
+  const kolum = [
+    { t: "Bil.", w: 30 },
+    { t: "Nama Peserta", w: W - 30 - 80 - 150 },
+    { t: "Kelas", w: 80 },
+    { t: d.jenis === "Aktiviti" ? "Kedudukan" : "Jawatan", w: 150 },
+  ];
+  const TS = 9;
+  const TL = 11;
+  const barisPeserta = d.peserta.map((p, i) =>
+    [String(i + 1), p.nama, p.kelas || "-", p.jawatan].map((v, c) => balut(v, font, TS, kolum[c].w - 10)));
+  const tinggiBaris = (sel: string[][]) => Math.max(1, ...sel.map((l) => l.length)) * TL + 6;
+  const TH = 16; // tinggi baris kepala jadual
+
+  /** Lukis kepala + baris [dari..) selagi muat di atas `had`; pulangkan indeks baris seterusnya & y baharu. */
+  const lukisJadual = (pg: PDFPage, yy: number, dari: number, had: number) => {
+    let x = M;
+    for (const k of kolum) {
+      pg.drawRectangle({ x, y: yy - TH, width: k.w, height: TH, color: BRAND_LIGHT, borderColor: LINE, borderWidth: 0.5 });
+      teks(pg, k.t, x + 5, yy - 11, TS, bold, BRAND);
+      x += k.w;
+    }
+    yy -= TH;
+    let i = dari;
+    for (; i < barisPeserta.length; i++) {
+      const sel = barisPeserta[i];
+      const h = tinggiBaris(sel);
+      if (yy - h < had) break;
+      x = M;
+      sel.forEach((baris, c) => {
+        pg.drawRectangle({ x, y: yy - h, width: kolum[c].w, height: h, borderColor: LINE, borderWidth: 0.5 });
+        baris.forEach((b, k) => teks(pg, b, x + 5, yy - 11.5 - k * TL, TS, c === 1 ? bold : font));
+        x += kolum[c].w;
+      });
+      yy -= h;
+    }
+    return { i, y: yy };
+  };
+
   let noSeksyen = 5;
+  let lampiranPeserta = false;
   if (d.peserta.length) {
-    seksyen(`${noSeksyen++}. ${d.jenis === "Aktiviti" ? "PESERTA & KEDUDUKAN" : "PESERTA & JAWATAN"}`);
-    const PS = 7.5;
-    const PL = 9.5;
-    const teksPeserta = d.peserta.map((p, i) => `${i + 1}. ${p.nama}${p.kelas ? ` (${p.kelas})` : ""} - ${p.jawatan}`).join("   ");
-    const baris = hadBaris(balut(teksPeserta, font, PS, W - 12), 6, font, PS, W - 12);
-    const h = baris.length * PL + 7;
-    page.drawRectangle({ x: M, y: y - h, width: W, height: h, borderColor: LINE, borderWidth: 0.5 });
-    baris.forEach((b, k) => teks(page, b, M + 6, y - 9.5 - k * PL, PS));
-    y -= h + 8;
+    seksyen(`${noSeksyen++}. ${tajukPeserta} (${d.peserta.length} orang)`);
+    const jumlahTinggi = TH + barisPeserta.reduce((s, sel) => s + tinggiBaris(sel), 0);
+    const RUANG_GAMBAR_MIN = 15 + 6 + 150; // bar tajuk + ruang minimum gambar
+    if (y - jumlahTinggi - 8 >= M + KAKI + RUANG_GAMBAR_MIN) {
+      y = lukisJadual(page, y, 0, -Infinity).y - 8;
+    } else {
+      // Terlalu ramai untuk satu muka surat — senarai penuh di lampiran (muka surat 2+).
+      lampiranPeserta = true;
+      const nota = `Senarai penuh ${d.peserta.length} peserta (Bil., Nama, Kelas, ${kolum[3].t}) dilampirkan di muka surat 2.`;
+      page.drawRectangle({ x: M, y: y - 18, width: W, height: 18, borderColor: LINE, borderWidth: 0.5 });
+      teks(page, nota, M + 6, y - 12, TS);
+      y -= 18 + 8;
+    }
   }
 
   // --- Gambar (grid mengisi ruang baki) ---
-  const KAKI = 52;
   seksyen(`${noSeksyen}. GAMBAR AKTIVITI`);
   const ruangAtas = y - 6;
   const ruangBawah = M + KAKI;
@@ -344,6 +411,25 @@ export async function janaOprPDF(d: OprData): Promise<Uint8Array> {
   teks(page, "Pengesahan Guru Penasihat:", M + W / 2, ky - 6, 8, bold, BRAND);
   teks(page, "Menunggu pengesahan (selepas dihantar)", M + W / 2, ky - 18, 8.5, font, GREY);
   teks(page, `Dokumen dijana oleh sistem pada ${new Date().toLocaleDateString("ms-MY")}`, M, M - 8, 7, font, GREY);
+
+  // --- Lampiran: senarai penuh peserta (jika tidak muat di muka surat 1) ---
+  if (lampiranPeserta) {
+    let dari = 0;
+    let bil = 2;
+    while (dari < barisPeserta.length) {
+      const pg = doc.addPage([595, 842]);
+      let yy = height - M;
+      teks(pg, `LAMPIRAN: SENARAI ${tajukPeserta}${dari > 0 ? " (sambungan)" : ""}`, M, yy - 12, 11, bold, BRAND);
+      teks(pg, `${d.namaProgram} - ${d.namaUnit} (${d.jenisKoko}) - ${formatTarikh(d.tarikh)}`, M, yy - 26, 8.5, font, GREY);
+      yy -= 34;
+      pg.drawLine({ start: { x: M, y: yy }, end: { x: width - M, y: yy }, thickness: 1.5, color: BRAND });
+      yy -= 8;
+      const r = lukisJadual(pg, yy, dari, M + 14);
+      if (r.i === dari) break; // pengaman: satu baris terlalu tinggi untuk satu muka surat
+      dari = r.i;
+      teks(pg, `Muka surat ${bil++} - Jumlah peserta: ${d.peserta.length} orang`, M, M - 8, 7, font, GREY);
+    }
+  }
 
   return doc.save();
 }

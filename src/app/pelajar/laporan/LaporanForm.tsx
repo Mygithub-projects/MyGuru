@@ -20,6 +20,25 @@ interface Ajk extends CalonPelajar { peranan: string; }
 interface ProjekTag { id: string; nama: string; units: string[]; peranan: string; ajk: Ajk[]; }
 interface Peserta extends CalonPelajar { jawatan: string; }
 
+/** Laporan dikuiri yang sedang dibetulkan — butiran asal untuk isi semula borang. */
+export interface Semula {
+  jenis: "mingguan" | "projek";
+  id: string;
+  komen: string | null;
+  namaProgram: string;
+  projekId: string;
+  peringkat: string;
+  tarikh: string; // yyyy-mm-dd
+  masa: string;
+  namaUnit: string;
+  sesiId: string;
+  tempat: string;
+  objektif: string;
+  aktiviti: string;
+  refleksi: string;
+  peserta: Peserta[];
+}
+
 const MAKS_GAMBAR = 4;
 // Mesti sama dengan OPR_HAD (src/lib/opr.ts).
 const HAD = { objektif: 500, aktiviti: 1500, refleksi: 600, tempat: 120, masa: 60 };
@@ -44,8 +63,9 @@ export async function kecilkanGambar(file: File): Promise<File> {
   }
 }
 
-export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek, calon }: {
+export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek, calon, semula = null }: {
   units: Unit[]; sesiList: Sesi[]; bolehMingguan: boolean; pelajarId: string; projek: ProjekTag[]; calon: CalonPelajar[];
+  semula?: Semula | null;
 }) {
   const router = useRouter();
   const locale = useLocale();
@@ -57,9 +77,16 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
   const unitLabel: Record<string, string> = {
     Sukan: common.sukan, Kelab: common.kelab, Uniform: common.uniform, Perkhidmatan: common.perkhidmatan,
   };
-  const [tab, setTab] = useState<"mingguan" | "projek">(bolehMingguan ? "mingguan" : "projek");
-  const [projekId, setProjekId] = useState(projek.length === 1 ? projek[0].id : "");
-  const [peserta, setPeserta] = useState<Peserta[]>([]);
+  const [tab, setTab] = useState<"mingguan" | "projek">(semula?.jenis ?? (bolehMingguan ? "mingguan" : "projek"));
+  const [projekId, setProjekId] = useState(semula?.projekId || (projek.length === 1 ? projek[0].id : ""));
+  const [peserta, setPeserta] = useState<Peserta[]>(semula?.peserta ?? []);
+  // Isi semula hanya pada tab laporan yang dikuiri.
+  const sv = semula && semula.jenis === tab ? semula : null;
+  const sectionRef = useRef<HTMLElement>(null);
+  const semulaId = semula?.id ?? null;
+  useEffect(() => {
+    if (semulaId) sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [semulaId]);
   const projekDipilih = projek.find((x) => x.id === projekId) ?? null;
   const [busy, setBusy] = useState<"jana" | "hantar" | null>(null);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -134,6 +161,7 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
     gambar.forEach((g) => form.append("gambar", g.file));
     form.set("jenis", tab);
     form.set("opr", "1");
+    if (sv) form.set("gantiId", sv.id);
     if (tab === "projek") form.set("peserta", JSON.stringify(peserta.map((x) => ({ pelajarId: x.id, jawatan: x.jawatan }))));
     setBusy("jana");
     try {
@@ -167,7 +195,7 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
       });
       const json = await res.json();
       setMsg({ text: json.message, ok: json.success });
-      if (json.success) { resetSemua(); router.refresh(); }
+      if (json.success) { resetSemua(); if (semula) router.replace("/pelajar/laporan"); else router.refresh(); }
     } catch {
       setMsg({ text: t.networkError, ok: false });
     } finally {
@@ -178,7 +206,7 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
   const inputCls = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm";
 
   return (
-    <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+    <section ref={sectionRef} id="borang-laporan" className="scroll-mt-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <div className="mb-3 flex gap-2">
         {(bolehMingguan ? (["mingguan", "projek"] as const) : (["projek"] as const)).map((tabKey) => (
           <button key={tabKey} type="button" onClick={() => tukarTab(tabKey)}
@@ -188,6 +216,15 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
         ))}
       </div>
       <p className="mb-4 text-xs text-slate-500">{o.intro}</p>
+
+      {sv && (
+        <div className="mb-4 space-y-1 rounded-lg bg-amber-50 px-3 py-3 text-sm text-amber-800 ring-1 ring-amber-300">
+          <p className="font-semibold">✏️ {t.resubmitBanner}</p>
+          {sv.komen && <p><span className="font-semibold">{t.comment}:</span> {sv.komen}</p>}
+          <p className="text-xs">📷 {t.resubmitPhotosNote}</p>
+          <a href="/pelajar/laporan" className="inline-block text-xs font-semibold text-amber-900 underline">{t.cancelFix}</a>
+        </div>
+      )}
 
       {msg && (
         <div className={`mb-3 rounded-md px-3 py-2 text-sm ${msg.ok ? "bg-brand-light text-brand-dark ring-1 ring-brand/30" : "bg-red-50 text-red-700 ring-1 ring-red-200"}`}>
@@ -199,10 +236,10 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
         <p className="rounded-lg bg-amber-50 px-3 py-3 text-sm text-amber-700 ring-1 ring-amber-200">{o.noProject}</p>
       ) : (<>
       {/* Langkah 1: isi butiran + gambar → Jana OPR */}
-      <form ref={formRef} key={tab} onSubmit={jana} onInput={tandaBerubah} className="grid gap-3 sm:grid-cols-2">
+      <form ref={formRef} key={`${tab}-${sv?.id ?? ""}`} onSubmit={jana} onInput={tandaBerubah} className="grid gap-3 sm:grid-cols-2">
         {tab === "mingguan" ? (
           <label className="text-sm">{f.programName}
-            <input name="namaProgram" maxLength={200} className={`${inputCls} mt-1`} required />
+            <input name="namaProgram" maxLength={200} defaultValue={sv?.namaProgram} className={`${inputCls} mt-1`} required />
           </label>
         ) : (
           <label className="text-sm">{o.projectLabel}
@@ -217,12 +254,12 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
         )}
         <label className="text-sm">{f.levelLabel}
           {tab === "mingguan" ? (
-            <select name="peringkat" className={`${inputCls} mt-1`} required defaultValue="Sekolah">
+            <select name="peringkat" className={`${inputCls} mt-1`} required defaultValue={sv?.peringkat || "Sekolah"}>
               {PERINGKAT.map((p) => <option key={p} value={p}>{p === "Sekolah" ? f.collegeLevel : p}</option>)}
             </select>
           ) : (
             // Jadual C(ii): peringkat pelaksanaan projek & markahnya.
-            <select name="peringkatProjek" className={`${inputCls} mt-1`} required defaultValue="Sekolah">
+            <select name="peringkatProjek" className={`${inputCls} mt-1`} required defaultValue={sv?.peringkat || "Sekolah"}>
               {PERINGKAT_PROJEK.map((p) => (
                 <option key={p} value={p}>{p === "Sekolah" ? f.collegeLevel : p} ({MARKAH_PERINGKAT_PROJEK[p]})</option>
               ))}
@@ -230,16 +267,16 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
           )}
         </label>
         <label className="text-sm">{f.dateLabel}
-          <input type="date" name="tarikh" className={`${inputCls} mt-1`} required />
+          <input type="date" name="tarikh" defaultValue={sv?.tarikh} className={`${inputCls} mt-1`} required />
         </label>
         <label className="text-sm">{o.timeLabel}
-          <input name="masa" maxLength={HAD.masa} placeholder={o.timePlaceholder} className={`${inputCls} mt-1`} />
+          <input name="masa" maxLength={HAD.masa} defaultValue={sv?.masa} placeholder={o.timePlaceholder} className={`${inputCls} mt-1`} />
         </label>
         <label className="text-sm">{o.placeLabel}
-          <input name="tempat" maxLength={HAD.tempat} placeholder={o.placePlaceholder} className={`${inputCls} mt-1`} required />
+          <input name="tempat" maxLength={HAD.tempat} defaultValue={sv?.tempat} placeholder={o.placePlaceholder} className={`${inputCls} mt-1`} required />
         </label>
         <label className="text-sm">{f.unitLabel}
-          <select name="namaUnit" className={`${inputCls} mt-1`} required defaultValue="">
+          <select name="namaUnit" className={`${inputCls} mt-1`} required defaultValue={sv?.namaUnit ?? ""}>
             <option value="" disabled>{f.unitPlaceholder}</option>
             {units.map((u, i) => <option key={i} value={u.namaUnit}>{unitLabel[u.jenisKoko] ?? u.jenisKoko}: {u.namaUnit}</option>)}
           </select>
@@ -253,7 +290,7 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
         )}
         {tab === "mingguan" && (
           <label className="text-sm">{t.sessionLinkLabel}
-            <select name="sesiId" className={`${inputCls} mt-1`} defaultValue="">
+            <select name="sesiId" className={`${inputCls} mt-1`} defaultValue={sv?.sesiId ?? ""}>
               <option value="">{t.selectSessionOptional}</option>
               {sesiList.map((s) => <option key={s.id} value={s.id}>{s.namaUnit} · {t.sessionLabel} {s.bilPerjumpaan}</option>)}
             </select>
@@ -303,13 +340,13 @@ export function LaporanForm({ units, sesiList, bolehMingguan, pelajarId, projek,
           </div>
         )}
         <label className="text-sm sm:col-span-2">{o.objectiveLabel}
-          <textarea name="objektif" rows={2} maxLength={HAD.objektif} placeholder={o.objectivePlaceholder} className={`${inputCls} mt-1`} required />
+          <textarea name="objektif" rows={2} maxLength={HAD.objektif} defaultValue={sv?.objektif} placeholder={o.objectivePlaceholder} className={`${inputCls} mt-1`} required />
         </label>
         <label className="text-sm sm:col-span-2">{o.activityLabel}
-          <textarea name="laporan" rows={5} maxLength={HAD.aktiviti} placeholder={o.activityPlaceholder} className={`${inputCls} mt-1`} required />
+          <textarea name="laporan" rows={5} maxLength={HAD.aktiviti} defaultValue={sv?.aktiviti} placeholder={o.activityPlaceholder} className={`${inputCls} mt-1`} required />
         </label>
         <label className="text-sm sm:col-span-2">{o.reflectionLabel}
-          <textarea name="refleksi" rows={3} maxLength={HAD.refleksi} placeholder={o.reflectionPlaceholder} className={`${inputCls} mt-1`} required />
+          <textarea name="refleksi" rows={3} maxLength={HAD.refleksi} defaultValue={sv?.refleksi} placeholder={o.reflectionPlaceholder} className={`${inputCls} mt-1`} required />
         </label>
 
         <div className="text-sm sm:col-span-2">

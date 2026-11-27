@@ -4,6 +4,7 @@ import { requireSession, ok, fail } from "@/lib/api";
 import { simpanFailDariForm } from "@/lib/upload";
 import { PERINGKAT } from "@/lib/enums";
 import { bacaOprDariForm, janaOprPDF, simpanOpr, teksLaporanOpr } from "@/lib/opr";
+import { notifyGuruUntukUnit } from "@/lib/notifikasi";
 
 // POST: laporan mingguan SU/NSU — templat sama seperti borang aktiviti:
 // Nama Program/Aktiviti, Peringkat, Tarikh, Unit, Laporan ringkas, Eviden.
@@ -29,6 +30,16 @@ export async function POST(request: NextRequest) {
   if (!PERINGKAT.includes(peringkat as (typeof PERINGKAT)[number])) return fail("Peringkat tidak sah", 422);
   if (!tarikh) return fail("Tarikh program/aktiviti diperlukan", 422);
   if (!laporan) return fail("Laporan ringkas diperlukan", 422);
+
+  // Hantar semula laporan yang dikuiri: rekod lama (milik pelajar ini, status Kuiri) diganti.
+  const gantiId = String(form.get("gantiId") ?? "") || null;
+  if (gantiId) {
+    const lama = await prisma.laporanMingguan.findFirst({
+      where: { id: gantiId, setiausahaId: session.pelajarId, statusSemakan: "Kuiri" },
+      select: { id: true },
+    });
+    if (!lama) return fail("Laporan asal tidak boleh dihantar semula (bukan lagi berstatus Kuiri)", 409);
+  }
 
   // jenisKoko diambil dari Kokurikulum pelajar (jangan percaya klien).
   const unit = await prisma.kokurikulum.findFirst({
@@ -57,7 +68,7 @@ export async function POST(request: NextRequest) {
   }
   if (!lampiran) return fail("Eviden diperlukan untuk semakan guru", 422);
 
-  const rec = await prisma.laporanMingguan.create({
+  const cipta = prisma.laporanMingguan.create({
     data: {
       jenisKoko: unit.jenisKoko,
       namaUnit,
@@ -72,5 +83,15 @@ export async function POST(request: NextRequest) {
       statusSemakan: "Pending",
     },
   });
-  return ok(rec, "Laporan dihantar untuk semakan", 201);
+  const rec = gantiId
+    ? (await prisma.$transaction([prisma.laporanMingguan.delete({ where: { id: gantiId } }), cipta]))[1]
+    : await cipta;
+  if (gantiId) {
+    await notifyGuruUntukUnit(namaUnit, {
+      tajuk: "Laporan dihantar semula",
+      mesej: `SU/NSU telah membetulkan laporan "${namaProgram}" yang dikuiri dan menghantarnya semula untuk semakan.`,
+      pautan: "/guru/laporan?jenis=mingguan&status=Pending",
+    });
+  }
+  return ok(rec, gantiId ? "Laporan dibetulkan dan dihantar semula untuk semakan" : "Laporan dihantar untuk semakan", 201);
 }

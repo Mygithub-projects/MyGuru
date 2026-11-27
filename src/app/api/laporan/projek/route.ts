@@ -5,6 +5,7 @@ import { simpanFailDariForm } from "@/lib/upload";
 
 import { bacaOprDariForm, janaOprPDF, simpanOpr, teksLaporanOpr } from "@/lib/opr";
 import { bacaPeserta, tagProjekPelajar } from "@/lib/projek";
+import { notifyGuruUntukUnit } from "@/lib/notifikasi";
 import { JAWATAN_PERANAN, PERINGKAT_PROJEK } from "@/lib/projek-jawatan";
 
 // POST: laporan projek — HANYA pelajar yang di-tag guru sebagai SU/NSU bagi
@@ -34,6 +35,16 @@ export async function POST(request: NextRequest) {
     return fail(aktif.statusPengesahan === "Approved"
       ? "Laporan projek ini telah disahkan"
       : "Laporan projek ini sudah dihantar dan sedang menunggu pengesahan", 409);
+  }
+
+  // Hantar semula laporan yang dikuiri: rekod lama (projek sama, milik pelajar ini) diganti.
+  const gantiId = String(form.get("gantiId") ?? "") || null;
+  if (gantiId) {
+    const lama = await prisma.laporanProjek.findFirst({
+      where: { id: gantiId, setiausahaId: session.pelajarId, projekId: projek.id, statusPengesahan: "Kuiri" },
+      select: { id: true },
+    });
+    if (!lama) return fail("Laporan asal tidak boleh dihantar semula (bukan lagi berstatus Kuiri)", 409);
   }
 
   const namaUnit = String(form.get("namaUnit") ?? "");
@@ -73,7 +84,7 @@ export async function POST(request: NextRequest) {
     }
     if (!eviden) return fail("Eviden diperlukan untuk semakan guru", 422);
 
-    const rec = await prisma.laporanProjek.create({
+    const cipta = prisma.laporanProjek.create({
       data: {
         namaProjek: projek.nama,
         projekId: projek.id,
@@ -91,7 +102,18 @@ export async function POST(request: NextRequest) {
         },
       },
     });
-    return ok(rec, "Laporan projek dihantar untuk semakan", 201);
+    // Peserta laporan lama dibuang bersama (onDelete: Cascade).
+    const rec = gantiId
+      ? (await prisma.$transaction([prisma.laporanProjek.delete({ where: { id: gantiId } }), cipta]))[1]
+      : await cipta;
+    if (gantiId) {
+      await notifyGuruUntukUnit(namaUnit, {
+        tajuk: "Laporan projek dihantar semula",
+        mesej: `SU/NSU telah membetulkan laporan projek "${projek.nama}" yang dikuiri dan menghantarnya semula untuk semakan.`,
+        pautan: "/guru/laporan?jenis=projek&status=Pending",
+      });
+    }
+    return ok(rec, gantiId ? "Laporan projek dibetulkan dan dihantar semula untuk semakan" : "Laporan projek dihantar untuk semakan", 201);
   } catch (e) {
     return fail(e instanceof Error ? e.message : "Ralat", 400);
   }
