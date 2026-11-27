@@ -24,7 +24,7 @@ const LINE = rgb(0.8, 0.84, 0.87);
 const INSTITUSI = process.env.NEXT_PUBLIC_INSTITUSI || "KTE (Prauniversiti) Desa Mahkota";
 
 export interface OprData {
-  jenis: "Mingguan" | "Projek" | "Aktiviti";
+  jenis: "Mingguan" | "Projek" | "Aktiviti" | "Luar";
   namaProgram: string;
   namaUnit: string;
   jenisKoko: string;
@@ -42,6 +42,8 @@ export interface OprData {
   gambar: { data: Uint8Array; jenis: "jpg" | "png" }[];
   /** Laporan Projek: peserta dipilih SU/NSU (kosong untuk mingguan). */
   peserta: { nama: string; kelas: string | null; jawatan: string }[];
+  /** Baris tambahan jadual Maklumat Program (cth Aktiviti Luar: Kedudukan, Guru Pengiring). */
+  tambahan?: [string, string][];
 }
 
 /** Teks laporan ringkas yang disimpan dalam DB (dipapar pada panel semakan guru). */
@@ -86,13 +88,13 @@ export function jenisImej(buf: Uint8Array): "jpg" | "png" | null {
  */
 export async function bacaOprDariForm(
   form: FormData,
-  jenis: "Mingguan" | "Projek" | "Aktiviti",
+  jenis: "Mingguan" | "Projek" | "Aktiviti" | "Luar",
   pelajar: { id: string; subRole: string | null | undefined },
   /** Laporan Projek: nama projek rasmi (dari tag guru) & peserta yang telah disahkan. */
   projek?: { nama: string; peranan: string; peserta: OprData["peserta"] },
 ): Promise<{ data: OprData } | { ralat: string }> {
   const namaProgram =
-    projek?.nama ?? str(form, jenis === "Mingguan" ? "namaProgram" : jenis === "Aktiviti" ? "namaAktiviti" : "namaProjek", 200);
+    projek?.nama ?? str(form, jenis === "Mingguan" ? "namaProgram" : jenis === "Aktiviti" || jenis === "Luar" ? "namaAktiviti" : "namaProjek", 200);
   const peringkat = str(form, jenis === "Projek" ? "peringkatProjek" : "peringkat", 60);
   const tarikh = str(form, "tarikh", 20);
   const namaUnit = str(form, "namaUnit", 200);
@@ -328,7 +330,7 @@ export async function janaOprPDF(d: OprData, opts: { pengesahan?: PengesahanOpr 
   };
   tengah(INSTITUSI.toUpperCase(), y - 14, 12, bold, BRAND);
   tengah("LAPORAN SATU MUKA SURAT (OPR)", y - 29, 11, bold);
-  tengah(`Laporan ${d.jenis} Kokurikulum Tingkatan 6`, y - 42, 9, font, GREY);
+  tengah(`Laporan ${d.jenis === "Luar" ? "Aktiviti Luar" : d.jenis} Kokurikulum Tingkatan 6`, y - 42, 9, font, GREY);
   y -= LH + 10;
   page.drawLine({ start: { x: M, y }, end: { x: width - M, y }, thickness: 1.5, color: BRAND });
   y -= 8;
@@ -351,6 +353,7 @@ export async function janaOprPDF(d: OprData, opts: { pengesahan?: PengesahanOpr 
     ["Peringkat", d.peringkat === "Sekolah" ? "Kolej / Sekolah" : d.peringkat || "-"],
   ];
   if (d.jawatanProjek) sel.push(["Jawatan dalam Projek", d.jawatanProjek]);
+  for (const t of d.tambahan ?? []) sel.push(t);
   if (d.peserta.length)
     sel.push(["Bil. Peserta", d.jenis === "Aktiviti" ? `${d.peserta.length} orang` : `${d.peserta.length + 1} orang (termasuk penyedia laporan)`]);
   if (d.kehadiran) sel.push(["Kehadiran Ahli", `${d.kehadiran.hadir}/${d.kehadiran.total} orang (${d.kehadiran.peratus}%) - Perjumpaan ${d.kehadiran.bil}`]);
@@ -500,7 +503,7 @@ export async function janaOprPDF(d: OprData, opts: { pengesahan?: PengesahanOpr 
   if (opts.pengesahan) {
     lukisPengesahan(page, bold, opts.pengesahan);
   } else {
-    teks(page, "Pengesahan Guru Penasihat:", M + W / 2, ky - 6, 8, bold, BRAND);
+    teks(page, d.jenis === "Luar" ? "Pengesahan Guru Pengiring:" : "Pengesahan Guru Penasihat:", M + W / 2, ky - 6, 8, bold, BRAND);
     teks(page, "Menunggu pengesahan (selepas dihantar)", M + W / 2, ky - 18, 8.5, font, GREY);
   }
   teks(page, `Dokumen dijana oleh sistem pada ${new Date().toLocaleDateString("ms-MY")}`, M, M - 8, 7, font, GREY);

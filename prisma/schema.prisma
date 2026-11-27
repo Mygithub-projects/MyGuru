@@ -589,6 +589,7 @@ model AktivitiLuar {
   laporan           String? // laporan ringkas pelajar
   lampiranSurat     String? // surat pengiktirafan KPM (wajib bagi rekod baharu)
   lampiranSijil     String? // sijil penyertaan/pencapaian (rekod lama: eviden tunggal)
+  lampiranOpr       String? // OPR (Laporan Satu Muka Surat) dijana sistem — rekod baharu
   kedudukan         String? // Penyertaan | Johan | Naib Johan | Ketiga (null = rekod lama)
   // Guru pengiring dipilih pelajar — HANYA guru ini boleh mengesahkan (rekod baharu).
   guruPengiring     Guru?     @relation("GuruPengiringLuar", fields: [guruPengiringId], references: [id], onDelete: SetNull)

@@ -27,7 +27,7 @@ async function cariPemilik(nama: string): Promise<Pemilik | null> {
   return (
     (await prisma.pencapaian.findFirst({ where: { lampiranEviden: ada }, select: pilih })) ??
     (await prisma.aktivitiLuar.findFirst({
-      where: { OR: [{ lampiranSurat: ada }, { lampiranSijil: ada }] },
+      where: { OR: [{ lampiranSurat: ada }, { lampiranSijil: ada }, { lampiranOpr: ada }] },
       select: pilih,
     })) ??
     (await prisma.laporanMingguan.findFirst({

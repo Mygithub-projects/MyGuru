@@ -4,6 +4,7 @@ import { bacaOprDariForm, janaOprPDF } from "@/lib/opr";
 import { bacaPeserta, tagProjekPelajar } from "@/lib/projek";
 import { JAWATAN_PERANAN } from "@/lib/projek-jawatan";
 import { bacaAktivitiUnitDariForm } from "@/lib/aktiviti-unit";
+import { bacaAktivitiLuarDariForm } from "@/lib/aktiviti-luar";
 
 // POST: pratonton OPR (tidak disimpan). Pelajar semak PDF ini sebelum klik
 // "Hantar untuk pengesahan" — penghantaran sebenar menjana semula OPR yang sama
@@ -21,7 +22,12 @@ export async function POST(request: NextRequest) {
   const pelajar = { id: session.pelajarId, subRole: session.subRole };
 
   let r: Awaited<ReturnType<typeof bacaOprDariForm>>;
-  if (form.get("jenis") === "aktiviti") {
+  if (form.get("jenis") === "luar") {
+    // Aktiviti Luar — mana-mana pelajar, untuk diri sendiri.
+    const a = await bacaAktivitiLuarDariForm(form, session.pelajarId);
+    if ("ralat" in a) return fail(a.ralat, 422);
+    r = { data: a.data.opr };
+  } else if (form.get("jenis") === "aktiviti") {
     // Aktiviti Unit (SU/NSU) — pratonton OPR bersama peserta & kedudukan.
     if (!(session.subRole === "SU" || session.subRole === "NSU")) return fail("Hanya SU/NSU boleh menjana OPR aktiviti unit", 403);
     const a = await bacaAktivitiUnitDariForm(form, { pelajarId: session.pelajarId, subRole: session.subRole });
