@@ -238,56 +238,69 @@ const KAKI_Y = KAKI_M + KAKI_TINGGI - 12; // garis asas teks kaki
 const KAKI_X = KAKI_M + (A4.w - 2 * KAKI_M) / 2;
 const KAKI_W = A4.w - KAKI_M - KAKI_X;
 
-/**
- * Lukis blok pengesahan di lajur kanan kaki muka surat 1. Komen yang tidak muat
- * (lebih 3 baris) dipapar penuh pada muka surat tambahan.
- */
-function lukisPengesahan(doc: PDFDocument, page: PDFPage, font: PDFFont, bold: PDFFont, p: PengesahanOpr) {
-  const HIJAU = rgb(0.02, 0.47, 0.34);
-  const t = (s: string, x: number, y: number, size: number, f: PDFFont, color = DARK) =>
-    page.drawText(bersih(s), { x, y, size, font: f, color });
-  t("Pengesahan Guru Penasihat:", KAKI_X, KAKI_Y - 6, 8, bold, BRAND);
-  const oleh = hadBaris(balut(`DISAHKAN oleh ${p.oleh}`, bold, 8, KAKI_W), 1, bold, 8, KAKI_W);
-  t(oleh[0], KAKI_X, KAKI_Y - 17, 8, bold, HIJAU);
-  if (!p.komen) return;
-  const semua = balut(`Komen: ${p.komen}`, font, 7.5, KAKI_W);
-  const MAKS = 3;
-  const papar = hadBaris(semua, MAKS, font, 7.5, KAKI_W);
-  if (semua.length > MAKS) {
-    const ekor = "... (penuh di m/s akhir)";
-    let akhir = semua[MAKS - 1];
-    while (akhir && font.widthOfTextAtSize(akhir + ekor, 7.5) > KAKI_W) akhir = akhir.slice(0, -1);
-    papar[MAKS - 1] = akhir + ekor;
-  }
-  papar.forEach((b, k) => t(b, KAKI_X, KAKI_Y - 27 - k * 8.5, 7.5, font));
-  if (semua.length > MAKS) {
-    const pg = doc.addPage([A4.w, A4.h]);
-    let y = A4.h - KAKI_M;
-    pg.drawText("KOMEN GURU PENASIHAT", { x: KAKI_M, y: y - 12, size: 11, font: bold, color: BRAND });
-    y -= 22;
-    pg.drawLine({ start: { x: KAKI_M, y }, end: { x: A4.w - KAKI_M, y }, thickness: 1.5, color: BRAND });
-    y -= 16;
-    for (const b of balut(p.komen, font, 10, A4.w - 2 * KAKI_M)) {
-      pg.drawText(b, { x: KAKI_M, y, size: 10, font, color: DARK });
-      y -= 13;
-    }
-    pg.drawText(bersih(`Disahkan oleh ${p.oleh}`), { x: KAKI_M, y: y - 10, size: 8.5, font: bold, color: HIJAU });
-  }
+const KAKI_ATAS = KAKI_M + KAKI_TINGGI; // sempadan bawah kandungan (atas kaki)
+const KOMEN_SZ = 9;
+const KOMEN_LS = 11.5;
+const KOMEN_W = A4.w - 2 * KAKI_M;
+
+/** Tinggi seksyen "KOMEN GURU PENASIHAT" (bar tajuk + kotak teks). */
+function tinggiKomen(font: PDFFont, komen: string): number {
+  return 15 + balut(komen, font, KOMEN_SZ, KOMEN_W - 12).length * KOMEN_LS + 8;
+}
+
+/** Lukis seksyen komen guru (lebar penuh) bermula di yAtas — diletak selepas gambar. */
+function lukisKomen(page: PDFPage, font: PDFFont, bold: PDFFont, komen: string, yAtas: number) {
+  page.drawRectangle({ x: KAKI_M, y: yAtas - 15, width: KOMEN_W, height: 15, color: BRAND });
+  page.drawText("KOMEN GURU PENASIHAT", { x: KAKI_M + 6, y: yAtas - 11, size: 9, font: bold, color: rgb(1, 1, 1) });
+  const baris = balut(komen, font, KOMEN_SZ, KOMEN_W - 12);
+  const h = baris.length * KOMEN_LS + 8;
+  const y0 = yAtas - 15;
+  page.drawRectangle({ x: KAKI_M, y: y0 - h, width: KOMEN_W, height: h, color: rgb(0.99, 0.98, 0.93), borderColor: LINE, borderWidth: 0.5 });
+  baris.forEach((b, k) => page.drawText(b, { x: KAKI_M + 6, y: y0 - 11 - k * KOMEN_LS, size: KOMEN_SZ, font, color: DARK }));
+}
+
+/** Lukis blok pengesahan di lajur kanan kaki muka surat 1 (nama pengesah & tarikh). */
+function lukisPengesahan(page: PDFPage, bold: PDFFont, p: PengesahanOpr) {
+  page.drawText("Pengesahan Guru Penasihat:", { x: KAKI_X, y: KAKI_Y - 6, size: 8, font: bold, color: BRAND });
+  const oleh = hadBaris(balut(`DISAHKAN oleh ${p.oleh}`, bold, 8, KAKI_W), 2, bold, 8, KAKI_W);
+  oleh.forEach((b, k) => page.drawText(b, { x: KAKI_X, y: KAKI_Y - 17 - k * 9.5, size: 8, font: bold, color: rgb(0.02, 0.47, 0.34) }));
 }
 
 /**
- * Cop pengesahan guru pada OPR sedia ada (PDF yang dihantar pelajar) — ganti teks
- * "Menunggu pengesahan" di kaki muka surat 1. Gambar & isi asal dikekalkan.
+ * Cop pengesahan guru pada OPR sedia ada (PDF yang dihantar pelajar): ganti
+ * "Menunggu pengesahan" di kaki muka surat 1. Jika ada komen, kandungan muka
+ * surat 1 dikecilkan sedikit (seragam, tanpa herot) supaya seksyen komen guru
+ * muat SELEPAS gambar, sebelum kaki. Gambar & isi asal dikekalkan.
  */
 export async function copPengesahanOpr(pdf: Uint8Array, p: PengesahanOpr): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(pdf);
-  const page = doc.getPage(0);
-  const font = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  // Tutup blok "Pengesahan Guru Penasihat: Menunggu pengesahan" yang asal.
+  const src = await PDFDocument.load(pdf);
+  const out = await PDFDocument.create();
+  out.setTitle(src.getTitle() ?? "OPR");
+  const font = await out.embedFont(StandardFonts.Helvetica);
+  const bold = await out.embedFont(StandardFonts.HelveticaBold);
+  const asal = src.getPage(0);
+  const page = out.addPage([A4.w, A4.h]);
+
+  // Kaki asal (disediakan oleh / tarikh jana) — saiz sebenar.
+  const [kaki] = await out.embedPages([asal], [{ left: 0, bottom: 0, right: A4.w, top: KAKI_ATAS }]);
+  page.drawPage(kaki, { x: 0, y: 0, width: A4.w, height: KAKI_ATAS });
+
+  // Kandungan (kepala → gambar), dikecilkan jika perlu ruang untuk komen.
+  const [isi] = await out.embedPages([asal], [{ left: 0, bottom: KAKI_ATAS, right: A4.w, top: A4.h }]);
+  const ruangKomen = p.komen ? tinggiKomen(font, p.komen) + 8 : 0;
+  const tinggiAsal = A4.h - KAKI_ATAS;
+  const sk = (tinggiAsal - ruangKomen) / tinggiAsal;
+  page.drawPage(isi, { x: (A4.w - A4.w * sk) / 2, y: KAKI_ATAS + ruangKomen, width: A4.w * sk, height: tinggiAsal * sk });
+  if (p.komen) lukisKomen(page, font, bold, p.komen, KAKI_ATAS + ruangKomen - 4);
+
+  // Tutup "Menunggu pengesahan" asal & cop pengesahan.
   page.drawRectangle({ x: KAKI_X - 2, y: 14, width: KAKI_W + 2, height: KAKI_Y + 3 - 14, color: rgb(1, 1, 1) });
-  lukisPengesahan(doc, page, font, bold, p);
-  return doc.save();
+  lukisPengesahan(page, bold, p);
+
+  // Muka surat lain (cth lampiran senarai peserta) disalin seadanya.
+  const lain = await out.copyPages(src, src.getPageIndices().slice(1));
+  lain.forEach((pg) => out.addPage(pg));
+  return out.save();
 }
 
 export async function janaOprPDF(d: OprData, opts: { pengesahan?: PengesahanOpr } = {}): Promise<Uint8Array> {
@@ -442,7 +455,10 @@ export async function janaOprPDF(d: OprData, opts: { pengesahan?: PengesahanOpr 
   // --- Gambar (grid mengisi ruang baki) ---
   seksyen(`${noSeksyen}. GAMBAR AKTIVITI`);
   const ruangAtas = y - 6;
-  const ruangBawah = M + KAKI;
+  // Komen guru (dokumen disahkan) diletak SELEPAS gambar, sebelum kaki.
+  const komen = opts.pengesahan?.komen || null;
+  const ruangKomen = komen ? tinggiKomen(font, komen) + 8 : 0;
+  const ruangBawah = M + KAKI + ruangKomen;
   const n = d.gambar.length;
   if (n === 0) {
     const h = Math.max(40, ruangAtas - ruangBawah);
@@ -480,8 +496,9 @@ export async function janaOprPDF(d: OprData, opts: { pengesahan?: PengesahanOpr 
   teks(page, "Disediakan oleh:", M, ky - 6, 8, bold, BRAND);
   teks(page, d.disediakanOleh, M, ky - 18, 9, bold);
   teks(page, d.jawatanPenyedia, M, ky - 29, 8, font, GREY);
+  if (komen) lukisKomen(page, font, bold, komen, M + KAKI + ruangKomen - 4);
   if (opts.pengesahan) {
-    lukisPengesahan(doc, page, font, bold, opts.pengesahan);
+    lukisPengesahan(page, bold, opts.pengesahan);
   } else {
     teks(page, "Pengesahan Guru Penasihat:", M + W / 2, ky - 6, 8, bold, BRAND);
     teks(page, "Menunggu pengesahan (selepas dihantar)", M + W / 2, ky - 18, 8.5, font, GREY);
