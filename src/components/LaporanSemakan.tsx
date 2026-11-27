@@ -3,6 +3,7 @@ import type { Dict } from "@/lib/i18n";
 import type { LaporanSU } from "@/lib/laporan-semakan";
 import { StatusBadge } from "./StatusBadge";
 import { LaporanSemakanAksi } from "./LaporanSemakanAksi";
+import { LaporanKomenGuru } from "./LaporanKomenGuru";
 
 // Halaman semakan laporan SU/NSU — dikongsi oleh /guru/laporan & /admin/laporan.
 export function LaporanSemakan({
@@ -102,6 +103,7 @@ export function LaporanSemakan({
                   </a>
                 )}
                 {r.status === "Pending" && <LaporanSemakanAksi jenis={r.jenis} id={r.id} t={d} />}
+                <LaporanKomenGuru key={r.komen ?? ""} jenis={r.jenis} id={r.id} komen={r.komen} t={d} />
               </div>
               {r.status === "Approved" && r.disahkanOleh && (
                 <p className="mt-2 text-xs text-emerald-700">{d.approvedBy}: {r.disahkanOleh}</p>

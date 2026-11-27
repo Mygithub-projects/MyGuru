@@ -339,6 +339,7 @@ export interface Dict {
     semakan: {
       title: string; sub: string; all: string; pending: string; approved: string; query: string;
       by: string; evidence: string; workPlan: string; approve: string; queryBtn: string; queryPrompt: string;
+      commentBtn: string; editCommentBtn: string; commentPlaceholder: string; save: string; cancel: string;
       empty: string; notAllowed: string; networkError: string; position: string; filterBtn: string; statusLabel: string; typeLabel: string; approvedBy: string;
     };
   };
@@ -840,6 +841,7 @@ const ms: Dict = {
       title: "Laporan SU/NSU", sub: "Semua laporan mingguan & projek yang dihantar SU/NSU — lihat butiran, eviden dan sahkan atau kuiri.",
       all: "Semua", pending: "Menunggu", approved: "Disahkan", query: "Kuiri",
       by: "oleh", evidence: "Lihat eviden", workPlan: "Kertas kerja", approve: "Sahkan", queryBtn: "Kuiri", queryPrompt: "Komen kuiri:",
+      commentBtn: "Tulis komen", editCommentBtn: "Ubah komen", commentPlaceholder: "Komen guru untuk laporan ini…", save: "Simpan", cancel: "Batal",
       empty: "Tiada laporan untuk tapisan ini.", notAllowed: "Tidak dibenarkan.", networkError: "Ralat rangkaian",
       position: "Jawatan", filterBtn: "Tapis", statusLabel: "Status", typeLabel: "Jenis laporan", approvedBy: "Disahkan oleh",
     },
@@ -1376,6 +1378,7 @@ const en: Dict = {
       title: "SU/NSU Reports", sub: "All weekly & project reports submitted by SU/NSU — view details and evidence, then approve or query.",
       all: "All", pending: "Pending", approved: "Approved", query: "Query",
       by: "by", evidence: "View evidence", workPlan: "Work plan", approve: "Approve", queryBtn: "Query", queryPrompt: "Query comment:",
+      commentBtn: "Write comment", editCommentBtn: "Edit comment", commentPlaceholder: "Teacher's comment on this report…", save: "Save", cancel: "Cancel",
       empty: "No reports for this filter.", notAllowed: "Not allowed.", networkError: "Network error",
       position: "Position", filterBtn: "Filter", statusLabel: "Status", typeLabel: "Report type", approvedBy: "Approved by",
     },
