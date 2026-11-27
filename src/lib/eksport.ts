@@ -120,7 +120,7 @@ export async function eksportPelajarRosterExcel(): Promise<Buffer> {
     { header: "Sukan / Permainan", key: "sukan", width: 30 },
     { header: "Badan Beruniform", key: "badan", width: 30 },
     { header: "Markah PAJSK T6", key: "markahT6", width: 16 },
-    { header: "Peratus T6 (%)", key: "peratusT6", width: 14 },
+    { header: "Peratus CGPA (%)", key: "peratusT6", width: 16 },
     { header: "Gred", key: "gred", width: 8 },
   ];
   for (const p of pelajar) {
