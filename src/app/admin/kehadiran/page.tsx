@@ -2,7 +2,7 @@ import Link from "next/link";
 import { dbKohort } from "@/lib/prisma-kohort";
 import { getT } from "@/lib/locale";
 import { KehadiranTable } from "./KehadiranTable";
-import { SalinTeks } from "./SalinTeks";
+import { RingkasanHarian } from "./RingkasanHarian";
 
 const MYT_MS = 8 * 3_600_000;
 // Empat bahagian PAJSK, setiap satu dengan warna tetap untuk carta harian.
@@ -52,7 +52,7 @@ export default async function AdminKehadiranPage({
       .map((s) => {
         const total = s.kehadiran.length;
         const hadir = s.kehadiran.filter((k) => k.statusHadir).length;
-        return { nama: s.namaUnit, bil: s.bilPerjumpaan, hadir, total, peratus: total ? Math.round((hadir / total) * 100) : 0 };
+        return { nama: s.namaUnit, bil: s.bilPerjumpaan, hadir, total, peratus: total ? Math.round((hadir / total) * 1000) / 10 : 0 };
       });
     const hadir = unit.reduce((a, u) => a + u.hadir, 0);
     const total = unit.reduce((a, u) => a + u.total, 0);
@@ -137,38 +137,12 @@ export default async function AdminKehadiranPage({
         {sesiHari.length === 0 ? (
           <p className="text-sm text-slate-400">{d.dailyNone}</p>
         ) : (
-          <>
-            <div className="mb-3 flex justify-end">
-              <SalinTeks teks={teksSemua} label={d.dailyCopyAll} labelDisalin={d.dailyCopied} utama />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {harian.map((b) => (
-                <div key={b.jenis} className="flex flex-col rounded-lg border border-slate-200 p-4" style={{ borderTopColor: b.warna, borderTopWidth: 4 }}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-base font-bold text-slate-800">{b.kod} <span className="font-semibold text-slate-500">{tarikhPendek}</span></p>
-                      <p className="text-xs text-slate-500">{b.label}</p>
-                    </div>
-                    <SalinTeks teks={teksBahagian(b)} label={d.dailyCopy} labelDisalin={d.dailyCopied} />
-                  </div>
-                  <ol className="mt-3 flex-1 space-y-1 text-sm">
-                    {b.unit.map((u, i) => (
-                      <li key={`${u.nama}-${u.bil}`} className="flex items-baseline gap-2" title={`${u.nama} · ${d.dailyMeeting} ${u.bil} · ${u.peratus}%`}>
-                        <span className="w-6 shrink-0 text-right text-slate-400">{i + 1}.</span>
-                        <span className="min-w-0 flex-1 text-slate-700">{u.nama}</span>
-                        <span className={`shrink-0 font-semibold tabular-nums ${u.total && u.hadir === u.total ? "text-emerald-700" : u.peratus < 80 ? "text-rose-600" : "text-slate-800"}`}>
-                          {u.hadir}/{u.total}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                  <p className="mt-3 border-t border-slate-200 pt-2 text-sm font-bold text-slate-800">
-                    {d.dailyTotal}: {b.hadir}/{b.total} <span style={{ color: b.warna }}>({b.peratus.toFixed(2)}%)</span>
-                  </p>
-                </div>
-              ))}
-            </div>
-          </>
+          <RingkasanHarian
+            harian={harian.map((b) => ({ ...b, teks: teksBahagian(b) }))}
+            tarikh={tarikhPendek}
+            teksSemua={teksSemua}
+            d={d}
+          />
         )}
       </section>
 
