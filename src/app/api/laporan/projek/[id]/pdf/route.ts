@@ -1,8 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { fail } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
-import { janaLaporanPDF } from "@/lib/pdf";
-import { teksDisahkanOleh } from "@/lib/pengesah";
+import { pdfProjekDisahkan } from "@/lib/laporan-disahkan";
 import { guruSeluruhSekolah, unitSeliaan, bolehGuruAksesPelajar } from "@/lib/workflow";
 
 export async function GET(
@@ -34,30 +33,8 @@ export async function GET(
     }
   }
 
-  const pdf = await janaLaporanPDF({
-    disahkanOleh: await teksDisahkanOleh(rec),
-    jenis: "Projek",
-    tajuk: rec.namaProjek,
-    namaUnit: rec.namaUnit,
-    jenisKoko: rec.jenisKoko,
-    tarikh: rec.tarikh ? rec.tarikh.toLocaleDateString("ms-MY") : null,
-    setiausaha: rec.setiausaha.nama,
-    status: rec.statusPengesahan,
-    baris: [
-      { label: "Peringkat", nilai: rec.peringkatProjek ?? "-" },
-      { label: "Jawatan dalam Projek", nilai: rec.jawatanProjek ?? "-" },
-      // Rekod baharu ada laporan ringkas; rekod lama guna medan kewangan/kekuatan/kelemahan.
-      ...(rec.laporan
-        ? [{ label: "Laporan Ringkas", nilai: rec.laporan }]
-        : [
-            { label: "Kewangan", nilai: rec.kewangan ?? "-" },
-            { label: "Kekuatan", nilai: rec.kekuatan ?? "-" },
-            { label: "Kelemahan / Penambahbaikan", nilai: rec.kelemahan ?? "-" },
-          ]),
-      { label: "Lampiran", nilai: [rec.failKertasKerja ? "Kertas kerja" : null, rec.failLaporanImpak ? "Eviden" : null].filter(Boolean).join(", ") || "-" },
-      { label: "Komen Guru", nilai: rec.komenGuru ?? "-" },
-    ],
-  });
+  // Dokumen disahkan dalam format OPR (OPR asal dicop pengesahan, atau dijana dari rekod).
+  const pdf = await pdfProjekDisahkan(rec);
 
   return new Response(Buffer.from(pdf), {
     headers: {
