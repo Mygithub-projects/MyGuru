@@ -23,6 +23,7 @@ interface AktivitiLuar extends ItemPelajar {
   peringkat: string;
   lampiranSurat: string | null;
   lampiranSijil: string | null;
+  lampiranOpr?: string | null;
   tarikh?: string | Date | null;
   laporan?: string | null;
   /** Penyertaan | Johan | Naib Johan | Ketiga (null = rekod lama). */
@@ -384,9 +385,11 @@ function AktivitiLuarRow({
 }) {
   const [suratDilihat, setSuratDilihat] = useState(false);
   const [sijilDilihat, setSijilDilihat] = useState(false);
+  const [oprDilihat, setOprDilihat] = useState(false);
   // Satu fail eviden (lampiranSijil) sudah memadai; rekod lama mungkin ada surat juga.
+  // Rekod baharu ada OPR — mesti dibuka juga sebelum mengesahkan.
   const lengkap = !!(a.lampiranSurat || a.lampiranSijil);
-  const sedia = lengkap && (!a.lampiranSurat || suratDilihat) && (!a.lampiranSijil || sijilDilihat);
+  const sedia = lengkap && (!a.lampiranSurat || suratDilihat) && (!a.lampiranSijil || sijilDilihat) && (!a.lampiranOpr || oprDilihat);
   return (
     <Row
       nama={a.pelajar.nama}
@@ -401,6 +404,9 @@ function AktivitiLuarRow({
       ].filter(Boolean).join(" · ")}
       laporan={a.laporan}
     >
+      {a.lampiranOpr && (
+        <EvidenLink href={a.lampiranOpr} label="OPR" dilihat={oprDilihat} onLihat={() => setOprDilihat(true)} />
+      )}
       {a.lampiranSurat && (
         <EvidenLink href={a.lampiranSurat} label={t.viewLetter} dilihat={suratDilihat} onLihat={() => setSuratDilihat(true)} />
       )}
