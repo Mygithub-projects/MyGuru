@@ -58,7 +58,8 @@ export function EkstraSemakan({ baris, anugerah, menunggu, en }: {
 
 function Kad({ b, anugerah, en }: { b: BarisEkstra; anugerah: { perkara: string; skor: number }[]; en: boolean }) {
   const router = useRouter();
-  const [perkara, setPerkara] = useState(b.perkara ?? "");
+  // Pra-pilih perkara yang dipilih pelajar sebagai "Peringkat" (pengesah boleh tukar).
+  const [perkara, setPerkara] = useState(b.perkara ?? (anugerah.some((a) => a.perkara === b.peringkat) ? b.peringkat! : ""));
   const [komen, setKomen] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);

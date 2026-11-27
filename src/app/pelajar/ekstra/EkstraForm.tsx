@@ -2,12 +2,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
-import { PERINGKAT_EKSTRA } from "@/lib/enums";
 
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 /** Borang pelajar: hantar program Ekstra Kurikulum (Anugerah Khas) untuk pengesahan Ketua Unit Kokurikulum. */
-export function EkstraForm({ pelajarId }: { pelajarId: string }) {
+export function EkstraForm({ pelajarId, perkara }: { pelajarId: string; perkara: readonly string[] }) {
   const router = useRouter();
   const en = useLocale() === "en";
   const [busy, setBusy] = useState(false);
@@ -47,8 +46,8 @@ export function EkstraForm({ pelajarId }: { pelajarId: string }) {
       <h2 className="mb-1 text-sm font-bold uppercase tracking-wide text-slate-600">{en ? "Submit Extra-Curricular" : "Hantar Ekstra Kurikulum"}</h2>
       <p className="mb-4 text-xs text-slate-500">
         {en
-          ? "Special awards (e.g. Anugerah Remaja Perdana, Pengakap Raja, special sports awards, international participation). Verified by the Head of Co-curriculum Unit, who assigns the mark."
-          : "Anugerah khas (cth. Anugerah Remaja Perdana, Pengakap Raja, anugerah khas sukan, penyertaan antarabangsa). Disahkan oleh Ketua Unit Kokurikulum yang akan menetapkan markah."}
+          ? "Special awards (e.g. Anugerah Remaja Perdana, Pengakap Raja, special sports awards, international participation). Verified by the Head of Co-curriculum Unit."
+          : "Anugerah khas (cth. Anugerah Remaja Perdana, Pengakap Raja, anugerah khas sukan, penyertaan antarabangsa). Disahkan oleh Ketua Unit Kokurikulum."}
       </p>
       {msg && (
         <div className={`mb-3 rounded-md px-3 py-2 text-sm ${msg.ok ? "bg-brand-light text-brand-dark ring-1 ring-brand/30" : "bg-red-50 text-red-700 ring-1 ring-red-200"}`}>
@@ -59,10 +58,10 @@ export function EkstraForm({ pelajarId }: { pelajarId: string }) {
         <label className="text-sm sm:col-span-2">{en ? "Programme / activity name" : "Nama Program / Aktiviti"}
           <input name="namaPencapaian" maxLength={200} className={inputCls} required />
         </label>
-        <label className="text-sm">{en ? "Level" : "Peringkat"}
+        <label className="text-sm sm:col-span-2">{en ? "Level" : "Peringkat"}
           <select name="peringkat" className={inputCls} required defaultValue="">
             <option value="" disabled>{en ? "— Choose level —" : "— Pilih peringkat —"}</option>
-            {PERINGKAT_EKSTRA.map((p) => <option key={p} value={p}>{p}</option>)}
+            {perkara.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
         </label>
         <label className="text-sm">{en ? "Programme date" : "Tarikh Program"}
