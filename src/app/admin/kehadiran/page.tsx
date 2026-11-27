@@ -146,8 +146,7 @@ export default async function AdminKehadiranPage({
         )}
       </section>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Kad label={d.totalMeetings} nilai={`${rows.length}`} />
+      <div className="grid grid-cols-2 gap-3">
         <Kad label={d.avgAttendance} nilai={`${purata}%`} />
         <Kad
           label={d.notVerified}
