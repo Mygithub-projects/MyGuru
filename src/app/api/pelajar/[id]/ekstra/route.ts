@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSession, sekatBelumDisahkan, ok, fail } from "@/lib/api";
 import { simpanFailDariForm } from "@/lib/upload";
-import { PERINGKAT_EKSTRA } from "@/lib/enums";
+import { PERKARA_EKSTRA } from "@/lib/enums";
 
 // POST /api/pelajar/[id]/ekstra — pelajar menghantar program Ekstra Kurikulum
 // (Anugerah Khas). Disahkan HANYA oleh Ketua Unit Kokurikulum / Admin melalui
@@ -28,7 +28,8 @@ export async function POST(
   const tempat = String(form.get("tempat") ?? "").trim();
   if (!namaPencapaian) return fail("Nama program/aktiviti diperlukan", 422);
   if (namaPencapaian.length > 200) return fail("Nama program terlalu panjang", 422);
-  if (!(PERINGKAT_EKSTRA as readonly string[]).includes(peringkat)) return fail("Peringkat tidak sah", 422);
+  // Peringkat = salah satu perkara jadual Anugerah Khas (skor tidak didedahkan kepada pelajar).
+  if (!PERKARA_EKSTRA.includes(peringkat)) return fail("Sila pilih peringkat daripada senarai", 422);
   const t = new Date(tarikh);
   if (!tarikh || Number.isNaN(t.getTime())) return fail("Tarikh program diperlukan", 422);
   if (!tempat) return fail("Tempat diperlukan", 422);

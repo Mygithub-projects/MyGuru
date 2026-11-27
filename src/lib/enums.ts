@@ -187,7 +187,6 @@ export const ANUGERAH_KHAS: readonly { perkara: string; skor: number }[] = [
   { perkara: "ANUGERAH REMAJA PERDANA (ANJURAN KBS) (EMAS)", skor: 10 },
   { perkara: "ANUGERAH REMAJA PERDANA (ANJURAN KBS) (PERAK)", skor: 7 },
   { perkara: "ANUGERAH REMAJA PERDANA (ANJURAN KBS) (GANGSA)", skor: 5 },
-  { perkara: "PENGAKAP RAJA / PANDU PUTERI RAJA", skor: 10 },
   { perkara: "ANUGERAH KHAS SUKAN (KEBANGSAAN)", skor: 5 },
   { perkara: "ANUGERAH KHAS SUKAN (NEGERI)", skor: 4 },
   { perkara: "ANUGERAH KHAS SUKAN (ZON/DAERAH/BAHAGIAN)", skor: 3 },
@@ -200,7 +199,10 @@ export const ANUGERAH_KHAS: readonly { perkara: string; skor: number }[] = [
   { perkara: "ANUGERAH-ANUGERAH LAIN (NEGERI)", skor: 4 },
   { perkara: "ANUGERAH-ANUGERAH LAIN (ZON/DAERAH/BAHAGIAN)", skor: 3 },
   { perkara: "ANUGERAH-ANUGERAH LAIN (PENYERTAAN)", skor: 2 },
+  { perkara: "PENGAKAP RAJA / PANDU PUTERI RAJA", skor: 10 },
 ];
+/** Senarai perkara SAHAJA (tanpa skor) — pilihan "Peringkat" pada borang pelajar. */
+export const PERKARA_EKSTRA: readonly string[] = ANUGERAH_KHAS.map((a) => a.perkara);
 /** Peringkat yang pelajar pilih semasa menghantar program Ekstra Kurikulum. */
 export const PERINGKAT_EKSTRA = ["Sekolah", "Zon/Daerah/Bahagian", "Negeri", "Kebangsaan", "Antarabangsa"] as const;
 /** Hanya jawatan ini (dan Admin) boleh mengesahkan Ekstra Kurikulum. */
